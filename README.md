@@ -87,6 +87,35 @@ For FastAPI, wrap the app with `rewind.asgi(app)` and return `ReplayTarget(rewin
 
 `Rewind.value(name, factory)` records explicit observations. `Retention` supports exceptions, status thresholds, duration thresholds, and `always=True`; defaults retain exceptions and HTTP statuses of at least 500. Retained artifacts are written synchronously.
 
+## Record time, randomness, and UUIDs
+
+Use `rewind.sources` at application observation sites inside a captured execution:
+
+```python
+from datetime import UTC
+
+# Inside an async entry point using the Rewind instance named rewind:
+created_at = rewind.sources.datetime_now(UTC)
+request_id = rewind.sources.uuid4()
+retry_delay = rewind.sources.uniform(0.1, 0.5)
+await rewind.sources.sleep(retry_delay)
+```
+
+These operations record actual outcomes in interaction order. Replay returns the recorded values and checks method arguments without calling live clock, UUID, or random factories. Recorded sleep yields once without waiting the original delay.
+
+| Family | Explicit methods |
+|---|---|
+| Clocks | `time`, `time_ns`, `monotonic`, `monotonic_ns`, `perf_counter`, `perf_counter_ns` |
+| Dates | `datetime_now(tz=None)`, `date_today()` |
+| Identifiers | `uuid4()` |
+| Random values | `random()`, `randint(a, b)`, `uniform(a, b)` |
+| Collections | `choice(population)`, `sample(population, k)`, `shuffle(list)` |
+| Waits | `await sleep(delay, result=None)` |
+
+Date/datetime/UUID values use typed codecs. Datetimes support naive values and standard-library fixed-offset timezones, including UTC; `ZoneInfo` and custom timezone classes are outside the current contract. Collection elements must use supported codec types. Shuffle mutates the supplied list and returns `None`; object identity of elements is not reproduced.
+
+Direct standard-library calls, imported aliases, third-party/native RNGs, and cryptographic entropy sources are not automatically intercepted. Rewind reproduces observations, not RNG internal state, elapsed wall time, or task scheduling. Capture policy applies to these values too: the default policy excludes them; controlled synthetic fixtures can opt in with `CapturePolicy.synthetic()`.
+
 ## Inspect, manage, and generate a test
 
 ```sh

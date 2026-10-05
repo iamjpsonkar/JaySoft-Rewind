@@ -13,6 +13,7 @@
 |---|---|---|
 | Identity | `jaysoft-rewind` distribution, `rewind` import/CLI; Jay Prakash Sonkar as maintainer | Package publication is a separate release action |
 | Capture | Async callable, buffered ASGI HTTP, explicit HTTPX async transport | Sequential owning-task calls; no global interception, streaming, or lifecycle replay |
+| Deterministic sources | Explicit `rewind.sources` clocks, dates, UUIDs, random operations, and async waits | No stdlib/global patching, third-party/native RNG interception, RNG state restoration, or scheduling replay |
 | Replay | Ordered strict matching, explicit outcome comparator, unused/extra interaction checks | Does not reconstruct heap, thread scheduling, or distributed state |
 | Runner | Fresh interpreter, finite timeout, Python audit guard before application import | Audit hooks are not an OS sandbox; Docker network-disabled validation supplied separately |
 | Data | Bounded JSON, typed codecs, privacy exclusions, incomplete reasons, immutable snapshots | Key-based filtering is not complete secret/PII detection |
@@ -70,7 +71,7 @@ Before expanding integrations, validate the workflow with three representative f
 | Interaction execution | Sequential awaited calls in one execution | Concurrent dependency calls and task causality |
 | Request/response bodies | Bounded buffered JSON or bytes with explicit capture policy | Streaming, multipart uploads, SSE, WebSockets |
 | Capture trigger | Exceptions, final HTTP status, duration thresholds, or always retain | Optional expression language only after a separate safety review |
-| Determinism | Declared providers for values the fixture needs | Proven transparent interception for selected APIs |
+| Determinism | Explicit clock/date/UUID/random/sleep methods and custom value providers | Proven transparent interception for selected APIs |
 | Persistence | Versioned local JSON artifact, atomic publication | Export archives, remote storage, encryption integration |
 | Replay | Strict matching, recorded outcomes, mismatch report | Controlled comparison across changed application code |
 | CLI | Inspect, replay, list, delete, reproduction-test generation | Export/import conveniences, doctor |
@@ -256,6 +257,8 @@ For v0.1 fixtures, provide explicit clock/ID/random providers and record their o
 Existing direct calls to `datetime.now`, imported aliases, native RNGs, or uninstrumented environment access are outside that guarantee. Transparent interception is a later capability that must publish exactly which APIs, versions, and import patterns are covered.
 
 Do not globally freeze the event loop's monotonic clock. Replay transport timeouts as recorded client exceptions without needing to wait the original duration. Application deadline/race behavior is a separate scheduling problem and is excluded initially.
+
+The alpha now supplies `rewind.sources`: wall/monotonic/performance clocks (float and nanosecond variants), `datetime_now`, `date_today`, `uuid4`, `random`, `randint`, `uniform`, `choice`, `sample`, `shuffle`, and async `sleep`. Each records actual outcomes and method parameters in the strict interaction sequence. Replay does not invoke live observation factories; sleep yields once with no requested delay. It does not restore RNG state or simulate elapsed time. Typed datetime codecs preserve fold and fixed-offset timezone metadata; ZoneInfo/custom timezone classes remain unsupported. Direct stdlib calls and imported aliases remain unchanged. Privacy exclusions still make recorded values ineligible unless an appropriate fixture policy permits them.
 
 Capture only allowlisted configuration values, never a full environment dump. Do not persist production credentials to make initialization convenient. If removing a value changes behavior that matters, require a safe local substitute or mark the artifact ineligible.
 
