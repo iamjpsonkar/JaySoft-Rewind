@@ -444,3 +444,108 @@ async def test_unsupported_exception_args_are_ineligible(recorder):
     snapshot = saved(recorder)
     assert not snapshot.complete
     assert "PRIVATE" not in repr(snapshot.data)
+
+
+@pytest.mark.parametrize("asynchronous", [False, True])
+async def test_pipeline_enqueue_validation_failure_is_ineligible(recorder, asynchronous):
+    inner = redis.asyncio.Redis() if asynchronous else redis.Redis()
+    client = AsyncRecordingRedis(inner) if asynchronous else RecordingRedis(inner)
+
+    async def operation():
+        pipe = client.pipeline()
+        with pytest.raises(redis.DataError):
+            pipe.set("key", "value", ex=1.5)
+        result = await pipe.execute() if asynchronous else pipe.execute()
+        assert result == []
+        return True
+
+    try:
+        assert await recorder.run(operation)
+        snapshot = saved(recorder)
+        assert not snapshot.complete
+        assert "redis_pipeline_enqueue_failed" in snapshot.data["capture"]["ineligible_reasons"]
+    finally:
+        if asynchronous:
+            await inner.aclose()
+        else:
+            inner.close()
+
+
+@pytest.mark.parametrize("command,args,kwargs", [
+    ("hset", ("hash", "customer_id", "PRIVATE_VALUE"), {}),
+    ("hset", ("hash", b"customer_id", b"PRIVATE_VALUE"), {}),
+    ("hset", ("hash",), {"key": "customer_id", "value": "PRIVATE_VALUE"}),
+    ("hset", ("hash",), {"items": ["customer_id", "PRIVATE_VALUE"]}),
+    ("hset", ("hash", None, None, {"customer_id": "PRIVATE_VALUE"}), {}),
+    ("hmset", ("hash", {"customer_id": "PRIVATE_VALUE"}), {}),
+    ("hget", ("hash", "customer_id"), {}),
+    ("hmget", ("hash", ["public", "customer_id"]), {}),
+    ("hdel", ("hash", "public", "customer_id"), {}),
+    ("hexists", ("hash", "customer_id"), {}),
+    ("hincrby", ("hash", "customer_id", 1), {}),
+    ("hincrbyfloat", ("hash", "customer_id", 1.1), {}),
+    ("hsetnx", ("hash", "customer_id", "PRIVATE_VALUE"), {}),
+    ("hvals", ("hash",), {}),
+    ("execute_command", ("HSET", "hash", "customer_id", "PRIVATE_VALUE"), {}),
+    ("execute_command", (b"HSET", b"hash", b"customer_id", b"PRIVATE_VALUE"), {}),
+    ("execute_command", ("HGET", "hash", "customer_id"), {}),
+    ("execute_command", ("HMGET", "hash", "public", "customer_id"), {}),
+])
+@pytest.mark.parametrize("pipeline", [False, True])
+async def test_positional_hash_fields_obey_custom_policy(
+    recorder, command, args, kwargs, pipeline,
+):
+    from dataclasses import replace
+
+    recorder.policy = replace(CapturePolicy.synthetic(), redacted_keys=("customer_id",))
+    result = ["PRIVATE_VALUE"] if pipeline else "PRIVATE_VALUE"
+    inner = FakeRedis([result])
+    client = RecordingRedis(inner)
+
+    async def operation():
+        target = client.pipeline() if pipeline else client
+        returned = getattr(target, command)(*args, **kwargs)
+        assert (target.execute() if pipeline else returned) == result
+
+    await recorder.run(operation)
+    snapshot = saved(recorder)
+    assert not snapshot.complete
+    assert b"PRIVATE_VALUE" not in snapshot.raw
+    assert snapshot.data["interactions"] == []
+    assert "sensitive_redis_fields_removed" in snapshot.data["capture"]["ineligible_reasons"]
+
+
+@pytest.mark.parametrize("pipeline", [False, True])
+async def test_async_hash_field_privacy(recorder, pipeline):
+    inner = AsyncFakeRedis([[b"PRIVATE_VALUE"]] if pipeline else [b"PRIVATE_VALUE"])
+    client = AsyncRecordingRedis(inner)
+
+    async def operation():
+        if pipeline:
+            pipe = client.pipeline()
+            pipe.hget("hash", b"password")
+            assert await pipe.execute() == [b"PRIVATE_VALUE"]
+        else:
+            assert await client.hget("hash", b"password") == b"PRIVATE_VALUE"
+
+    await recorder.run(operation)
+    snapshot = saved(recorder)
+    assert not snapshot.complete
+    assert b"PRIVATE_VALUE" not in snapshot.raw
+
+
+async def test_hash_policy_failure_does_not_change_application(recorder):
+    class BrokenPolicy(CapturePolicy):
+        def is_sensitive(self, key):
+            raise RuntimeError("policy failure")
+
+    recorder.policy = BrokenPolicy()
+    client = RecordingRedis(FakeRedis([b"value"]))
+
+    async def operation():
+        assert client.hget("hash", "field") == b"value"
+
+    await recorder.run(operation)
+    snapshot = saved(recorder)
+    assert not snapshot.complete
+    assert "redis_field_policy_failed" in snapshot.data["capture"]["ineligible_reasons"]

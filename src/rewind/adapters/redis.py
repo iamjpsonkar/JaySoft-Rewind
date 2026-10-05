@@ -59,6 +59,92 @@ def _allowed(name: str, args: tuple[Any, ...]) -> bool:
     return command.lower() in _METHODS
 
 
+def _hash_fields(
+    name: str, args: tuple[Any, ...], kwargs: dict[str, Any],
+    active: Recorder | ReplaySession | None,
+) -> bool:
+    """Detect field names before serializing positional command arguments/results."""
+    if active is None:
+        return False
+    raw = name == "execute_command"
+    if raw:
+        if not args or type(args[0]) not in (str, bytes):
+            return False
+        command = args[0]
+        if type(command) is bytes:
+            try:
+                command = command.decode("ascii")
+            except UnicodeError:
+                return False
+        name = command.lower()
+        args = args[1:]
+    count = 0
+
+    def private(value: Any, depth: int = 0) -> bool:
+        nonlocal count
+        count += 1
+        if count > active.limits.items or depth > active.limits.depth:
+            return True
+        if value is None or type(value) in (int, float):
+            return False
+        if type(value) in (str, bytes):
+            if len(value) > active.limits.snapshot_bytes:
+                return True
+            label = value.decode("utf-8", errors="replace") if type(value) is bytes else value
+            return active.policy.is_sensitive(label)
+        if type(value) in (dict, list, tuple):
+            return len(value) > active.limits.items or any(private(v, depth + 1) for v in value)
+        # Never consume an arbitrary iterator merely to discover its field names.
+        return True
+
+    if name == "hvals":
+        # Values alone carry no field names with which to enforce the policy.
+        hidden = True
+    elif name in ("hset", "hmset"):
+        if raw:
+            hidden = len(args) > active.limits.items or private(args[1::2])
+        elif name == "hmset":
+            hidden = private(args[1] if len(args) > 1 else kwargs.get("mapping"))
+        else:
+            key = args[1] if len(args) > 1 else kwargs.get("key")
+            mapping = args[3] if len(args) > 3 else kwargs.get("mapping")
+            items = args[4] if len(args) > 4 else kwargs.get("items")
+            if items is not None:
+                if type(items) not in (tuple, list) or len(items) > active.limits.items:
+                    hidden = True
+                else:
+                    hidden = private(items[::2])
+            else:
+                hidden = False
+            hidden = hidden or private(key) or private(mapping)
+    elif name in ("hmget", "hdel"):
+        hidden = private(args[1:] if len(args) > 1 else kwargs.get("keys"))
+    elif name in ("hget", "hexists", "hincrby", "hincrbyfloat", "hsetnx"):
+        hidden = private(args[1] if len(args) > 1 else kwargs.get("key"))
+    else:
+        return False
+    if hidden:
+        if isinstance(active, Recorder):
+            active.mark("sensitive_redis_fields_removed")
+        else:
+            active.fail("Redis hash fields are excluded by the capture policy")
+    return hidden
+
+
+def _private_hash_fields(
+    name: str, args: tuple[Any, ...], kwargs: dict[str, Any],
+    active: Recorder | ReplaySession | None,
+) -> bool:
+    try:
+        return _hash_fields(name, args, kwargs, active)
+    except Exception:
+        if isinstance(active, ReplaySession):
+            active.fail("Redis field policy could not be applied")
+        if isinstance(active, Recorder):
+            active.mark("redis_field_policy_failed")
+        return True
+
+
 def _exception(active: Recorder, exc: BaseException) -> dict[str, Any]:
     if type(exc).__module__ != "redis.exceptions" or type(exc).__name__ not in _EXCEPTIONS:
         active.mark("unsupported_redis_exception")
@@ -180,10 +266,11 @@ class RecordingRedis:
             allowed = _allowed(name, args)
             if not allowed:
                 _unsupported(active)
+            private = _private_hash_fields(name, args, kwargs, active)
             data = {"method": name, "args": args, "kwargs": kwargs}
             if isinstance(active, ReplaySession):
                 return _replay(active, "redis.command", self.dependency, data)
-            recorder = active if isinstance(active, Recorder) and allowed else None
+            recorder = active if isinstance(active, Recorder) and allowed and not private else None
             slot = _begin(recorder, "redis.command", self.dependency, data)
             try:
                 result = getattr(self.inner, name)(*args, **kwargs)
@@ -222,10 +309,11 @@ class AsyncRecordingRedis(RecordingRedis):
             allowed = _allowed(name, args)
             if not allowed:
                 _unsupported(active)
+            private = _private_hash_fields(name, args, kwargs, active)
             data = {"method": name, "args": args, "kwargs": kwargs}
             if isinstance(active, ReplaySession):
                 return _replay(active, "redis.command", self.dependency, data)
-            recorder = active if isinstance(active, Recorder) and allowed else None
+            recorder = active if isinstance(active, Recorder) and allowed and not private else None
             slot = _begin(recorder, "redis.command", self.dependency, data)
             try:
                 result = await getattr(self.inner, name)(*args, **kwargs)
@@ -290,6 +378,9 @@ class RecordingPipeline:
             if not _allowed(name, args):
                 self.unsupported = True
                 _unsupported(active)
+            if _private_hash_fields(name, args, kwargs, active):
+                self.unsupported = True
+                self.commands.clear()
             if active is not None and not self.unsupported:
                 data = {"method": name, "args": args, "kwargs": kwargs}
                 try:
@@ -308,7 +399,16 @@ class RecordingPipeline:
                     _unsupported(active)
             if isinstance(active, ReplaySession):
                 return self
-            result = getattr(self._inner(), name)(*args, **kwargs)
+            try:
+                result = getattr(self._inner(), name)(*args, **kwargs)
+            except BaseException:
+                # redis-py validates some options before enqueueing. Replay must
+                # not pretend the failed method queued a successful command.
+                self.unsupported = True
+                self.commands.clear()
+                if isinstance(active, Recorder):
+                    active.mark("redis_pipeline_enqueue_failed")
+                raise
             return self if result is self.inner else result
 
         return queue

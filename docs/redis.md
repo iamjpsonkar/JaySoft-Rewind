@@ -33,6 +33,9 @@ options, dependency names, or pipeline mode diverge. Results preserve strings,
 bytes, bytes-key dictionaries, tuples, lists, sets, integers, floats, booleans,
 and `None`. Transactional and nontransactional pipelines support chaining,
 reset, context managers, reuse, and `execute(raise_on_error=False)` error entries.
+If redis-py raises while validating a queued command, the original exception
+propagates and the capture is marked incomplete; replay does not pretend the
+failed command was queued.
 A pipeline queued outside the current capture is ineligible.
 
 Supported methods cover ordinary string/key, hash, list, set, sorted-set,
@@ -60,8 +63,13 @@ The default policy excludes command values, results, and exception arguments,
 so these artifacts are not replay eligible. Use `CapturePolicy.synthetic()`
 only for fixtures known to contain no secrets: Redis positional keys/values and
 exception text can contain arbitrary private data. Recognized sensitive hash
-fields are redacted, including bytes field names, and redaction makes the
-artifact incomplete. Queue snapshots and result structures are bounded by the
+fields are redacted, including bytes field names and configured
+`redacted_keys`, and redaction makes the artifact incomplete. Positional hash
+field names are checked too: sensitive `hset`, `hget`, `hmget`, `hdel`, and other
+field-addressing commands omit both their inputs and results. This also applies
+to `execute_command` forms and entire pipelines containing such commands.
+`hvals` is ineligible because its results do not include field names needed to
+enforce the policy; use `hgetall` when named-field redaction is needed. Queue snapshots and result structures are bounded by the
 configured capture limits; exceeding them does not interrupt live Redis calls.
 
 Run fake-backed contract cases with `pytest tests/test_redis.py`. To additionally
