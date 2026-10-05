@@ -72,11 +72,22 @@ def _validate(data: Any, limits: Limits) -> None:
             )
         else:
             _require(
-                type(decoded) is dict and set(decoded) == {"scope", "body"}, "invalid ASGI input"
+                type(decoded) is dict and set(decoded) == {"scope", "body", "chunks"},
+                "invalid ASGI input",
             )
             _require(
                 type(decoded["scope"]) is dict and type(decoded["body"]) is bytes,
                 "invalid ASGI input types",
+            )
+            chunks = decoded["chunks"]
+            _require(
+                type(chunks) is list and 0 < len(chunks) <= limits.interactions,
+                "invalid ASGI chunks",
+            )
+            _require(
+                all(type(n) is int and n >= 0 for n in chunks)
+                and sum(chunks) == len(decoded["body"]),
+                "ASGI chunk lengths differ from body",
             )
     interactions = data.get("interactions")
     _require(
