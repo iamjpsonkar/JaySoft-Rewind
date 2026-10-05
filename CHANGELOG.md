@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.1.0a3 — Unreleased
+
+### Added
+
+- Synchronous callable capture/replay, per-decorator safe retention conditions, sync HTTPX transport, and Flask/WSGI request lifecycle support.
+- SQLAlchemy 2.x + SQLite DBAPI capture/replay covering execution, partial fetches, cursor metadata, generated IDs, supported errors and transaction outcomes.
+- Sync/async redis-py command and pipeline capture/replay, byte/string result types, and real Redis conformance checks.
+- Bounded optional function/span timelines, interaction durations, and `inspect --timeline` without capturing arguments, locals or exception messages.
+- Environment observations, synchronous wait replay, additional explicit random methods, finite Decimal and typed mapping/set codecs.
+- Portable checksummed export/import archives, atomic no-clobber imports, runtime `doctor`, and snapshot-ID resolution for CLI tools.
+- Explicit changed-code comparison and developer-approved regression outcomes, separately labeled from strict reproduction.
+- Configurable redaction keys across supported structured surfaces, SQLite result-column filtering, and conservative sensitive-query exclusion.
+- Combined HTTP/database/Redis/source example and optional `flask`, `sqlalchemy`, `redis`, and `all` extras.
+
+### Limits
+
+- Database support is synchronous SQLite through the documented SQLAlchemy/DBAPI boundary, not general MySQL/PostgreSQL or database state reconstruction.
+- Redis scripts, pub/sub, blocking commands, WATCH/cluster behavior and uninstrumented dependencies are outside the supported boundary.
+- Tracing is opt-in and bounded; generators and global line tracing are unsupported. No universal overhead or production readiness claim is made.
+- Existing `0.1.0a2` artifacts and tag remain unchanged; this candidate requires its own release validation and publication.
+
 ## 0.1.0a2 — 2026-10-05
 
 First public alpha, published as `jaysoft-rewind` on PyPI after TestPyPI verification.

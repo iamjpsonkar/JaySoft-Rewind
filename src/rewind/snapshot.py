@@ -123,6 +123,11 @@ def _validate(data: Any, limits: Limits) -> None:
             "unknown required operation",
         )
         _require(type(item.get("dependency")) is str, "invalid dependency name")
+        if "duration_ns" in item:
+            _require(
+                type(item["duration_ns"]) is int and item["duration_ns"] >= 0,
+                "invalid interaction duration",
+            )
         decode(item.get("input"), limits)
         outcome = item.get("outcome")
         if outcome is None:

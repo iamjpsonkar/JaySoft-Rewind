@@ -62,6 +62,8 @@ class Rewind:
         self.retain = retain or Retention()
         self.writer = writer
         self.sources = Sources()
+        if trace_config is not None and not isinstance(trace_config, TraceConfig):
+            raise TypeError("trace_config must be TraceConfig")
         self.trace_config = trace_config or TraceConfig()
         self._metrics: Counter[str] = Counter({key: 0 for key in _COUNTERS})
         self._active = 0
@@ -240,8 +242,12 @@ class Rewind:
             recorder.interactions.clear()
             recorder.input = encode(None, self.limits)
             recorder.bytes_used = 0
+            recorder.interaction_started.clear()
             if recorder.diagnostics is not None:
-                recorder.diagnostics.clear()
+                try:
+                    recorder.diagnostics.clear()
+                except Exception:
+                    pass
             with self._lock:
                 self._active -= 1
 

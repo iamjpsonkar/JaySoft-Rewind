@@ -2,26 +2,29 @@
 
 > Capture a failing backend request. Replay its recorded dependencies locally. Turn the reproduction into a test.
 
-**Status:** operational local alpha (`0.1.0a2`) adds bounded background persistence, lifecycle controls, and repeatable performance validation to the validated `0.1.0a1` baseline.
+**Status:** `0.1.0a2` is published on PyPI. Development `0.1.0a3` implements database/Redis boundaries, synchronous frameworks, bounded function diagnostics, portable tooling, environment replay, configurable redaction and changed-code comparison.
 **Revision:** 2026-10-05, implementation status added to the architecture and delivery plan.
-**Repository baseline:** Python packaging, bounded snapshots, codecs, policies, local storage, async capture, HTTPX/ASGI adapters, strict replay, CLI, examples, tests, and CI configuration now exist.
+**Repository baseline:** the implementation and evidence ledger is maintained in [docs/implementation-roadmap.md](docs/implementation-roadmap.md), with explicit supported boundaries in [docs/support-matrix.md](docs/support-matrix.md). Initial-alpha scope tables below preserve the original staged design; they do not override the current implementation ledger.
 **Decision convention:** “must” defines the target contract. Design sections below include future requirements; their presence does not imply completion. The implementation status below and README describe the actual alpha scope. Runtime validation and CI outcomes must be reported separately from configuration/documentation completion.
 
 ## Current implementation and remaining gates
 
 | Area | Local alpha status | Remaining evidence or limitation |
 |---|---|---|
-| Identity | `jaysoft-rewind` distribution, `rewind` import/CLI; Jay Prakash Sonkar as maintainer | Package publication and trusted-publisher setup are separate release actions |
-| Capture | Async callable, buffered ASGI HTTP, explicit HTTPX async transport | Sequential owning-task calls; no global interception, streaming, or lifecycle replay |
-| Deterministic sources | Explicit `rewind.sources` clocks, dates, UUIDs, random operations, and async waits | No stdlib/global patching, third-party/native RNG interception, RNG state restoration, or scheduling replay |
+| Identity | `jaysoft-rewind` published at `0.1.0a2`; `rewind` import/CLI; Jay Prakash Sonkar as maintainer | Each subsequent candidate needs its own release validation |
+| Capture | Sync/async callable, ASGI/WSGI HTTP, sync/async HTTPX; per-decorator safe conditions | Sequential owning-task/thread dependencies; no global interception or arbitrary streaming replay |
+| Deterministic sources | Explicit clocks, dates, UUIDs, random operations, environment reads, sync/async waits | No stdlib/global patching, third-party/native RNG interception, RNG state restoration, or scheduling replay |
+| Database | SQLAlchemy 2.x + synchronous sqlite3, execute/fetch/metadata/transaction boundaries | One declared engine/driver combination; no SQL emulator or external database state reconstruction |
+| Redis | Explicit sync/async redis-py wrappers, commands, pipelines, typed results | Documented command subset; no pub/sub, Lua, WATCH, blocking or cluster support |
+| Diagnostics | Bounded optional function/span ring, interaction durations, CLI timeline | Explicit selected functions; no locals/args or global line profiler; optional event loss reported |
 | Replay | Ordered strict matching, explicit outcome comparator, unused/extra interaction checks | Does not reconstruct heap, thread scheduling, or distributed state |
 | Runner | Fresh interpreter, finite timeout, Python audit guard before application import | Audit hooks are not an OS sandbox; Docker network-disabled validation supplied separately |
-| Data | Bounded JSON, typed codecs, privacy exclusions, incomplete reasons, immutable snapshots | Key-based filtering is not complete secret/PII detection |
+| Data | Bounded JSON, typed codecs including Decimal/maps/sets, configurable key and DB-column filtering, immutable snapshots | Filtering is not complete secret/PII detection |
 | Persistence | Synchronous local store or bounded background writer, atomic publication, cleanup after successful save | No durable queue, cross-process quota coordination, periodic cleanup, or directory-fsync crash durability |
 | Operations | Enable/disable, fixed-key metrics, active/queued accounting, bounded writer drain and shutdown | Shutdown excludes active application requests; an in-flight filesystem call cannot be cancelled |
 | Performance tooling | CPU/simulated-I/O benchmark, separate allocation pass, gated saturation checks | Synthetic closed-loop results are not production budgets or fixed-arrival load evidence |
-| Compatibility | Declared source digest, Python major/minor, installed adapter-library versions | Not a full dependency/environment fingerprint; no changed-code comparison mode |
-| CLI and tests | Inspect/replay/list/delete and template reproduction-test generation | Generated tests assert observed outcomes; desired fixed behavior requires developer assertions |
+| Compatibility | Strict fingerprints plus separately labeled changed-code comparison | Only comparison permits a changed code digest; other identity and interaction checks remain strict |
+| CLI and tests | Inspect/replay/compare/list/delete/export/import/doctor; reproduction and explicit-oracle regression tests | Desired fixed behavior must be supplied by the developer |
 | Release engineering | Python 3.11/3.12 CI, lint/type/test/build jobs, Docker smoke command | Record actual CI and container results before calling a release validated |
 | Production | Deferred | Benchmarks, failure storms, operational controls, stronger data policy and deployment review |
 
@@ -439,7 +442,7 @@ Generated files must clearly identify fixture dependencies and privacy assumptio
 
 ## 19. Acceptance matrix
 
-This is the target acceptance matrix. Focused implementation tests now exercise capture, matching, policies, storage, HTTPX, ASGI, and CLI behavior. The matrix is not a blanket completion claim: OS isolation, failure storms, process-memory measurements, and full compatibility evidence require their own validation. Queue-related scenarios remain future work because local persistence is synchronous.
+This is the target acceptance matrix. Focused tests exercise capture, matching, policy, storage, HTTPX, ASGI/WSGI, SQLite, Redis, CLI and comparison behavior. Queue failure storms and bounded background persistence are implemented and tested. The matrix is not a blanket production claim: deployment-specific isolation, process-memory budgets and compatibility evidence remain separate validation gates.
 
 | ID | Scenario | Required observation |
 |---|---|---|
@@ -470,7 +473,7 @@ Use contract tests for adapters, golden fixtures for format compatibility, fresh
 
 ## 20. Milestones with exit gates
 
-R0 documentation/identity is established. R1–R3 and R5 have implementation and tests; the initial local alpha passed 118 tests, Python 3.11/3.12 CI, lint/type/build checks, and three network-disabled Docker replay examples at `8e143cc`. The `0.1.0a2` feature batch implements R4's bounded writer, operational controls, failure-storm checks, and benchmark harness. Its environment-specific performance budgets, staging deployment/data-policy review, and rollout gates remain open, as do R6–R8. This is evidence for the documented local scope, not completion of every broader acceptance-matrix requirement. R5 was pulled forward because deterministic template generation uses the local replay contract.
+R0–R3 and R5 have implementation and validation evidence. Published `0.1.0a2` adds R4's bounded writer, operational controls, failure-storm tests and benchmark harness. Development `0.1.0a3` adds R6's SQLAlchemy/SQLite experiment and R7's Redis, synchronous HTTPX, Flask, environment and function-diagnostic boundaries, plus explicit desired-outcome regression tests. Environment-specific performance budgets, staging data-policy review, rollout/rollback exercises and R8 stable-release evidence remain open. The completion ledger tracks integrated checks; features alone do not establish production readiness.
 
 | Milestone | Deliverable | Exit gate | Depends on |
 |---|---|---|---|
@@ -541,7 +544,7 @@ Proposed decisions to ratify through the experiments:
 | D07 | Security and resource limits precede production | Never waived merely to meet a release date |
 | D08 | Observed and intended test oracles stay separate | No implicit conversion is allowed |
 
-Resolved for the alpha: distribution/import/CLI names, ordered matching, structural outcome comparison, and explicit supported adapters. Still open: fully measured version matrix, a portable OS-enforced runner beyond the supplied Docker profile, quantified performance gates, background-persistence lifecycle, and first database driver. These remain milestone inputs.
+Resolved: distribution/import/CLI identity and publication, ordered matching, observed versus developer-supplied outcome comparison, bounded background lifecycle, and the SQLite/SQLAlchemy and Redis boundaries. Still open: broader version/driver evidence, OS isolation beyond the supplied Docker profile, representative production performance budgets and deployment validation.
 
 ## 24. Project status and change discipline
 

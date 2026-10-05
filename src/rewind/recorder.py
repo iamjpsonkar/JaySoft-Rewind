@@ -39,6 +39,7 @@ class Recorder:
         self.sealed = False
         self.reasons: list[str] = []
         self.interactions: list[dict[str, Any]] = []
+        self.interaction_started: dict[int, int] = {}
         self.input = encode(None, limits)
         self.bytes_used = 0
         self.diagnostics = (
@@ -90,6 +91,7 @@ class Recorder:
         if "recording_limit" in self.reasons:
             return None
         slot = len(self.interactions)
+        self.interaction_started[slot] = time.perf_counter_ns()
         self.interactions.append(
             {
                 "sequence": slot + 1,
@@ -122,6 +124,9 @@ class Recorder:
         if slot is not None and not self.sealed:
             self.check_task()
             self.interactions[slot]["outcome"] = outcome
+            started = self.interaction_started.pop(slot, None)
+            if started is not None:
+                self.interactions[slot]["duration_ns"] = max(0, time.perf_counter_ns() - started)
 
     def seal(self, outcome: dict[str, Any]) -> Snapshot:
         if any(item["outcome"] is None for item in self.interactions):

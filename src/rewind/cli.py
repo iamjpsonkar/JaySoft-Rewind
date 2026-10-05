@@ -5,15 +5,36 @@ import json
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
+from .codecs import loads
+from .comparison import compare_file, generate_comparison_test
 from .doctor import diagnose
 from .errors import RewindError
+from .limits import Limits
 from .portable import export_snapshot, import_snapshot
 from .runner import replay_file
+from .snapshot import ID_PATTERN
 from .storage import LocalStore, load_file
 from .version import __version__
 
 EXIT_CODES = {"reproduced": 0, "diverged": 1, "ineligible": 2, "incompatible": 2, "replay_error": 3}
+
+
+def _expectations(command: argparse.ArgumentParser) -> None:
+    group = command.add_mutually_exclusive_group()
+    group.add_argument("--expected-return", help="developer-approved return value as JSON")
+    group.add_argument(
+        "--expected-outcome", help="developer-approved canonical typed outcome as JSON"
+    )
+
+
+def _expected_options(args: argparse.Namespace) -> dict[str, Any]:
+    for field in ("expected_return", "expected_outcome"):
+        value = getattr(args, field, None)
+        if value is not None:
+            return {field: loads(value.encode(), Limits())}
+    return {}
 
 
 def parser() -> argparse.ArgumentParser:
@@ -34,6 +55,14 @@ def parser() -> argparse.ArgumentParser:
     replay.add_argument(
         "--isolation", choices=["python-guard", "adapter-only"], default="python-guard"
     )
+    compare = commands.add_parser("compare", help="explicitly compare changed source code")
+    compare.add_argument("artifact", type=Path)
+    compare.add_argument("--app", required=True)
+    compare.add_argument("--timeout", type=float, default=30)
+    compare.add_argument(
+        "--isolation", choices=["python-guard", "adapter-only"], default="python-guard"
+    )
+    _expectations(compare)
     listing = commands.add_parser("list", help="list stored recording summaries")
     listing.add_argument("--store", type=Path, default=Path(".rewind/snapshots"))
     delete = commands.add_parser("delete", help="delete exactly one local recording")
@@ -45,6 +74,10 @@ def parser() -> argparse.ArgumentParser:
     test.add_argument("artifact", type=Path)
     test.add_argument("--app", required=True)
     test.add_argument("--output", type=Path, required=True)
+    test.add_argument(
+        "--compare-code", action="store_true", help="generate a labeled comparison test"
+    )
+    _expectations(test)
     export = commands.add_parser("export", help="export a validated portable .rewind archive")
     export.add_argument("artifact", type=Path)
     export.add_argument("-o", "--output", type=Path, required=True)
@@ -52,6 +85,13 @@ def parser() -> argparse.ArgumentParser:
     importing.add_argument("archive", type=Path)
     importing.add_argument("--store", type=Path, default=Path(".rewind/snapshots"))
     commands.add_parser("doctor", help="inspect runtime and installed optional dependencies")
+    for command in (inspect, replay, compare, test, export):
+        command.add_argument(
+            "--store",
+            type=Path,
+            default=Path(".rewind/snapshots"),
+            help="store used when the artifact argument is a snapshot ID",
+        )
     return root
 
 
@@ -102,6 +142,10 @@ def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     result: dict | list
     try:
+        if hasattr(args, "artifact"):
+            identifier = str(args.artifact)
+            if ID_PATTERN.fullmatch(identifier) and not args.artifact.exists():
+                args.artifact = args.store / f"{identifier}.rewind.json"
         if args.command == "doctor":
             result = diagnose()
         elif args.command == "export":
@@ -113,8 +157,26 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "inspect":
             result = summary(args.artifact)
             if args.timeline:
-                diagnostic = load_file(args.artifact).data.get("diagnostics", {})
+                data = load_file(args.artifact).data
+                diagnostic = data.get("diagnostics", {})
                 result["diagnostics"] = diagnostic if diagnostic.get("version") == 1 else None
+                result["dependencies"] = [
+                    {
+                        key: item.get(key)
+                        for key in ("sequence", "operation", "dependency", "duration_ns")
+                    }
+                    for item in data["interactions"]
+                ]
+        elif args.command == "compare":
+            comparison = compare_file(
+                args.artifact,
+                args.app,
+                timeout=args.timeout,
+                isolation=args.isolation,
+                **_expected_options(args),
+            )
+            print(json.dumps(comparison.to_dict(), ensure_ascii=True, indent=2))
+            return 0 if comparison.matched else EXIT_CODES.get(comparison.status, 3)
         elif args.command == "replay":
             report = replay_file(
                 args.artifact, args.app, timeout=args.timeout, isolation=args.isolation
@@ -131,11 +193,18 @@ def main(argv: list[str] | None = None) -> int:
             LocalStore(args.store).delete(args.snapshot_id)
             result = {"deleted": args.snapshot_id}
         else:
-            generate_test(args.artifact, args.app, args.output)
+            expectations = _expected_options(args)
+            if args.compare_code:
+                generate_comparison_test(args.artifact, args.app, args.output, **expectations)
+            else:
+                if expectations:
+                    raise ValueError("expected outcomes require --compare-code")
+                generate_test(args.artifact, args.app, args.output)
             result = {
                 "test": str(args.output),
                 "fixture": str(args.output.with_suffix(".rewind.json")),
-                "oracle": "recorded outcome",
+                "oracle": "developer outcome" if expectations else "recorded outcome",
+                "mode": "comparison" if args.compare_code else "strict",
             }
         print(json.dumps(result, ensure_ascii=True, indent=2))
         return 0

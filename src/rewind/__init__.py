@@ -1,5 +1,6 @@
 """Rewind: portable recordings of Python dependency observations."""
 
+from .comparison import ComparisonReport, compare_file
 from .conditions import Condition, Retention
 from .core import Rewind
 from .limits import Limits
@@ -17,6 +18,7 @@ __all__ = [
     "BackgroundWriter",
     "CapturePolicy",
     "Condition",
+    "ComparisonReport",
     "Limits",
     "LocalStore",
     "ReplayReport",
@@ -28,6 +30,7 @@ __all__ = [
     "Sources",
     "TraceConfig",
     "__version__",
+    "compare_file",
     "replay_file",
     "span",
     "trace",

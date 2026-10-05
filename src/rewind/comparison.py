@@ -167,6 +167,8 @@ def generate_comparison_test(
     if not snapshot.complete:
         raise ValueError("incomplete recordings cannot generate comparison tests")
     destination = Path(output)
+    if destination.suffix != ".py":
+        raise ValueError("test output must have a .py suffix")
     fixture = destination.with_suffix(".rewind.json")
     if destination == fixture or destination.exists() or fixture.exists():
         raise FileExistsError("output already exists or overlaps fixture")

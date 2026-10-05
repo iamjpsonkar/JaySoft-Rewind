@@ -11,6 +11,7 @@ from examples import (
     combined_failure,
     database_failure,
     fastapi_failure,
+    flask_failure,
     http_failure,
     sources_failure,
 )
@@ -40,6 +41,12 @@ def main() -> None:
             if not report.reproduced or report.consumed != report.total:
                 raise RuntimeError(f"{name} replay failed: {report.to_dict()}")
             print(json.dumps({"example": name, **report.to_dict()}))
+
+        flask_artifact = flask_failure.record(Path(directory) / "flask")
+        flask_report = replay_file(flask_artifact, "examples.flask_failure:replay_target")
+        if not flask_report.reproduced or flask_report.consumed != flask_report.total:
+            raise RuntimeError(f"Flask replay failed: {flask_report.to_dict()}")
+        print(json.dumps({"example": "flask", **flask_report.to_dict()}))
 
         artifact, stats = asyncio.run(background_capture.record(Path(directory) / "background"))
         report = replay_file(artifact, "examples.background_capture:replay_target")

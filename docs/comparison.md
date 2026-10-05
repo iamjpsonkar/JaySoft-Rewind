@@ -22,6 +22,19 @@ call retains strict argument, order, and consumption checks. Added or missing
 calls diverge even when a supplied expected outcome would otherwise match.
 There is no live dependency fallback.
 
+CLI equivalents:
+
+```sh
+rewind compare failure.rewind.json --app my_application:replay_target
+rewind compare failure.rewind.json --app my_application:replay_target --expected-return '{"state":"confirmed"}'
+rewind test failure.rewind.json --app my_application:replay_target --compare-code --expected-return '{"state":"confirmed"}' --output tests/test_fixed.py
+```
+
+`--expected-outcome` accepts canonical typed outcome JSON for bytes or exceptions.
+Expected outcomes on `rewind test` require `--compare-code`; ordinary reproduction
+tests retain the recorded oracle. CLI exit 0 means `matched` for comparison, with
+the mode explicitly present in its JSON report.
+
 ## Specify the desired behavior
 
 After changing the application, supply the expected return value yourself:
