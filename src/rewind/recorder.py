@@ -1,6 +1,7 @@
 """Bounded per-execution recorder. Application exceptions never belong to storage."""
 
 import asyncio
+import threading
 import time
 import uuid
 from datetime import UTC, datetime
@@ -21,7 +22,11 @@ class Recorder:
         self.policy = policy
         self.limits = limits
         self.kind = kind
-        self.owner = asyncio.current_task()
+        try:
+            self.owner = asyncio.current_task()
+        except RuntimeError:
+            self.owner = None
+        self.owner_thread = threading.get_ident()
         self.started = time.monotonic()
         self.sealed = False
         self.reasons: list[str] = []
@@ -39,7 +44,7 @@ class Recorder:
         except RuntimeError:
             # ContextVars propagate to asyncio.to_thread, which has no event loop.
             task = None
-        if task is not self.owner:
+        if task is not self.owner or threading.get_ident() != self.owner_thread:
             self.mark("child_task_unsupported")
 
     def pack(self, value: Any) -> dict[str, Any]:
