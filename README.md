@@ -2,7 +2,7 @@
 
 Capture a supported Python execution and replay its recorded HTTP observations in a fresh local process. Rewind reports whether the original outcome reproduced or where execution diverged.
 
-**Local alpha — `0.1.0a1`.** Intended for synthetic fixtures and controlled development environments. Production deployment, arbitrary Python process replay, database adapters, and Redis adapters are outside this release.
+**Local alpha — `0.1.0a2`.** Intended for synthetic fixtures and controlled development environments. Production deployment, arbitrary Python process replay, database adapters, and Redis adapters are outside this release.
 
 Maintained by [Jay Prakash Sonkar](https://github.com/iamjpsonkar) · [iamjpsonkar@gmail.com](mailto:iamjpsonkar@gmail.com) · [MIT license](LICENSE).
 
@@ -46,7 +46,7 @@ Replay uses the explicitly selected factory in a fresh interpreter with a defaul
 ./scripts/verify_offline.sh
 ```
 
-The script builds a local image, then verifies the HTTP, FastAPI, and deterministic-source examples inside a read-only Docker container with `--network none`, temporary writable storage, and no added capabilities. Building needs network access for dependencies; replay runs without external networking. See [SECURITY.md](SECURITY.md).
+The script builds a local image, then verifies the HTTP, FastAPI, deterministic-source, and background-persistence examples inside a read-only Docker container with `--network none`, temporary writable storage, and no added capabilities. Building needs network access for dependencies; replay runs without external networking. See [SECURITY.md](SECURITY.md).
 
 ## Integrate a callable or FastAPI app
 
@@ -87,7 +87,33 @@ For FastAPI, wrap the app with `rewind.asgi(app)` and return `ReplayTarget(rewin
 
 `Rewind.value(name, factory)` records explicit observations. `Retention` supports exceptions, status thresholds, duration thresholds, and `always=True`; defaults retain exceptions and HTTP statuses of at least 500. The existing `store=` capture path writes retained artifacts synchronously.
 
-## Bounded persistence worker
+## Background persistence and operational controls
+
+Pass `writer=` to move filesystem writes off the request event loop. It is mutually exclusive with `store=`. Policy filtering and serialization still happen during capture.
+
+```python
+from rewind import BackgroundWriter, LocalStore, Rewind
+
+writer = BackgroundWriter(
+    LocalStore(".rewind/snapshots"), max_items=128, max_bytes=16 * 1024 * 1024,
+)
+rewind = Rewind(application="checkout", code_paths=[__file__], writer=writer)
+
+# Wrap application calls with await rewind.run(...) or rewind.asgi(app).
+# The default policy keeps diagnostic data; use synthetic policy only for fixtures.
+rewind.disable()  # Stop new captures; already admitted requests still finish.
+rewind.enable()
+# At shutdown: stop incoming requests and await application tasks first.
+# report = await rewind.aclose(timeout=5, drain=True)
+```
+
+`rewind.stats()` returns a safe copy of active reservations, pending bytes/items, accepted submissions, rejected recordings, completed writes, and failures. `aflush()` waits for writer idle; `aclose()` stops admission permanently and performs a bounded drain off the event loop. Neither method waits for application requests. A drained queue can still contain failed writes in its history; inspect `persistence_failed` as well. See [operations and rollback](docs/operations.md).
+
+```sh
+python -m examples.background_capture --store .rewind/background-demo
+```
+
+The example records, drains, and replays a synthetic failure, then prints capture statistics and the replay report.
 
 `BackgroundWriter` provides a worker for already sealed snapshots. Configure both `max_items` and `max_bytes`; both budgets include the current filesystem write. `submit(snapshot)` returns immediately after bounded bookkeeping and rejects work when full. Acceptance means queued, not persisted.
 
@@ -162,7 +188,8 @@ Test generation copies a fixture beside the test and refuses to overwrite either
 | Independent simultaneous captures with isolated context | Race/scheduling reproduction, distributed execution, complete heap state |
 | Bounded JSON/bytes and explicit value providers | Arbitrary Python objects, transparent global nondeterminism capture |
 | Strict input and outcome comparison, no adapter fallback | Changed-source comparison or unmatched live calls |
-| Versioned local JSON, atomic publication, TTL/quota cleanup on save | Background persistence, encrypted storage, coordinated multi-process retention |
+| Versioned local JSON, atomic publication, TTL/quota cleanup on save | Encrypted storage, coordinated multi-process retention, crash-durable queues |
+| Bounded background writer, enable/disable, metrics, finite shutdown | Cancellation of a running filesystem write, automatic application-task shutdown |
 
 Default budgets: 64 KiB per body, 1 MiB per artifact, 1,000 interactions, and 64 MiB in active capture reservations. Default local storage: 256 MiB with 24-hour retention, enforced during saves. These are payload/accounting budgets, not process RSS guarantees or periodic cleanup. Publication can temporarily exceed quota; cleanup follows a successful write. Store locking is local to each `LocalStore` instance.
 
