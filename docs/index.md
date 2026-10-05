@@ -2,7 +2,7 @@
 
 [Project home](../README.md) · [PyPI package](https://pypi.org/project/jaysoft-rewind/) · [Changelog](../CHANGELOG.md)
 
-Start with a synthetic failure, then connect the dependencies your application uses. These guides describe the development source (`0.1.0a3`) and label features that already exist in published `0.1.0a2`.
+Start with a synthetic failure, then connect the dependencies your application uses. These guides describe `0.1.0a3` and identify features introduced after the earlier `0.1.0a2` alpha.
 
 ## Start here
 

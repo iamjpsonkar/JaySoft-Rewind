@@ -54,7 +54,7 @@ tests beyond the main suite.
 
 ## Release and scope gates
 
-The next development candidate is `0.1.0a3`. Existing published artifacts and
+This ledger covers release `0.1.0a3`. Existing published artifacts and
 `v0.1.0a2` remain immutable. Feature branches use real commits and timestamps,
 regular pushes, and reviewed integration PRs.
 

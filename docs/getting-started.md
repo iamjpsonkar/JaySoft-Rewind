@@ -54,11 +54,11 @@ python -m pytest test_reproduction.py
 
 This creates `test_reproduction.py` and a neighboring recording fixture. Existing files are never overwritten, so choose a new output filename when repeating this step. The generated test calls the local factory and checks that the recorded failure reproduces. The application module and compatible dependencies must remain available.
 
-When changing application code, strict replay rejects the changed source fingerprint. Development `0.1.0a3` provides [explicit comparison](comparison.md) and developer-supplied expected outcomes. Rewind cannot infer your application's correct business result from a failure.
+When changing application code, strict replay rejects the changed source fingerprint. Version `0.1.0a3` provides [explicit comparison](comparison.md) and developer-supplied expected outcomes. Rewind cannot infer your application's correct business result from a failure.
 
 ## 5. Share a recording
 
-This step requires development `0.1.0a3`:
+This step requires `0.1.0a3`:
 
 ```sh
 rewind export "$artifact" -o failure.rewind

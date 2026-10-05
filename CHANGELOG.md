@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0a3 — Unreleased
+## 0.1.0a3 — 2026-10-05
 
 ### Added
 
@@ -20,7 +20,7 @@
 - Database support is synchronous SQLite through the documented SQLAlchemy/DBAPI boundary, not general MySQL/PostgreSQL or database state reconstruction.
 - Redis scripts, pub/sub, blocking commands, WATCH/cluster behavior and uninstrumented dependencies are outside the supported boundary.
 - Tracing is opt-in and bounded; generators and global line tracing are unsupported. No universal overhead or production readiness claim is made.
-- Existing `0.1.0a2` artifacts and tag remain unchanged; this candidate requires its own release validation and publication.
+- Existing `0.1.0a2` artifacts and tag remain unchanged; each release uses its own validation and publication workflow.
 
 ## 0.1.0a2 — 2026-10-05
 

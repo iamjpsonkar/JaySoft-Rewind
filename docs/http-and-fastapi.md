@@ -2,7 +2,7 @@
 
 [Documentation home](index.md) · [Quick start](getting-started.md) · [Synchronous HTTP and Flask](synchronous.md)
 
-These async integrations are available in published `0.1.0a2` and the development version. For source examples, follow the [installation guide](installation.md).
+These async integrations are available in `0.1.0a2` and `0.1.0a3`. For source examples, follow the [installation guide](installation.md).
 
 ## Connect your application
 

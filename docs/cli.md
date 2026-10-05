@@ -4,7 +4,7 @@
 
 Run `rewind --help` or `rewind COMMAND --help` for installed-version options. `python -m rewind` is equivalent and helps ensure you use the active Python environment.
 
-This reference describes development `0.1.0a3`. Published `0.1.0a2` includes basic list, inspect, replay, delete and reproduction-test generation. Comparison, timeline inspection, archives, doctor and lookup by snapshot ID for replay/inspect/test are development additions.
+This reference describes `0.1.0a3`. The earlier `0.1.0a2` alpha includes basic list, inspect, replay, delete and reproduction-test generation. Comparison, timeline inspection, archives, doctor and lookup by snapshot ID for replay/inspect/test were added in `0.1.0a3`.
 
 ## Command map
 

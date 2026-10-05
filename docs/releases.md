@@ -12,9 +12,10 @@ passed validation, TestPyPI upload and wheel verification, and PyPI publication.
 A fresh PyPI installation verified the package version, public API imports,
 maintainer metadata, and CLI. Publishing remains a separate manual workflow.
 
-The current development candidate is `0.1.0a3`, extending the supported adapter
-and tooling scope. It is not published by merging its implementation. Release
-validation also gates builds on real Redis conformance and checks earlier
+Release `0.1.0a3` extends the supported adapter and tooling scope and adds
+the dedicated PyPI package guide. Merging a release does not upload packages;
+publication uses the workflow below. Validation gates builds on real Redis
+conformance and checks earlier
 SQLAlchemy/redis-py/Flask families on Python 3.11.
 
 ## Release sequence
@@ -22,7 +23,8 @@ SQLAlchemy/redis-py/Flask families on Python 3.11.
 | Stage | Candidate and gate |
 | --- | --- |
 | First public alpha | `0.1.0a2`, published 2026-10-05 after the complete release workflow passed. Retains the local/test-environment support boundary. |
-| Further alphas | `0.1.0a3`, `a4`, and so on for meaningful capability batches or alpha fixes. Record breaking changes explicitly. |
+| Expanded alpha | `0.1.0a3`: database/Redis/synchronous adapters, comparison, diagnostics and the new documentation. |
+| Further alphas | `0.1.0a4` and so on for meaningful capability batches or alpha fixes. Record breaking changes explicitly. |
 | Beta | `0.1.0b1` after public API/schema behavior settles and user reports are resolved; no calendar deadline is promised. |
 | Release candidate | `0.1.0rc1` after clean installation, compatibility, offline replay, and lifecycle gates pass on supported runtimes. |
 | Stable local release | `0.1.0` after those contracts are satisfied. Local stability does not certify production deployment or expand the documented database-driver scope. |

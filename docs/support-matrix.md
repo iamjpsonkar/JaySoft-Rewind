@@ -2,7 +2,7 @@
 
 [Documentation home](index.md) · [Quick start](getting-started.md)
 
-This matrix describes development `0.1.0a3`. PyPI `0.1.0a2` retains its earlier
+This matrix describes `0.1.0a3`. The earlier `0.1.0a2` alpha retains its
 HTTPX/ASGI scope. Every adapter is explicitly configured; package installation
 alone does not intercept a client or framework.
 

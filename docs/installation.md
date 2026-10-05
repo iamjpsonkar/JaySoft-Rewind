@@ -4,28 +4,28 @@
 
 Use Python **3.11 or 3.12**. The package name is **`jaysoft-rewind`**; import it as `rewind` and run the `rewind` command.
 
-## Choose published or development
+## Choose a release or source checkout
 
 | Version | Where to get it | What it includes |
 | --- | --- | --- |
-| `0.1.0a2` | PyPI | Async HTTPX, FastAPI/ASGI, explicit basic sources, background recording, core CLI and reproduction tests |
-| `0.1.0a3` | Current GitHub source; not yet published | Adds sync/Flask, SQLAlchemy/SQLite, Redis, tracing, environment observations, archives and changed-code comparison |
+| `0.1.0a2` | Previous alpha | Async HTTPX, FastAPI/ASGI, explicit basic sources, background recording, core CLI and reproduction tests |
+| `0.1.0a3` | Release covered by these guides | Adds sync/Flask, SQLAlchemy/SQLite, Redis, tracing, environment observations, archives and changed-code comparison |
 
 ### Published package
 
 In an activated virtual environment:
 
 ```sh
-python -m pip install 'jaysoft-rewind==0.1.0a2'
+python -m pip install 'jaysoft-rewind==0.1.0a3'
 python -m rewind --version
 ```
 
 Install the integration you need instead of the core-only command:
 
 ```sh
-python -m pip install 'jaysoft-rewind[httpx]==0.1.0a2'
+python -m pip install 'jaysoft-rewind[httpx]==0.1.0a3'
 # Or, for FastAPI:
-python -m pip install 'jaysoft-rewind[fastapi]==0.1.0a2'
+python -m pip install 'jaysoft-rewind[fastapi]==0.1.0a3'
 ```
 
 The wheel contains the library and CLI. The `examples.*` commands in the walkthrough require a repository checkout.
@@ -63,9 +63,15 @@ $artifact = .venv\Scripts\python.exe -m examples.http_failure
 
 These are shell equivalents; current automated conformance evidence is Linux CI and local macOS. The [support matrix](support-matrix.md) describes the tested boundaries.
 
-## Source extras for application use
+## Optional integrations
 
-From the checkout, choose one of these instead of `dev`:
+For a PyPI installation, extras use the same version pin, for example:
+
+```sh
+python -m pip install 'jaysoft-rewind[all]==0.1.0a3'
+```
+
+For source development, choose one of these instead of `dev`:
 
 | Install command | Purpose |
 | --- | --- |
@@ -84,7 +90,7 @@ Extras install libraries. Your application still needs to configure Rewind adapt
 ```sh
 python -m rewind --version
 python -m pip check
-# Development 0.1.0a3:
+# Available in 0.1.0a3:
 python -m rewind doctor
 ```
 

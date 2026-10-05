@@ -2,7 +2,7 @@
 
 [Documentation home](index.md) · [Capture conditions](portable-tooling.md)
 
-Clock, date, UUID and basic random sources are available in `0.1.0a2`. Environment reads, synchronous waits, `getrandbits` and `randrange` require development `0.1.0a3`.
+Clock, date, UUID and basic random sources are available in `0.1.0a2`. Environment reads, synchronous waits, `getrandbits` and `randrange` require `0.1.0a3`.
 
 
 Use `rewind.sources` at application observation sites inside a captured execution:

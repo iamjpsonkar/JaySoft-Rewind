@@ -19,12 +19,12 @@ Capture a failing execution → Inspect the recording → Replay locally → Gen
 
 | I want to… | Start here |
 | --- | --- |
-| Install the published alpha | `python -m pip install 'jaysoft-rewind[httpx]==0.1.0a2'` |
-| Try all implemented features | Use the source checkout below: development `0.1.0a3` |
+| Install this alpha | `python -m pip install 'jaysoft-rewind[httpx]==0.1.0a3'` |
+| Run the repository examples | Use the source checkout below |
 | Add Rewind to an application | [Installation and optional integrations](docs/installation.md) |
 | Browse the package overview | [PyPI guide](docs/pypi.md) · [Published package](https://pypi.org/project/jaysoft-rewind/) |
 
-**PyPI currently has `0.1.0a2`; `0.1.0a3` is not published yet.** The distribution is `jaysoft-rewind`; the Python import and command are both `rewind`. Use Python 3.11 or 3.12. This alpha is intended for synthetic fixtures and controlled development environments.
+**Release: `0.1.0a3`.** [Package releases](https://pypi.org/project/jaysoft-rewind/#history) are available on PyPI. The distribution is `jaysoft-rewind`; the Python import and command are both `rewind`. Use Python 3.11 or 3.12. This alpha is intended for synthetic fixtures and controlled development environments.
 
 ## Quick start
 
@@ -86,7 +86,7 @@ The example uses an in-process FastAPI app and a synthetic upstream 503 response
 <details>
 <summary><strong>Database + Redis + HTTP: replay one execution across dependencies</strong></summary>
 
-Requires development `0.1.0a3`. The capture example uses local SQLite and synthetic Redis/HTTP fixtures; no Redis server is needed.
+Requires `0.1.0a3`. The capture example uses local SQLite and synthetic Redis/HTTP fixtures; no Redis server is needed.
 
 ```sh
 artifact="$(python -m examples.combined_failure)"
@@ -127,15 +127,15 @@ The application explicitly configures each adapter. Installing an extra or wrapp
 
 | Your application uses… | Guide | Available in |
 | --- | --- | --- |
-| Async HTTPX and FastAPI/ASGI | [HTTP and FastAPI](docs/http-and-fastapi.md) | Published `0.1.0a2` |
-| Clocks, UUIDs and basic random values | [Deterministic sources](docs/sources.md) | Published `0.1.0a2` |
-| Bounded background recording | [Persistence](docs/background-persistence.md) | Published `0.1.0a2` |
-| Sync callables, HTTPX or Flask/WSGI | [Synchronous applications](docs/synchronous.md) | Development `0.1.0a3` |
-| SQLAlchemy 2.x with SQLite | [Database capture and replay](docs/database.md) | Development `0.1.0a3` |
-| redis-py sync/async commands and pipelines | [Redis capture and replay](docs/redis.md) | Development `0.1.0a3` |
-| Function timelines and named spans | [Tracing](docs/tracing.md) | Development `0.1.0a3` |
-| Environment reads, conditions or custom redaction | [Portable tooling and policy](docs/portable-tooling.md) | Development `0.1.0a3` |
-| Changed code and regression assertions | [Comparison](docs/comparison.md) | Development `0.1.0a3` |
+| Async HTTPX and FastAPI/ASGI | [HTTP and FastAPI](docs/http-and-fastapi.md) | Since `0.1.0a2` |
+| Clocks, UUIDs and basic random values | [Deterministic sources](docs/sources.md) | Since `0.1.0a2` |
+| Bounded background recording | [Persistence](docs/background-persistence.md) | Since `0.1.0a2` |
+| Sync callables, HTTPX or Flask/WSGI | [Synchronous applications](docs/synchronous.md) | Since `0.1.0a3` |
+| SQLAlchemy 2.x with SQLite | [Database capture and replay](docs/database.md) | Since `0.1.0a3` |
+| redis-py sync/async commands and pipelines | [Redis capture and replay](docs/redis.md) | Since `0.1.0a3` |
+| Function timelines and named spans | [Tracing](docs/tracing.md) | Since `0.1.0a3` |
+| Environment reads, conditions or custom redaction | [Portable tooling and policy](docs/portable-tooling.md) | Since `0.1.0a3` |
+| Changed code and regression assertions | [Comparison](docs/comparison.md) | Since `0.1.0a3` |
 
 ## Keep the CLI close
 
@@ -149,7 +149,7 @@ The application explicitly configures each adapter. Installing an extra or wrapp
 | Import an archive | `rewind import failure.rewind --store .rewind/imported` |
 | Check installed integration versions | `rewind doctor` |
 
-Timeline inspection, export/import and doctor require development `0.1.0a3`. Archives contain recording data, not your application code. [Full command reference and exit codes →](docs/cli.md)
+Timeline inspection, export/import and doctor require `0.1.0a3`. Archives contain recording data, not your application code. [Full command reference and exit codes →](docs/cli.md)
 
 ## Questions before you start
 
@@ -163,7 +163,7 @@ The default policy omits values, bodies and exception arguments. If replay needs
 <details>
 <summary><strong>Can I replay after fixing my code?</strong></summary>
 
-Strict replay checks the declared source fingerprint. Use `rewind compare` in development `0.1.0a3` to explicitly allow a changed source digest. Dependency order, inputs and other compatibility checks still apply. Supply the desired outcome yourself. [Comparison guide →](docs/comparison.md)
+Strict replay checks the declared source fingerprint. Use `rewind compare` in `0.1.0a3` to explicitly allow a changed source digest. Dependency order, inputs and other compatibility checks still apply. Supply the desired outcome yourself. [Comparison guide →](docs/comparison.md)
 
 </details>
 
@@ -185,7 +185,7 @@ Capture is bounded: defaults include 64 KiB per body, 1 MiB per artifact and 1,0
 
 [Documentation home](docs/index.md) brings together walkthroughs, adapter guides, the [snapshot specification](docs/snapshot-format.md), [release guide](docs/releases.md) and [implementation ledger](docs/implementation-roadmap.md).
 
-Development validation includes 488 passing default-suite tests, a separate 84-test Redis run that includes the four normally skipped real-server cases, and seven offline Docker examples. The suites overlap. [CI](https://github.com/iamjpsonkar/JaySoft-Rewind/actions/workflows/checks.yml) checks Python 3.11/3.12, lint, types and distributions. [Measured benchmarks](docs/benchmarks/README.md) describe synthetic workloads; production readiness remains a separate evidence gate.
+Validation for `0.1.0a3` includes 488 passing default-suite tests, a separate 84-test Redis run that includes the four normally skipped real-server cases, and seven offline Docker examples. The suites overlap. [CI](https://github.com/iamjpsonkar/JaySoft-Rewind/actions/workflows/checks.yml) checks Python 3.11/3.12, lint, types and distributions. [Measured benchmarks](docs/benchmarks/README.md) describe synthetic workloads; production readiness remains a separate evidence gate.
 
 Found a problem? Check [troubleshooting](docs/troubleshooting.md), then [open an issue](https://github.com/iamjpsonkar/JaySoft-Rewind/issues) with your version and a synthetic reproduction. See [contributing](CONTRIBUTING.md) for development setup and [SECURITY.md](SECURITY.md) for sensitive reports.
 

@@ -2,7 +2,7 @@
 
 [Documentation home](index.md) · [Installation](installation.md) · [CLI reference](cli.md)
 
-Start with `python -m rewind --version`. On development `0.1.0a3`, `python -m rewind doctor` also reports installed integration versions without contacting services or importing your application.
+Start with `python -m rewind --version`. On `0.1.0a3`, `python -m rewind doctor` also reports installed integration versions without contacting services or importing your application.
 
 ## Setup and commands
 
@@ -11,8 +11,8 @@ Start with `python -m rewind --version`. On development `0.1.0a3`, `python -m re
 | `rewind: command not found` | Activate the environment where you installed the package, or use `python -m rewind`. |
 | `No module named rewind` | Install `jaysoft-rewind` into the same interpreter you are running; use `python -m pip`. |
 | `No module named examples` | Examples live in the source checkout, not the wheel. Clone the repository, install `.[dev]`, and run from its root. |
-| Missing HTTPX, Flask, Redis or SQLAlchemy | Install the matching source extra or `.[dev]`. Check the [version table](installation.md#choose-published-or-development) first. |
-| `compare`, `doctor` or `export` is unknown | Those commands require development `0.1.0a3`; published `0.1.0a2` does not include them. |
+| Missing HTTPX, Flask, Redis or SQLAlchemy | Install the matching source extra or `.[dev]`. Check the [version table](installation.md#choose-a-release-or-source-checkout) first. |
+| `compare`, `doctor` or `export` is unknown | Those commands require `0.1.0a3`; the earlier `0.1.0a2` alpha does not include them. |
 | `list` is empty | Check `--store`. The HTTP demo uses `.rewind/demo`, while the default is `.rewind/snapshots`. |
 
 ## No recording appeared
@@ -35,7 +35,7 @@ If your intended change is to application source, choose [comparison](comparison
 
 Check the number of consumed interactions and the bounded report detail. A changed request, SQL parameter, Redis command, source-method argument, call order or final result can cause divergence. Rewind does not silently call the real dependency when no recording matches.
 
-Use `inspect --timeline` on development `0.1.0a3` to examine recorded dependency summaries. Function spans appear only if tracing was enabled when capturing; inspection cannot reconstruct missing spans afterward.
+Use `inspect --timeline` on `0.1.0a3` to examine recorded dependency summaries. Function spans appear only if tracing was enabled when capturing; inspection cannot reconstruct missing spans afterward.
 
 ## Replay failed or timed out
 
