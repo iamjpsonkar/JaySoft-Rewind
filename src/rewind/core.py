@@ -353,11 +353,13 @@ class Rewind:
                 result = function(*incoming["args"], **incoming["kwargs"])
                 outcome = {"kind": "return", "value": encode(result, self.limits)}
             except ReplayDivergence:
+                session.failure = session.failure or "application raised replay divergence"
                 outcome = {"kind": "return", "value": encode(None, self.limits)}
             except Exception as exc:
                 outcome = session.policy.exception(exc, self.limits, session.fail)
             return session.report(outcome)
         except ReplayDivergence:
+            session.failure = session.failure or "application raised replay divergence"
             return session.report({"kind": "return", "value": encode(None, self.limits)})
         except RewindError:
             return ReplayReport(
@@ -396,11 +398,13 @@ class Rewind:
                 result = await function(*incoming["args"], **incoming["kwargs"])
                 outcome = {"kind": "return", "value": encode(result, self.limits)}
             except ReplayDivergence:
+                session.failure = session.failure or "application raised replay divergence"
                 outcome = {"kind": "return", "value": encode(None, self.limits)}
             except Exception as exc:
                 outcome = session.policy.exception(exc, self.limits, session.fail)
             return session.report(outcome)
         except ReplayDivergence:
+            session.failure = session.failure or "application raised replay divergence"
             return session.report({"kind": "return", "value": encode(None, self.limits)})
         except RewindError:
             return ReplayReport(
