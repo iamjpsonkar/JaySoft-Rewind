@@ -10,7 +10,20 @@ from .version import __version__
 
 def diagnose() -> dict[str, Any]:
     dependencies: dict[str, str | None] = {}
-    for name in ("httpx", "fastapi", "starlette", "flask", "sqlalchemy", "redis"):
+    for name in (
+        "httpx",
+        "fastapi",
+        "starlette",
+        "flask",
+        "psycopg",
+        "PyMySQL",
+        "kafka-python",
+        "celery",
+        "boto3",
+        "botocore",
+        "sqlalchemy",
+        "redis",
+    ):
         try:
             dependencies[name] = version(name)
         except PackageNotFoundError:
