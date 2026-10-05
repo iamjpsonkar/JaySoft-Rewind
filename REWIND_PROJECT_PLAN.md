@@ -2,10 +2,27 @@
 
 > Capture a failing backend request. Replay its recorded dependencies locally. Turn the reproduction into a test.
 
-**Status:** proposed design; no recorder or replay engine has been implemented.
-**Revision:** 2026-10-05, refined from the original `REWIND_PROJECT_PLAN.md` and its architecture review.
-**Repository baseline:** README, MIT license, and gitignore exist. Packaging, source, tests, and CI remain to be built.
-**Decision convention:** “must” describes a proposed acceptance requirement. APIs, limits, and milestone estimates are provisional until validated by the relevant experiment. They are not shipped guarantees.
+**Status:** local alpha implementation (`0.1.0a1`), undergoing integration and release validation.
+**Revision:** 2026-10-05, implementation status added to the architecture and delivery plan.
+**Repository baseline:** Python packaging, bounded snapshots, codecs, policies, local storage, async capture, HTTPX/ASGI adapters, strict replay, CLI, examples, tests, and CI configuration now exist.
+**Decision convention:** “must” defines the target contract. Design sections below include future requirements; their presence does not imply completion. The implementation status below and README describe the actual alpha scope. Runtime validation and CI outcomes must be reported separately from configuration/documentation completion.
+
+## Current implementation and remaining gates
+
+| Area | Local alpha status | Remaining evidence or limitation |
+|---|---|---|
+| Identity | `jaysoft-rewind` distribution, `rewind` import/CLI; Jay Prakash Sonkar as maintainer | Package publication is a separate release action |
+| Capture | Async callable, buffered ASGI HTTP, explicit HTTPX async transport | Sequential owning-task calls; no global interception, streaming, or lifecycle replay |
+| Replay | Ordered strict matching, explicit outcome comparator, unused/extra interaction checks | Does not reconstruct heap, thread scheduling, or distributed state |
+| Runner | Fresh interpreter, finite timeout, Python audit guard before application import | Audit hooks are not an OS sandbox; Docker network-disabled validation supplied separately |
+| Data | Bounded JSON, typed codecs, privacy exclusions, incomplete reasons, immutable snapshots | Key-based filtering is not complete secret/PII detection |
+| Persistence | Synchronous private local store, atomic publication, cleanup after successful save | No worker queue, cross-process quota coordination, periodic cleanup, or directory-fsync crash durability |
+| Compatibility | Declared source digest, Python major/minor, installed adapter-library versions | Not a full dependency/environment fingerprint; no changed-code comparison mode |
+| CLI and tests | Inspect/replay/list/delete and template reproduction-test generation | Generated tests assert observed outcomes; desired fixed behavior requires developer assertions |
+| Release engineering | Python 3.11/3.12 CI, lint/type/test/build jobs, Docker smoke command | Record actual CI and container results before calling a release validated |
+| Production | Deferred | Benchmarks, failure storms, operational controls, stronger data policy and deployment review |
+
+The previous design-only baseline is historical. No production-readiness, quantified performance, or full acceptance-matrix completion is claimed. CI installs dependency versions within declared ranges; the resolved versions in each run define that run's evidence.
 
 ## 1. Product decision
 
@@ -52,11 +69,11 @@ Before expanding integrations, validate the workflow with three representative f
 | Outbound dependencies | Explicitly configured HTTPX `AsyncClient` transport | Requests, synchronous HTTPX, other clients |
 | Interaction execution | Sequential awaited calls in one execution | Concurrent dependency calls and task causality |
 | Request/response bodies | Bounded buffered JSON or bytes with explicit capture policy | Streaming, multipart uploads, SSE, WebSockets |
-| Capture trigger | Exception or final HTTP status; typed predicates | Duration predicates; optional expression language |
+| Capture trigger | Exceptions, final HTTP status, duration thresholds, or always retain | Optional expression language only after a separate safety review |
 | Determinism | Declared providers for values the fixture needs | Proven transparent interception for selected APIs |
 | Persistence | Versioned local JSON artifact, atomic publication | Export archives, remote storage, encryption integration |
 | Replay | Strict matching, recorded outcomes, mismatch report | Controlled comparison across changed application code |
-| CLI | Inspect, replay, list, delete | Export/import conveniences, doctor, test generation |
+| CLI | Inspect, replay, list, delete, reproduction-test generation | Export/import conveniences, doctor |
 | Database/Redis | Explicitly unsupported | One adapter/driver combination at a time |
 | Deployment | Local and controlled test environments | Separate staging and production readiness gates |
 
@@ -71,7 +88,7 @@ The local alpha is not production-ready. The minimum useful replay can be proved
 | What problem is solved? | Reconstructing the dependency observations that caused a request failure. |
 | Who experiences it, and how often? | Python backend developers; incident frequency must be measured with initial users. |
 | What is the cost of leaving it unsolved? | Manual fixture creation, reliance on changing environments, and failures that disappear before investigation. Quantify during the pilot. |
-| What exists here already? | Repository identity, short product description, and MIT license. No executable implementation was found in the initial review. |
+| What exists here already? | The local alpha implementation and development checks listed in the current-status table. The original repository-only baseline has been superseded. |
 | What is the smallest useful solution? | One async entry point, one HTTP transport, a portable recording, and strict offline replay in a fresh process. |
 | What is hardest? | Preserving the behavior visible to application code while capturing only bounded, permitted data. The central assumption is that the supported boundary observations are sufficient for the chosen failures. |
 
@@ -85,7 +102,7 @@ The local alpha is not production-ready. The minimum useful replay can be proved
 | INV-04 | An unmatched replay operation must fail explicitly; supported adapters must never fall through to live I/O. |
 | INV-05 | Truncated, dropped, unknown-required, or unfinished interactions must make strict replay ineligible. |
 | INV-06 | Retained values must reflect the observation time, not later mutations of the same objects. |
-| INV-07 | Persisted data must pass the capture/redaction policy before it enters the storage queue. |
+| INV-07 | Persisted data must pass the capture/redaction policy before storage, and before any future persistence queue. |
 | INV-08 | A reproduced result requires compatible replay conditions, all required interactions consumed, and an explicit outcome comparison. |
 | INV-09 | A recording cannot determine the intended business behavior after a bug fix. |
 | INV-10 | Claims of support and overhead require executable evidence for a documented compatibility matrix. |
@@ -270,7 +287,7 @@ Initial configurable limits to test, not advertised performance guarantees:
 | Detached recording per execution | 1 MiB | Stop required capture; retain bounded reason |
 | Required interactions per execution | 1,000 | Mark incomplete; preserve application behavior |
 | Active recording reservation per process | 64 MiB | Reject new recording admission |
-| Persistence queue retained payload bytes | 16 MiB | Drop new snapshot enqueue with counter |
+| Future persistence queue retained payload bytes | 16 MiB (not implemented) | Planned: drop new snapshot enqueue with counter |
 | Local persisted storage | 256 MiB | Apply configured oldest-first retention or reject new write |
 | Default local retention | 24 hours | Delete expired artifacts through the store policy |
 
@@ -280,7 +297,7 @@ Budget model: total recorder memory includes active requests, queued snapshots, 
 
 Production-style persistence uses a bounded worker queue. Seal the recording before enqueue; workers must not read live request objects. Write a temporary file, flush according to the selected durability policy, then publish with an atomic replace on the same filesystem. Readers only see finalized artifacts. Disk full, permission failures, quota exhaustion, and worker crashes become bounded diagnostics and counters.
 
-Synchronous persistence is acceptable for local alpha tests to prove the artifact path. Do not claim asynchronous durability until the worker implementation exists. Asynchronous mode may lose queued recordings on process termination, OOM, or crash; a request-end recorder cannot reliably capture failures that kill the process before finalization.
+The local alpha persists synchronously. Its store lock is per instance; multiple writers do not share a quota lock. Cleanup follows successful publication, so peak disk usage can exceed the quota temporarily. Files are flushed before atomic replace, but directory-fsync crash durability is not implemented. Retention is checked on save, not by a scheduled cleanup service. Do not claim asynchronous durability until a worker exists. Future asynchronous mode may lose queued recordings on termination, OOM, or crash; request-end capture cannot reliably capture failures that kill the process before finalization.
 
 Shutdown has a finite drain deadline; report how many snapshots remain. Do not indefinitely delay application shutdown. Do not recursively record the recorder's own storage activity.
 
@@ -345,20 +362,23 @@ This is a design sketch, not a reason to create empty files. Evolve the layout a
 
 The PyPI distribution name must be selected before publishing: `rewind` already identifies an unrelated package. The project brand, import package, distribution, and CLI command are separate choices; review all four for collisions. Do not present `pip install rewind` as installation for this project. The existing MIT license is the current repository choice.
 
-Python 3.11 is a proposed minimum to evaluate, not an established support promise. Finalize a small tested Python/HTTPX/FastAPI matrix at the first integration milestone. Do not imply support for every version satisfying a broad dependency range.
+Python 3.11 is the declared minimum; CI targets 3.11 and 3.12. The HTTPX adapter targets 0.28.x. Keep each run's resolved FastAPI/Starlette versions with its validation evidence; broad install ranges do not establish compatibility across every version.
 
-## 16. Proposed developer experience
+## 16. Local alpha developer experience
 
 The final public API follows the proven boundary design. Prefer typed configuration and callable predicates first; postpone a string expression language and never implement conditions using unrestricted `eval`.
 
-Illustrative configuration:
+Current configuration for synthetic fixtures:
 
 ```python
-# Proposed API only; these classes are not implemented.
+from rewind import CapturePolicy, LocalStore, Retention, Rewind
+
 rewind = Rewind(
+    application="example",
+    code_paths=[__file__],
     store=LocalStore(".rewind/snapshots"),
-    policy=CapturePolicy.synthetic_fixture(),
-    retain=OnException() | OnStatusAtLeast(500),
+    policy=CapturePolicy.synthetic(),
+    retain=Retention(exceptions=True, status_at_least=500),
 )
 client = httpx.AsyncClient(transport=rewind.httpx_transport())
 app = rewind.asgi(app)
@@ -366,18 +386,19 @@ app = rewind.asgi(app)
 
 The explicit client transport is an intentional setup requirement in the first release. Document where application clients are created and owned. Middleware attachment alone must not imply interception of every HTTP client, database, cache, or startup operation.
 
-Proposed CLI:
+Current CLI:
 
 ```text
 rewind inspect ./failure.rewind.json
-rewind replay ./failure.rewind.json --app demo:make_replay_app
+rewind replay ./failure.rewind.json --app demo:replay_target
 rewind list
 rewind delete <snapshot-id>
+rewind test ./failure.rewind.json --app demo:replay_target --output test_reproduction.py
 ```
 
-CLI names remain provisional until naming is resolved. Inspect is data-only. Replay is an explicit request to run developer-selected local application code under the declared runner profile. List/inspect must display completeness and eligibility reasons, not just an error name.
+`demo:replay_target` must return `ReplayTarget(rewind, entrypoint, kind="callable")` or `kind="asgi"`. Inspect is data-only. Replay runs developer-selected application code under its declared profile; the default is `python-guard`, not an OS sandbox. List/inspect show completeness and eligibility reasons.
 
-Use distinct exit codes for reproduced, diverged, ineligible/incompatible, and tool failure; finalize the numeric mapping with CLI contract tests. A nonzero application outcome may be a successfully reproduced failure, so exit status cannot simply mirror the application's 500 or exception.
+Replay exits with 0 for reproduced, 1 for diverged, 2 for ineligible/incompatible, and 3 for tool failure. A nonzero application outcome may be a successfully reproduced failure; the CLI status does not simply mirror the application's 500 or exception.
 
 ## 17. Database and Redis expansion
 
@@ -410,7 +431,7 @@ Generated files must clearly identify fixture dependencies and privacy assumptio
 
 ## 19. Acceptance matrix
 
-These tests are planned requirements; none have been executed against a Rewind implementation yet.
+This is the target acceptance matrix. Focused implementation tests now exercise capture, matching, policies, storage, HTTPX, ASGI, and CLI behavior. The matrix is not a blanket completion claim: OS isolation, failure storms, process-memory measurements, and full compatibility evidence require their own validation. Queue-related scenarios remain future work because local persistence is synchronous.
 
 | ID | Scenario | Required observation |
 |---|---|---|
@@ -440,6 +461,8 @@ These tests are planned requirements; none have been executed against a Rewind i
 Use contract tests for adapters, golden fixtures for format compatibility, fresh-process integration tests for replay, and property/fuzz tests for bounded parsing and matching where they find meaningful edge cases. Avoid tests that only restate implementation details.
 
 ## 20. Milestones with exit gates
+
+R0 documentation/identity is established. R1–R3 and R5 have implementation and tests; final combined CI/container evidence is required before marking all exit gates complete. R4 and R6–R8 remain future work. R5 was pulled forward because deterministic template generation can use the implemented replay contract without production persistence.
 
 | Milestone | Deliverable | Exit gate | Depends on |
 |---|---|---|---|
@@ -510,7 +533,7 @@ Proposed decisions to ratify through the experiments:
 | D07 | Security and resource limits precede production | Never waived merely to meet a release date |
 | D08 | Observed and intended test oracles stay separate | No implicit conversion is allowed |
 
-Still open: final distribution/import/CLI names; tested version matrix; platform-specific strict runner; outcome comparator rules; quantified performance gate; first database driver. These are milestone inputs, not hidden implementation assumptions.
+Resolved for the alpha: distribution/import/CLI names, ordered matching, structural outcome comparison, and explicit supported adapters. Still open: fully measured version matrix, a portable OS-enforced runner beyond the supplied Docker profile, quantified performance gates, background-persistence lifecycle, and first database driver. These remain milestone inputs.
 
 ## 24. Project status and change discipline
 
