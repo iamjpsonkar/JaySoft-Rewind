@@ -1,5 +1,6 @@
 import json
 import threading
+import weakref
 from concurrent.futures import ThreadPoolExecutor
 from contextvars import ContextVar
 
@@ -54,11 +55,16 @@ def test_count_budget_includes_inflight_and_submit_does_not_wait(snapshot, block
     assert stats["pending_bytes"] == 3 * len(snapshot.raw)
     assert stats["submitted"] == 3
     assert stats["rejected"] == 1
+    assert stats["in_flight"]
+    assert stats["worker_alive"]
+    assert stats["max_items"] == stats["peak_pending_items"] == 3
+    assert stats["peak_pending_bytes"] == 3 * len(snapshot.raw)
     assert not writer.flush(0)
     store.release.set()
     assert writer.flush()
     assert writer.stats()["saved"] == 3
     assert writer.stats()["pending_bytes"] == 0
+    assert writer.stats()["peak_pending_bytes"] == 3 * len(snapshot.raw)
 
 
 def test_byte_budget_exact_boundary_and_oversized_snapshot(snapshot):
@@ -251,3 +257,87 @@ def test_local_store_round_trip(snapshot, tmp_path):
     assert writer.submit(snapshot)
     assert writer.close().drained
     assert store.load(snapshot.id) == snapshot
+
+
+def test_shutdown_releases_dropped_snapshot_objects(snapshot, blocked_writer):
+    writer, store = blocked_writer
+    assert writer.submit(snapshot)
+    assert store.started.wait(5)
+    dropped = Snapshot(snapshot.raw)
+    reference = weakref.ref(dropped)
+    assert writer.submit(dropped)
+    del dropped
+    assert reference() is not None
+    assert writer.close(timeout=0).dropped == 1
+    assert reference() is None
+
+
+def test_concurrent_shutdown_accounts_for_each_discard_once(snapshot, blocked_writer):
+    writer, store = blocked_writer
+    assert writer.submit(snapshot)
+    assert store.started.wait(5)
+    assert writer.submit(snapshot)
+    assert writer.submit(snapshot)
+    with ThreadPoolExecutor(max_workers=8) as callers:
+        reports = list(callers.map(lambda _: writer.close(timeout=0), range(20)))
+    assert all(report.pending == 1 and report.dropped == 2 for report in reports)
+    assert writer.stats()["submitted"] == 3
+    assert writer.stats()["dropped"] == 2
+    store.release.set()
+    assert writer.close().pending == 0
+    assert writer.stats()["saved"] == 1
+
+
+def test_flush_waits_for_concurrently_submitted_work(snapshot, monkeypatch):
+    first_started = threading.Event()
+    first_release = threading.Event()
+    second_started = threading.Event()
+    second_release = threading.Event()
+    flush_waiting = threading.Event()
+    flush_waiting_again = threading.Event()
+
+    class Store:
+        calls = 0
+
+        def save(self, snapshot):
+            self.calls += 1
+            if self.calls == 1:
+                first_started.set()
+                assert first_release.wait(5)
+            else:
+                second_started.set()
+                assert second_release.wait(5)
+
+    writer = BackgroundWriter(Store())
+    original_wait = writer._condition.wait
+    wait_count = 0
+
+    def signal_wait(timeout=None):
+        nonlocal wait_count
+        if threading.current_thread().name.startswith("flush-test"):
+            wait_count += 1
+            (flush_waiting if wait_count == 1 else flush_waiting_again).set()
+        return original_wait(timeout)
+
+    monkeypatch.setattr(writer._condition, "wait", signal_wait)
+    try:
+        assert writer.submit(snapshot)
+        assert first_started.wait(5)
+        with ThreadPoolExecutor(max_workers=1, thread_name_prefix="flush-test") as caller:
+            future = caller.submit(writer.flush)
+            try:
+                assert flush_waiting.wait(5)
+                assert writer.submit(snapshot)
+                first_release.set()
+                assert second_started.wait(5)
+                assert flush_waiting_again.wait(5)
+                assert not future.done()
+            finally:
+                first_release.set()
+                second_release.set()
+            assert future.result(timeout=5)
+        assert writer.stats()["saved"] == 2
+    finally:
+        first_release.set()
+        second_release.set()
+        writer.close()
