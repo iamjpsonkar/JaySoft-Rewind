@@ -13,6 +13,7 @@
 - Explicit changed-code comparison and developer-approved regression outcomes, separately labeled from strict reproduction.
 - Configurable redaction keys across supported structured surfaces, SQLite result-column filtering, and conservative sensitive-query exclusion.
 - Combined HTTP/database/Redis/source example and optional `flask`, `sqlalchemy`, `redis`, and `all` extras.
+- Navigable GitHub README with expandable examples and FAQs; documentation hub, installation walkthrough, CLI reference and troubleshooting guides; dedicated Markdown package description and documentation links for PyPI.
 
 ### Limits
 

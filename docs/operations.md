@@ -1,5 +1,7 @@
 # Capture operations
 
+[Documentation home](index.md) · [Quick start](getting-started.md)
+
 Rewind can move artifact filesystem writes off the request event loop using a
 bounded `BackgroundWriter`. Serialization, policy filtering, and fingerprinting
 remain in process; capture still has CPU and memory costs. This is a local alpha,

@@ -1,5 +1,7 @@
 # Redis capture and replay
 
+[Documentation home](index.md) · [Quick start](getting-started.md)
+
 Install `pip install 'jaysoft-rewind[redis]'`. The adapter targets redis-py
 `>=5,<7`; conformance is exercised with redis-py 6.4.0 against a real Redis server.
 Use `RecordingRedis` for `redis.Redis` and `AsyncRecordingRedis` for

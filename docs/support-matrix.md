@@ -1,5 +1,7 @@
 # Supported boundaries and compatibility evidence
 
+[Documentation home](index.md) · [Quick start](getting-started.md)
+
 This matrix describes development `0.1.0a3`. PyPI `0.1.0a2` retains its earlier
 HTTPX/ASGI scope. Every adapter is explicitly configured; package installation
 alone does not intercept a client or framework.

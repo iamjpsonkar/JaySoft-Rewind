@@ -41,6 +41,8 @@ def verify(directory: Path) -> dict[str, str]:
             raise ValueError("unexpected distribution name")
         if metadata["Author-email"] != "Jay Prakash Sonkar <iamjpsonkar@gmail.com>":
             raise ValueError("unexpected distribution author")
+        if metadata["Description-Content-Type"] != "text/markdown":
+            raise ValueError("package description must declare Markdown")
         if any(name.startswith(("tests/", "examples/", "docs/")) for name in names):
             raise ValueError("wheel contains development-only files")
         version = metadata["Version"]
@@ -71,11 +73,28 @@ def verify(directory: Path) -> dict[str, str]:
             "examples/flask_failure.py",
             "docs/support-matrix.md",
             "docs/snapshot-format.md",
+            "docs/pypi.md",
+            "docs/index.md",
+            "docs/getting-started.md",
+            "docs/installation.md",
+            "docs/cli.md",
+            "docs/troubleshooting.md",
+            "docs/http-and-fastapi.md",
+            "docs/sources.md",
             "tests/fixtures/golden-v0.1.json",
             "tests/fixtures/golden_app.py",
         }
         if not required <= names:
             raise ValueError("source archive is missing documentation, helpers, or examples")
+        description = archive.extractfile(f"jaysoft_rewind-{version}/docs/pypi.md")
+        if description is None:
+            raise ValueError("source archive is missing the package description")
+        expected_description = description.read().decode("utf-8").strip()
+        if any(
+            document.get_payload().strip() != expected_description
+            for document in (metadata, source_metadata)
+        ):
+            raise ValueError("distribution descriptions differ from the packaged PyPI guide")
         if any(name.endswith(".rewind.json") or "/.env" in f"/{name}" for name in names):
             raise ValueError("source archive contains local recordings or environment files")
     script = """

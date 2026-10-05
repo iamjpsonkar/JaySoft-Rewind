@@ -1,5 +1,7 @@
 # Snapshot format 0.1
 
+[Documentation home](index.md) · [Quick start](getting-started.md)
+
 A snapshot is a bounded UTF-8 JSON document. `SCHEMA_VERSION` is `"0.1"`;
 package versions such as `0.1.0a2` and `0.1.0a3` are separate producer metadata.
 There is no pickle, arbitrary object reconstruction, embedded executable code,

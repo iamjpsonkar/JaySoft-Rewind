@@ -1,5 +1,7 @@
 # Implementation and evidence ledger
 
+[Documentation home](index.md) · [Quick start](getting-started.md)
+
 Baseline: `0.1.0a2`, published on PyPI on 2026-10-05. The original project plan
 contains both deliverables and future ideas. This checklist tracks executable
 capabilities against the original M1–M16 milestones and the refined repository

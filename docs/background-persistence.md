@@ -1,5 +1,7 @@
 # Bounded background persistence
 
+[Documentation home](index.md) · [Quick start](getting-started.md)
+
 `BackgroundWriter` moves snapshot storage calls onto a single daemon thread.
 The request still creates, redacts, encodes, and seals its snapshot before
 submission. Only an immutable `Snapshot` containing `bytes` crosses the queue;
