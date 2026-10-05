@@ -8,6 +8,7 @@ import httpx
 
 from .. import context
 from ..codecs import decode
+from ..errors import RewindError
 from ..recorder import Recorder
 from ..replay import ReplaySession
 
@@ -56,11 +57,16 @@ class RecordingTransport(httpx.AsyncBaseTransport):
 
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
         active = context.current.get()
+        if isinstance(active, Recorder) and active.sealed:
+            active = None
         if isinstance(active, ReplaySession):
             outcome = active.consume("http.request", self.dependency, request_data(request, active))
             if outcome["kind"] == "exception":
                 cls = _EXCEPTIONS.get(outcome["type"])
-                args = decode(outcome["args"], active.limits)
+                try:
+                    args = decode(outcome["args"], active.limits)
+                except RewindError:
+                    active.fail("invalid recorded HTTP exception")
                 if (
                     cls is None
                     or type(args) is not tuple
@@ -69,12 +75,21 @@ class RecordingTransport(httpx.AsyncBaseTransport):
                 ):
                     active.fail("unsupported recorded HTTP exception")
                 raise cls(args[0], request=request)
-            data = decode(outcome["value"], active.limits)
             try:
+                data = decode(outcome["value"], active.limits)
                 if (
                     type(data) is not dict
                     or type(data["status"]) is not int
                     or not 100 <= data["status"] <= 599
+                    or type(data["body"]) is not str
+                    or type(data["http_version"]) is not str
+                    or type(data["headers"]) is not list
+                    or any(
+                        type(pair) is not list
+                        or len(pair) != 2
+                        or any(type(part) is not str for part in pair)
+                        for pair in data["headers"]
+                    )
                 ):
                     raise ValueError
                 body = base64.b64decode(data["body"], validate=True)
@@ -86,7 +101,7 @@ class RecordingTransport(httpx.AsyncBaseTransport):
                     stream=httpx.ByteStream(body),
                     extensions={"http_version": data["http_version"].encode("ascii")},
                 )
-            except (ValueError, KeyError, TypeError):
+            except (RewindError, ValueError, KeyError, TypeError, UnicodeError):
                 active.fail("invalid recorded HTTP response")
         slot = None
         if isinstance(active, Recorder):
@@ -104,7 +119,7 @@ class RecordingTransport(httpx.AsyncBaseTransport):
                     active.mark("unsupported_http_exception")
                 active.finish(slot, active.raised(exc))
             raise
-        if isinstance(active, Recorder) and slot is not None:
+        if isinstance(active, Recorder) and not active.sealed and slot is not None:
             if response.headers.get("content-encoding", "identity").lower() != "identity":
                 active.mark("compressed_response_unsupported")
             if response.is_stream_consumed:
@@ -119,6 +134,8 @@ class RecordingTransport(httpx.AsyncBaseTransport):
 
 
 def _complete(recorder: Recorder, slot: int, response: httpx.Response, content: bytes) -> None:
+    if recorder.sealed:
+        return
     try:
         data = {
             "status": response.status_code,

@@ -65,13 +65,20 @@ class ReplaySession:
         self.failure = self.failure or detail
         raise ReplayDivergence(self.failure)
 
+    def check_task(self) -> None:
+        try:
+            task = asyncio.current_task()
+        except RuntimeError:
+            task = None
+        if task is not self.owner:
+            self.fail("child task is outside sequential replay scope")
+
     def consume(self, operation: str, dependency: str, value: Any) -> dict[str, Any]:
         if self.closed:
             self.fail("operation after replay completed")
         if self.failure:
             self.fail(self.failure)
-        if asyncio.current_task() is not self.owner:
-            self.fail("child task is outside sequential replay scope")
+        self.check_task()
         if self.cursor >= len(self.interactions):
             self.fail(f"unexpected interaction {self.cursor + 1}")
         expected = self.interactions[self.cursor]

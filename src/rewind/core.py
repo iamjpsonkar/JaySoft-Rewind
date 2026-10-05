@@ -150,6 +150,8 @@ class Rewind:
             except Exception as exc:
                 outcome = session.policy.exception(exc, self.limits, session.fail)
             return session.report(outcome)
+        except ReplayDivergence:
+            return session.report({"kind": "return", "value": encode(None, self.limits)})
         except RewindError:
             return ReplayReport(
                 "replay_error",
@@ -169,6 +171,8 @@ class Rewind:
             if outcome["kind"] != "return":
                 active.fail("recorded provider exception is unsupported")
             return active.unpack(outcome["value"])
+        if isinstance(active, Recorder) and active.sealed:
+            return factory()
         slot = active.begin("value", name, None) if isinstance(active, Recorder) else None
         try:
             result = factory()
@@ -176,7 +180,7 @@ class Rewind:
             if isinstance(active, Recorder):
                 active.mark("provider_exception_unsupported")
             raise
-        if isinstance(active, Recorder):
+        if isinstance(active, Recorder) and slot is not None:
             active.finish(slot, active.returned(result))
         return result
 

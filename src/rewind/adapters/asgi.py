@@ -1,21 +1,34 @@
 """Pure ASGI capture without consuming request bodies ahead of the application."""
 
-import asyncio
 import base64
 from typing import Any
 
 from .. import context
 from ..codecs import decode, encode
-from ..errors import ReplayDivergence
+from ..errors import ReplayDivergence, RewindError
 from ..recorder import Recorder
 from ..replay import ReplayReport, ReplaySession
 from ..snapshot import Snapshot
+
+_SCOPE_KEYS = (
+    "type", "asgi", "http_version", "method", "scheme", "path", "raw_path",
+    "root_path", "query_string", "server", "client", "headers",
+)
 
 
 class Exchange:
     def __init__(self, active: Any, scope: dict[str, Any]) -> None:
         self.active = active
-        self.scope = scope
+        try:
+            self.scope = decode(
+                encode({key: scope[key] for key in _SCOPE_KEYS if key in scope}, active.limits),
+                active.limits,
+            )
+        except Exception:
+            self.scope = {"type": "http", "headers": []}
+            self.mark("scope_capture_failed")
+        if any(value for key, value in scope.items() if key not in _SCOPE_KEYS):
+            self.mark("asgi_scope_unsupported")
         self.request = bytearray()
         self.response = bytearray()
         self.request_complete = False
@@ -42,7 +55,11 @@ class Exchange:
         else:
             body.extend(chunk)
 
+    def check_task(self) -> None:
+        self.active.check_task()
+
     def received(self, message: dict[str, Any]) -> None:
+        self.check_task()
         if message["type"] == "http.disconnect":
             self.mark("client_disconnected")
         elif message["type"] == "http.request":
@@ -56,9 +73,10 @@ class Exchange:
                 self.request_complete = True
 
     def sent(self, message: dict[str, Any]) -> None:
+        self.check_task()
         if message["type"] == "http.response.start":
             self.status = message["status"]
-            self.headers = message.get("headers", [])
+            self.headers = list(message.get("headers", []))
             if message.get("trailers"):
                 self.mark("response_trailers_unsupported")
         elif message["type"] == "http.response.body":
@@ -73,20 +91,7 @@ class Exchange:
     def incoming(self) -> dict[str, Any]:
         policy = self.active.policy
         # Preserve only the explicitly supported HTTP scope; never serialize arbitrary state.
-        keys = (
-            "type",
-            "asgi",
-            "http_version",
-            "method",
-            "scheme",
-            "path",
-            "raw_path",
-            "root_path",
-            "query_string",
-            "server",
-            "client",
-        )
-        scope = {key: self.scope[key] for key in keys if key in self.scope}
+        scope = {key: value for key, value in self.scope.items() if key != "headers"}
         headers = policy.headers(self.scope.get("headers", []), self.mark)
         scope["headers"] = [(k.encode("latin-1"), v.encode("latin-1")) for k, v in headers]
         query = self.scope.get("query_string", b"")
@@ -137,9 +142,17 @@ class CaptureMiddleware:
             return message
 
         async def send_capture(message: dict[str, Any]) -> None:
+            try:
+                observed = dict(message)
+                if "headers" in observed:
+                    observed["headers"] = list(observed["headers"])
+            except Exception:
+                recorder.mark("response_capture_failed")
+                observed = None
             await send(message)
             try:
-                exchange.sent(message)
+                if observed is not None:
+                    exchange.sent(observed)
             except Exception:
                 recorder.mark("response_capture_failed")
 
@@ -189,8 +202,7 @@ async def replay_asgi(rewind: Any, snapshot: Snapshot, app: Any) -> ReplayReport
     async def receive() -> dict[str, Any]:
         nonlocal delivered, offset
         if delivered >= len(incoming["chunks"]):
-            # A second read normally waits for a disconnect; don't fabricate one during execution.
-            await asyncio.Future()
+            session.fail("unexpected ASGI receive after recorded request")
         length = incoming["chunks"][delivered]
         delivered += 1
         message = {
@@ -212,6 +224,8 @@ async def replay_asgi(rewind: Any, snapshot: Snapshot, app: Any) -> ReplayReport
             pass
         except Exception as exc:
             exception = exc
+        if not session.failure and delivered != len(incoming["chunks"]):
+            session.fail("recorded ASGI request chunks left unread")
         if session.failure:
             return session.report({"kind": "return", "value": encode(None, rewind.limits)})
         if exchange.response_complete:
@@ -228,6 +242,11 @@ async def replay_asgi(rewind: Any, snapshot: Snapshot, app: Any) -> ReplayReport
         return session.report(outcome)
     except ReplayDivergence:
         return session.report({"kind": "return", "value": encode(None, rewind.limits)})
+    except RewindError:
+        return ReplayReport(
+            "replay_error", "unsupported ASGI replay outcome", session.cursor,
+            len(session.interactions),
+        )
     finally:
         session.closed = True
         context.current.reset(token)
