@@ -11,6 +11,7 @@ from .codecs import loads
 from .comparison import compare_file, generate_comparison_test
 from .doctor import diagnose
 from .errors import RewindError
+from .explorer import explore_file
 from .limits import Limits
 from .portable import export_snapshot, import_snapshot
 from .runner import replay_file
@@ -51,6 +52,9 @@ def parser() -> argparse.ArgumentParser:
     )
     inspect.add_argument("artifact", type=Path)
     inspect.add_argument("--timeline", action="store_true", help="include optional function spans")
+    explore = commands.add_parser("explore", help="write a private standalone HTML snapshot report")
+    explore.add_argument("artifact", type=Path)
+    explore.add_argument("-o", "--output", type=Path, required=True)
     replay = commands.add_parser("replay", help="replay in a fresh local process")
     replay.add_argument("artifact", type=Path)
     replay.add_argument("--app", required=True, help="local module:function returning ReplayTarget")
@@ -88,7 +92,7 @@ def parser() -> argparse.ArgumentParser:
     importing.add_argument("archive", type=Path)
     importing.add_argument("--store", type=Path, default=Path(".rewind/snapshots"))
     commands.add_parser("doctor", help="inspect runtime and installed optional dependencies")
-    for command in (inspect, replay, compare, test, export):
+    for command in (inspect, explore, replay, compare, test, export):
         command.add_argument(
             "--store",
             type=Path,
@@ -157,6 +161,11 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "import":
             output = import_snapshot(args.archive, LocalStore(args.store))
             result = {"artifact": str(output)}
+        elif args.command == "explore":
+            output = explore_file(args.artifact, args.output)
+            result = {
+                "report": str(output), "note": "Report contains captured data; keep it private."
+            }
         elif args.command == "inspect":
             result = summary(args.artifact)
             if args.timeline:
