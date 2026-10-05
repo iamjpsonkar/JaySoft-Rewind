@@ -10,6 +10,7 @@
 - Operational and persistence guides plus a runnable background capture/replay example.
 - Repeatable CPU/simulated-I/O benchmarks, separate allocation measurements, end-to-end drain/CPU accounting, and controlled item/byte saturation invariants.
 - Distribution-content and isolated wheel-import checks, benchmark smoke CI, and background capture in network-disabled Docker verification.
+- PyPI/TestPyPI release plan, matching version/tag validation, and a manual trusted-publishing workflow that defaults to a non-publishing rehearsal.
 
 ### Changed
 

@@ -11,6 +11,9 @@ four async workers, 256-byte payloads, and separate 20-operation memory passes.
 Temporary artifacts are deleted after each trial. The script needs only Python's
 standard library and Rewind. It does not call a network service.
 
+The [0.1.0a2 local measurement report](benchmarks/README.md) publishes two runs
+with reversed mode ordering, complete JSON evidence, and source provenance.
+
 For a longer local sample with explicit settings:
 
 ```sh

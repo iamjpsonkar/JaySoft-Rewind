@@ -12,8 +12,8 @@ from pathlib import Path
 
 
 def verify(directory: Path) -> dict[str, str]:
-    wheels = sorted(directory.glob("jaysoft_rewind-*.whl"))
-    archives = sorted(directory.glob("jaysoft_rewind-*.tar.gz"))
+    wheels = sorted(directory.glob("*.whl"))
+    archives = sorted(directory.glob("*.tar.gz"))
     if len(wheels) != 1 or len(archives) != 1:
         raise ValueError("use a clean output directory containing one wheel and one source archive")
     wheel, source = wheels[0].resolve(), archives[0]
@@ -33,7 +33,15 @@ def verify(directory: Path) -> dict[str, str]:
         if any(name.startswith(("tests/", "examples/", "docs/")) for name in names):
             raise ValueError("wheel contains development-only files")
         version = metadata["Version"]
+    if source.name != f"jaysoft_rewind-{version}.tar.gz":
+        raise ValueError("source archive name/version differs from wheel metadata")
     with tarfile.open(source) as archive:
+        info = archive.extractfile(f"jaysoft_rewind-{version}/PKG-INFO")
+        if info is None:
+            raise ValueError("source archive is missing package metadata")
+        source_metadata = Parser().parsestr(info.read().decode())
+        if source_metadata["Name"] != "jaysoft-rewind" or source_metadata["Version"] != version:
+            raise ValueError("source and wheel metadata differ")
         names = {name.partition("/")[2] for name in archive.getnames()}
         required = {
             "README.md", "pyproject.toml", "tests/__init__.py", "tests/runner_targets.py",

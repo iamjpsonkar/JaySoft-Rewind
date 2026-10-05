@@ -11,7 +11,7 @@
 
 | Area | Local alpha status | Remaining evidence or limitation |
 |---|---|---|
-| Identity | `jaysoft-rewind` distribution, `rewind` import/CLI; Jay Prakash Sonkar as maintainer | Package publication is a separate release action |
+| Identity | `jaysoft-rewind` distribution, `rewind` import/CLI; Jay Prakash Sonkar as maintainer | Package publication and trusted-publisher setup are separate release actions |
 | Capture | Async callable, buffered ASGI HTTP, explicit HTTPX async transport | Sequential owning-task calls; no global interception, streaming, or lifecycle replay |
 | Deterministic sources | Explicit `rewind.sources` clocks, dates, UUIDs, random operations, and async waits | No stdlib/global patching, third-party/native RNG interception, RNG state restoration, or scheduling replay |
 | Replay | Ordered strict matching, explicit outcome comparator, unused/extra interaction checks | Does not reconstruct heap, thread scheduling, or distributed state |
@@ -556,4 +556,4 @@ For “implement Rn,” implement that milestone and its gate. Do not interpret 
 - [HTTPX transports](https://www.python-httpx.org/advanced/transports/) — supported integration boundary.
 - [Python context variables](https://docs.python.org/3/library/contextvars.html) — execution-local state.
 - [SQLAlchemy cursor events](https://docs.sqlalchemy.org/en/20/core/events.html#sqlalchemy.events.ConnectionEvents.after_cursor_execute) — future database adapter constraints.
-- [Existing PyPI rewind project](https://pypi.org/project/rewind/) — distribution naming conflict; this project uses `jaysoft-rewind`.
+- [Existing PyPI rewind project](https://pypi.org/project/rewind/) — unrelated package; this project uses the `jaysoft-rewind` distribution name.
