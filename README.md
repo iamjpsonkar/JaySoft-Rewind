@@ -85,7 +85,13 @@ This snippet uses a live transport during capture. Supply your controlled servic
 
 For FastAPI, wrap the app with `rewind.asgi(app)` and return `ReplayTarget(rewind, wrapped_app, kind="asgi")`. Middleware does not intercept other clients or databases. Supported requests consume their bodies, emit buffered responses, and perform dependency calls sequentially in the owning task. Configure local startup dependencies inside the factory; the runner does not drive ASGI lifespan.
 
-`Rewind.value(name, factory)` records explicit observations. `Retention` supports exceptions, status thresholds, duration thresholds, and `always=True`; defaults retain exceptions and HTTP statuses of at least 500. Retained artifacts are written synchronously.
+`Rewind.value(name, factory)` records explicit observations. `Retention` supports exceptions, status thresholds, duration thresholds, and `always=True`; defaults retain exceptions and HTTP statuses of at least 500. The existing `store=` capture path writes retained artifacts synchronously.
+
+## Bounded persistence worker
+
+`BackgroundWriter` provides a worker for already sealed snapshots. Configure both `max_items` and `max_bytes`; both budgets include the current filesystem write. `submit(snapshot)` returns immediately after bounded bookkeeping and rejects work when full. Acceptance means queued, not persisted.
+
+`flush(timeout=5)` waits for idle. `close(timeout=5, drain=True)` stops submissions and bounds the drain wait; pending work is dropped at the deadline, while an active filesystem call can outlive it. `stats()` exposes completion, failure, rejection, and high-water counts without payload labels. See the [background persistence guide](docs/background-persistence.md) for the complete contract and shutdown report. Disk writes move to a daemon thread; serialization still occurs before submission, and abrupt process exit can lose queued recordings.
 
 ## Record time, randomness, and UUIDs
 
