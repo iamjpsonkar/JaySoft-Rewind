@@ -42,3 +42,20 @@ def changed_outcome_factory():
             return "fallback"
 
     return ReplayTarget(target.rewind, fixed)
+
+
+def swallowed_sendmsg_factory():
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sender:
+        try:
+            sender.sendmsg([b"replay-probe"], [], 0, ("127.0.0.1", 9))
+        except Exception:
+            pass
+    return replay_target()
+
+
+def swallowed_name_lookup_factory():
+    try:
+        socket.getnameinfo(("127.0.0.1", 9), socket.NI_NAMEREQD)
+    except Exception:
+        pass
+    return replay_target()
