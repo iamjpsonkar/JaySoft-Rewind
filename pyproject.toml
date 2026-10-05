@@ -1,0 +1,64 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jaysoft-rewind"
+version = "0.1.0a1"
+description = "Capture Python request failures and replay their dependency observations locally"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{name = "Jay Prakash Sonkar", email = "iamjpsonkar@gmail.com"}]
+maintainers = [{name = "Jay Prakash Sonkar", email = "iamjpsonkar@gmail.com"}]
+keywords = ["debugging", "replay", "httpx", "fastapi", "testing"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Debuggers",
+  "Topic :: Software Development :: Testing",
+]
+dependencies = []
+
+[project.optional-dependencies]
+httpx = ["httpx>=0.28,<0.29"]
+fastapi = ["httpx>=0.28,<0.29", "fastapi>=0.115,<1"]
+dev = ["httpx>=0.28,<0.29", "fastapi>=0.115,<1", "pytest>=8,<10", "pytest-asyncio>=0.24,<2", "ruff>=0.9", "mypy>=1.14", "build>=1.2"]
+
+[project.urls]
+Homepage = "https://github.com/iamjpsonkar/JaySoft-Rewind"
+Repository = "https://github.com/iamjpsonkar/JaySoft-Rewind"
+Issues = "https://github.com/iamjpsonkar/JaySoft-Rewind/issues"
+
+[project.scripts]
+rewind = "rewind.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+rewind = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "."]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src/rewind"]
+check_untyped_defs = true
+disallow_incomplete_defs = true
+warn_unused_ignores = true
+no_implicit_optional = true
