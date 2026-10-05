@@ -42,7 +42,7 @@ unsupported or incomplete capture is reported explicitly.
 | Add Rewind to an application | [Installation and optional integrations](docs/installation.md) |
 | Browse the package overview | [PyPI guide](docs/pypi.md) · [Published package](https://pypi.org/project/jaysoft-rewind/) |
 
-**Release candidate: `0.2.0a1`.** [Package releases](https://pypi.org/project/jaysoft-rewind/#history) are available on PyPI. The distribution is `jaysoft-rewind`; the Python import and command are both `rewind`. Use Python 3.11 or 3.12. This alpha is intended for synthetic fixtures and controlled development environments.
+**Release: `0.2.0a1`.** [Package releases](https://pypi.org/project/jaysoft-rewind/#history) are available on PyPI. The distribution is `jaysoft-rewind`; the Python import and command are both `rewind`. Use Python 3.11 or 3.12. This alpha is intended for synthetic fixtures and controlled development environments.
 
 ## Quick start
 
@@ -221,7 +221,13 @@ Capture is bounded: defaults include 64 KiB per body, 1 MiB per artifact and 1,0
 
 [Documentation home](docs/index.md) brings together walkthroughs, adapter guides, the [snapshot specification](docs/snapshot-format.md), [release guide](docs/releases.md) and [implementation ledger](docs/implementation-roadmap.md).
 
-Validation for `0.1.0a3` includes 488 passing default-suite tests, a separate 84-test Redis run that includes the four normally skipped real-server cases, and seven offline Docker examples. The suites overlap. [CI](https://github.com/iamjpsonkar/JaySoft-Rewind/actions/workflows/checks.yml) checks Python 3.11/3.12, lint, types and distributions. [Measured benchmarks](docs/benchmarks/README.md) describe synthetic workloads; production readiness remains a separate evidence gate.
+Validation for `0.2.0a1`: 626 default-suite tests passed, with 28 opt-in service
+cases skipped in that run. Separate real-service checks cover PostgreSQL, MySQL,
+Redis, Kafka and Celery; nine Docker examples replay with networking disabled.
+Ruff, mypy and Python 3.11/3.12 CI pass. The
+[synthetic staging report](docs/validation/README.md) records workload budgets,
+independent memory measurements and rollback evidence. These are explicit local
+validation results, not production certification.
 
 Found a problem? Check [troubleshooting](docs/troubleshooting.md), then [open an issue](https://github.com/iamjpsonkar/JaySoft-Rewind/issues) with your version and a synthetic reproduction. See [contributing](CONTRIBUTING.md) for development setup and [SECURITY.md](SECURITY.md) for sensitive reports.
 
@@ -231,7 +237,7 @@ Maintained by [Jay Prakash Sonkar](https://github.com/iamjpsonkar) · [iamjpsonk
 
 ### Expanded integrations and deployment validation
 
-The `0.2.0a1` candidate adds explicit [PostgreSQL/MySQL](docs/external-databases.md),
+The `0.2.0a1` alpha adds explicit [PostgreSQL/MySQL](docs/external-databases.md),
 [Kafka/Celery](docs/messaging.md), and [filesystem/S3](docs/filesystem-and-s3.md)
 boundaries. Each guide states the supported calls and its conformance environment.
 

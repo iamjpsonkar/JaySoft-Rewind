@@ -73,3 +73,12 @@ Production readiness remains an evidence gate: representative workload budgets,
 data-policy review, stronger isolation and deployment-specific validation.
 Neither completing the feature checklist nor a synthetic benchmark certifies
 production safety or a universal overhead percentage.
+
+## Integrated 0.2.0a1 result
+
+Server capture-all/conditional retention, same-handler replay, optional handler
+timeline and private interactive HTML exploration are implemented and tested.
+The [final evidence](validation/README.md) records 626 default-suite passes,
+separate real-service conformance, nine offline Docker examples and successful
+fixed-arrival synthetic budgets plus operational rollback. The [server guide](server-guide.md)
+is the primary user workflow. The alpha contract remains explicitly bounded.

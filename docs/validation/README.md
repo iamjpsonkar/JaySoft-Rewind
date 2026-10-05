@@ -1,4 +1,32 @@
-# Synthetic staging evidence
+# Integrated 0.2.0a1 staging evidence
+
+The [integrated report](alpha2-integrated-2026-10-05.json) passed every predeclared
+synthetic budget and rollback check at clean revision
+`3f819bf4ce05b0718a1815b93041d00ed23bab1a`. Both imported source and installed package
+metadata report `0.2.0a1`. Each mode offered 100 requests at 50 requests/second;
+memory uses a separate fresh process. Host-specific absolute paths are omitted.
+
+| Mode | Accepted-request p95 ms | Independent RSS peak MiB | Budgets |
+| --- | ---: | ---: | --- |
+| active | 16.329 | 42.77 | passed |
+| background | 13.273 | 42.86 | passed |
+| direct | 9.207 | 42.39 | passed |
+| disabled | 10.727 | 42.83 | passed |
+| retained | 19.146 | 43.16 | passed |
+
+The lifecycle drill passed all checks; accepted work drained in
+14.487 ms. These are synthetic example budgets on a shared
+host, not production SLOs. Other final checks ran concurrently; inspect the profile
+and raw report before comparing measurements.
+
+Final local integration: **626 passed, 28 skipped** in the default test suite.
+Opt-in service tests run separately: **28 PostgreSQL/MySQL cases passed** locally;
+CI additionally passed Redis and Kafka/Celery service conformance. Counts overlap.
+All **nine** Docker examples reproduced with networking disabled, including the
+server handler and messaging workflows. Ruff and mypy passed.
+
+## Earlier baseline
+
 
 The [recorded run](local-staging-2026-10-05.json) passed the predeclared
 [local staging profile](local-staging.json) on 2026-10-05. This is a local synthetic
