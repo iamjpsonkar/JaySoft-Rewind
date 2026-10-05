@@ -1,6 +1,6 @@
 """Rewind: portable recordings of Python dependency observations."""
 
-from .conditions import Retention
+from .conditions import Condition, Retention
 from .core import Rewind
 from .limits import Limits
 from .persistence import BackgroundWriter, ShutdownReport
@@ -15,6 +15,7 @@ from .version import __version__
 __all__ = [
     "BackgroundWriter",
     "CapturePolicy",
+    "Condition",
     "Limits",
     "LocalStore",
     "ReplayReport",

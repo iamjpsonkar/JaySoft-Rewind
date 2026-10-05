@@ -1,6 +1,7 @@
 """Explicit recorded observations of clocks, randomness, identifiers, and waits."""
 
 import asyncio
+import os
 import random as _random
 import time as _time
 import uuid as _uuid
@@ -10,12 +11,14 @@ from typing import Any, TypeVar
 
 from . import context
 from .errors import RewindError
+from .policy import sensitive
 from .recorder import Recorder
 from .replay import ReplaySession
 
 T = TypeVar("T")
 _EXCEPTIONS = {
-    f"builtins.{kind.__name__}": kind for kind in (ValueError, TypeError, OverflowError, IndexError)
+    f"builtins.{kind.__name__}": kind
+    for kind in (ValueError, TypeError, OverflowError, IndexError, KeyError)
 }
 
 
@@ -60,6 +63,36 @@ class Sources:
 
     def time(self) -> float:
         return _observe("time", {}, _time.time)
+
+    def getenv(self, key: str, default: str | None = None) -> str | None:
+        """Observe one environment value; known secret keys never enter recordings."""
+        active = context.current.get()
+        if isinstance(active, Recorder) and sensitive(key):
+            active.mark("sensitive_environment_removed")
+            return os.getenv(key, default)
+        return _observe("getenv", {"key": key, "default": default}, lambda: os.getenv(key, default))
+
+    def environ(self, key: str) -> str:
+        """Observe a required environment value, including a missing-key exception."""
+        active = context.current.get()
+        if isinstance(active, Recorder) and sensitive(key):
+            active.mark("sensitive_environment_removed")
+            return os.environ[key]
+        return _observe("environ", {"key": key}, lambda: os.environ[key])
+
+    def sleep_sync(self, delay: float) -> None:
+        """Record a synchronous wait; replay consumes it without waiting."""
+        return _observe("sleep_sync", {"delay": delay}, lambda: _time.sleep(delay))
+
+    def getrandbits(self, k: int) -> int:
+        return _observe("getrandbits", {"k": k}, lambda: _random.getrandbits(k))
+
+    def randrange(self, start: int, stop: int | None = None, step: int = 1) -> int:
+        return _observe(
+            "randrange",
+            {"start": start, "stop": stop, "step": step},
+            lambda: _random.randrange(start, stop, step),
+        )
 
     def time_ns(self) -> int:
         return _observe("time_ns", {}, _time.time_ns)

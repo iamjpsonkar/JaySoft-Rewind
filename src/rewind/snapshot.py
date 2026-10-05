@@ -72,7 +72,8 @@ def _validate(data: Any, limits: Limits) -> None:
             )
         elif inp["kind"] == "wsgi":
             _require(
-                type(decoded) is dict and set(decoded) == {"environ"}
+                type(decoded) is dict
+                and set(decoded) == {"environ"}
                 and type(decoded["environ"]) is dict,
                 "invalid WSGI input",
             )
@@ -108,9 +109,8 @@ def _validate(data: Any, limits: Limits) -> None:
             "invalid interaction sequence",
         )
         _require(
-            item.get("operation") in (
-                "http.request", "value", "db.call", "redis.command", "redis.pipeline", "wsgi.read"
-            ),
+            item.get("operation")
+            in ("http.request", "value", "db.call", "redis.command", "redis.pipeline", "wsgi.read"),
             "unknown required operation",
         )
         _require(type(item.get("dependency")) is str, "invalid dependency name")
