@@ -56,12 +56,12 @@ def _validate(data: Any, limits: Limits) -> None:
     _require(cap["complete"] == (not reasons), "contradictory completeness state")
     inp = data.get("input")
     _require(
-        type(inp) is dict and inp.get("kind") in ("callable", "asgi"),
+        type(inp) is dict and inp.get("kind") in ("callable", "callable_sync", "asgi", "wsgi"),
         "unsupported entry point kind",
     )
     decoded = decode(inp.get("value"), limits)
     if cap["complete"]:
-        if inp["kind"] == "callable":
+        if inp["kind"] in ("callable", "callable_sync"):
             _require(
                 type(decoded) is dict and set(decoded) == {"args", "kwargs"},
                 "invalid callable input",
@@ -69,6 +69,12 @@ def _validate(data: Any, limits: Limits) -> None:
             _require(
                 type(decoded["args"]) is tuple and type(decoded["kwargs"]) is dict,
                 "invalid callable arguments",
+            )
+        elif inp["kind"] == "wsgi":
+            _require(
+                type(decoded) is dict and set(decoded) == {"environ"}
+                and type(decoded["environ"]) is dict,
+                "invalid WSGI input",
             )
         else:
             _require(
@@ -101,7 +107,12 @@ def _validate(data: Any, limits: Limits) -> None:
             and type(item.get("sequence")) is int,
             "invalid interaction sequence",
         )
-        _require(item.get("operation") in ("http.request", "value"), "unknown required operation")
+        _require(
+            item.get("operation") in (
+                "http.request", "value", "db.call", "redis.command", "redis.pipeline", "wsgi.read"
+            ),
+            "unknown required operation",
+        )
         _require(type(item.get("dependency")) is str, "invalid dependency name")
         decode(item.get("input"), limits)
         outcome = item.get("outcome")

@@ -5,6 +5,7 @@ import binascii
 import json
 import math
 from datetime import date, datetime, timedelta, timezone
+from decimal import Decimal, InvalidOperation
 from typing import Any
 from uuid import UUID
 
@@ -78,6 +79,14 @@ def encode(value: Any, limits: Limits) -> dict[str, Any]:
             return {"t": "bytes", "v": base64.b64encode(item).decode("ascii")}
         if kind is UUID:
             return {"t": "uuid", "v": item.hex}
+        if kind is Decimal:
+            if not item.is_finite() or len(item.as_tuple().digits) > limits.items:
+                raise CaptureLimit("decimal exceeds supported limits")
+            text = str(item)
+            size += len(text)
+            if size > limits.snapshot_bytes:
+                raise CaptureLimit("decimal exceeds byte limit")
+            return {"t": "decimal", "v": text}
         if kind is date:
             return {"t": "date", "v": item.isoformat()}
         if kind is datetime:
@@ -136,6 +145,15 @@ def decode(value: Any, limits: Limits) -> Any:
                 return result
             except (ValueError, binascii.Error) as exc:
                 raise InvalidSnapshot("invalid encoded bytes") from exc
+        elif tag == "decimal" and type(item) is str:
+            if len(item) > min(limits.snapshot_bytes, limits.items + 32):
+                raise InvalidSnapshot("decimal exceeds supported limits")
+            try:
+                number = Decimal(item)
+                if number.is_finite() and str(number) == item:
+                    return number
+            except InvalidOperation as exc:
+                raise InvalidSnapshot("invalid decimal") from exc
         elif tag in ("uuid", "date") and type(item) is str:
             try:
                 if tag == "uuid" and len(item) == 32:
