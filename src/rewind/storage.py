@@ -46,7 +46,7 @@ class LocalStore:
             raise InvalidSnapshot("invalid snapshot ID")
         return self.path / f"{snapshot_id}.rewind.json"
 
-    def save(self, snapshot: Snapshot) -> Path:
+    def save(self, snapshot: Snapshot, *, overwrite: bool = True) -> Path:
         snapshot = Snapshot.from_bytes(snapshot.raw, self.limits)
         if len(snapshot.raw) > self.max_bytes:
             raise RewindError("snapshot exceeds storage quota")
@@ -75,7 +75,11 @@ class LocalStore:
                     stream.write(snapshot.raw)
                     stream.flush()
                     os.fsync(stream.fileno())
-                os.replace(temporary, target)
+                if overwrite:
+                    os.replace(temporary, target)
+                else:
+                    # Atomic no-clobber publication; import must not replace evidence.
+                    os.link(temporary, target)
                 # Keep existing artifacts intact if writing or publication fails.
                 for p in evict:
                     p.unlink()

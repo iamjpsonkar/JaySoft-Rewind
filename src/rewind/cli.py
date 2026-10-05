@@ -6,7 +6,9 @@ import os
 import sys
 from pathlib import Path
 
+from .doctor import diagnose
 from .errors import RewindError
+from .portable import export_snapshot, import_snapshot
 from .runner import replay_file
 from .storage import LocalStore, load_file
 from .version import __version__
@@ -42,6 +44,13 @@ def parser() -> argparse.ArgumentParser:
     test.add_argument("artifact", type=Path)
     test.add_argument("--app", required=True)
     test.add_argument("--output", type=Path, required=True)
+    export = commands.add_parser("export", help="export a validated portable .rewind archive")
+    export.add_argument("artifact", type=Path)
+    export.add_argument("-o", "--output", type=Path, required=True)
+    importing = commands.add_parser("import", help="validate and import without replacing an ID")
+    importing.add_argument("archive", type=Path)
+    importing.add_argument("--store", type=Path, default=Path(".rewind/snapshots"))
+    commands.add_parser("doctor", help="inspect runtime and installed optional dependencies")
     return root
 
 
@@ -92,7 +101,15 @@ def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     result: dict | list
     try:
-        if args.command == "inspect":
+        if args.command == "doctor":
+            result = diagnose()
+        elif args.command == "export":
+            output = export_snapshot(args.artifact, args.output)
+            result = {"archive": str(output)}
+        elif args.command == "import":
+            output = import_snapshot(args.archive, LocalStore(args.store))
+            result = {"artifact": str(output)}
+        elif args.command == "inspect":
             result = summary(args.artifact)
         elif args.command == "replay":
             report = replay_file(
