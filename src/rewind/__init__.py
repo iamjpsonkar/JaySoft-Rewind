@@ -5,6 +5,7 @@ from .core import Rewind
 from .limits import Limits
 from .policy import CapturePolicy
 from .replay import ReplayReport
+from .runner import ReplayTarget, replay_file
 from .snapshot import Snapshot
 from .storage import LocalStore
 from .version import __version__
@@ -14,8 +15,10 @@ __all__ = [
     "Limits",
     "LocalStore",
     "ReplayReport",
+    "ReplayTarget",
     "Retention",
     "Rewind",
     "Snapshot",
     "__version__",
+    "replay_file",
 ]
