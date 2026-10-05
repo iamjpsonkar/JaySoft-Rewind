@@ -6,7 +6,7 @@ import socket
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from examples import fastapi_failure, http_failure
+from examples import fastapi_failure, http_failure, sources_failure
 
 from rewind import replay_file
 
@@ -22,7 +22,11 @@ def main() -> None:
         raise RuntimeError("external network was reachable; use --network none")
 
     with TemporaryDirectory(prefix="rewind-offline-") as directory:
-        for name, example in (("http", http_failure), ("fastapi", fastapi_failure)):
+        for name, example in (
+            ("http", http_failure),
+            ("fastapi", fastapi_failure),
+            ("sources", sources_failure),
+        ):
             artifact = asyncio.run(example.record(Path(directory) / name))
             report = replay_file(artifact, f"examples.{name}_failure:replay_target")
             if not report.reproduced or report.consumed != report.total:
