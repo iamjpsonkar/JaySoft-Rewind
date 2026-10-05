@@ -2,7 +2,7 @@
 
 > Capture a failing backend request. Replay its recorded dependencies locally. Turn the reproduction into a test.
 
-**Status:** `0.1.0a2` is published on PyPI. Development `0.1.0a3` implements database/Redis boundaries, synchronous frameworks, bounded function diagnostics, portable tooling, environment replay, configurable redaction and changed-code comparison.
+**Status:** Release `0.1.0a3` implements database/Redis boundaries, synchronous frameworks, bounded function diagnostics, portable tooling, environment replay, configurable redaction and changed-code comparison.
 **Revision:** 2026-10-05, implementation status added to the architecture and delivery plan.
 **Repository baseline:** the implementation and evidence ledger is maintained in [docs/implementation-roadmap.md](docs/implementation-roadmap.md), with explicit supported boundaries in [docs/support-matrix.md](docs/support-matrix.md). Initial-alpha scope tables below preserve the original staged design; they do not override the current implementation ledger.
 
@@ -13,7 +13,7 @@ The original M1–M16 feature areas now have implementations within those bounda
 
 | Area | Local alpha status | Remaining evidence or limitation |
 |---|---|---|
-| Identity | `jaysoft-rewind` published at `0.1.0a2`; `rewind` import/CLI; Jay Prakash Sonkar as maintainer | Each subsequent candidate needs its own release validation |
+| Identity | `jaysoft-rewind` release `0.1.0a3`; `rewind` import/CLI; Jay Prakash Sonkar as maintainer | Each subsequent candidate needs its own release validation |
 | Capture | Sync/async callable, ASGI/WSGI HTTP, sync/async HTTPX; per-decorator safe conditions | Sequential owning-task/thread dependencies; no global interception or arbitrary streaming replay |
 | Deterministic sources | Explicit clocks, dates, UUIDs, random operations, environment reads, sync/async waits | No stdlib/global patching, third-party/native RNG interception, RNG state restoration, or scheduling replay |
 | Database | SQLAlchemy 2.x + synchronous sqlite3, execute/fetch/metadata/transaction boundaries | One declared engine/driver combination; no SQL emulator or external database state reconstruction |
@@ -475,7 +475,7 @@ Use contract tests for adapters, golden fixtures for format compatibility, fresh
 
 ## 20. Milestones with exit gates
 
-R0–R3 and R5 have implementation and validation evidence. Published `0.1.0a2` adds R4's bounded writer, operational controls, failure-storm tests and benchmark harness. Development `0.1.0a3` adds R6's SQLAlchemy/SQLite experiment and R7's Redis, synchronous HTTPX, Flask, environment and function-diagnostic boundaries, plus explicit desired-outcome regression tests. Environment-specific performance budgets, staging data-policy review, rollout/rollback exercises and R8 stable-release evidence remain open. The completion ledger tracks integrated checks; features alone do not establish production readiness.
+R0–R3 and R5 have implementation and validation evidence. Published `0.1.0a2` adds R4's bounded writer, operational controls, failure-storm tests and benchmark harness. Release `0.1.0a3` adds R6's SQLAlchemy/SQLite experiment and R7's Redis, synchronous HTTPX, Flask, environment and function-diagnostic boundaries, plus explicit desired-outcome regression tests. Environment-specific performance budgets, staging data-policy review, rollout/rollback exercises and R8 stable-release evidence remain open. The completion ledger tracks integrated checks; features alone do not establish production readiness.
 
 | Milestone | Deliverable | Exit gate | Depends on |
 |---|---|---|---|

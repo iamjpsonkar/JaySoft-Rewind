@@ -1,5 +1,7 @@
 # Synchronous Python, HTTPX, and Flask
 
+[Documentation home](index.md) · [Quick start](getting-started.md)
+
 Synchronous capture uses the same bounded snapshot, privacy policy, retention,
 background persistence, and strict observation matching as async capture.
 

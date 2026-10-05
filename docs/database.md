@@ -1,5 +1,7 @@
 # Database capture and replay
 
+[Documentation home](index.md) · [Quick start](getting-started.md)
+
 Install the SQLAlchemy integration with `pip install 'jaysoft-rewind[sqlalchemy]'`.
 `rewind.adapters.dbapi.RecordingSQLite` needs only Python's built-in `sqlite3`.
 The supported database boundary is synchronous SQLite, directly or through

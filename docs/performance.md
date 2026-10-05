@@ -1,5 +1,7 @@
 # Capture performance and failure-storm validation
 
+[Documentation home](index.md) · [Quick start](getting-started.md)
+
 Run the synthetic benchmark from a checkout with the package installed:
 
 ```sh

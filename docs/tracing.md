@@ -1,5 +1,7 @@
 # Bounded function diagnostics
 
+[Documentation home](index.md) · [Quick start](getting-started.md)
+
 Function tracing is explicit and off by default. Enable it on a capture instance
 and decorate selected application functions:
 

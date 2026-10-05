@@ -1,5 +1,7 @@
 # PyPI release plan
 
+[Documentation home](index.md) · [Quick start](getting-started.md)
+
 Distribution: **jaysoft-rewind**. Import and command: **rewind**.
 Maintainer: Jay Prakash Sonkar (`iamjpsonkar`, `iamjpsonkar@gmail.com`).
 The first public alpha, [`0.1.0a2`](https://pypi.org/project/jaysoft-rewind/0.1.0a2/),
@@ -10,9 +12,10 @@ passed validation, TestPyPI upload and wheel verification, and PyPI publication.
 A fresh PyPI installation verified the package version, public API imports,
 maintainer metadata, and CLI. Publishing remains a separate manual workflow.
 
-The current development candidate is `0.1.0a3`, extending the supported adapter
-and tooling scope. It is not published by merging its implementation. Release
-validation also gates builds on real Redis conformance and checks earlier
+Release `0.1.0a3` extends the supported adapter and tooling scope and adds
+the dedicated PyPI package guide. Merging a release does not upload packages;
+publication uses the workflow below. Validation gates builds on real Redis
+conformance and checks earlier
 SQLAlchemy/redis-py/Flask families on Python 3.11.
 
 ## Release sequence
@@ -20,25 +23,26 @@ SQLAlchemy/redis-py/Flask families on Python 3.11.
 | Stage | Candidate and gate |
 | --- | --- |
 | First public alpha | `0.1.0a2`, published 2026-10-05 after the complete release workflow passed. Retains the local/test-environment support boundary. |
-| Further alphas | `0.1.0a3`, `a4`, and so on for meaningful capability batches or alpha fixes. Record breaking changes explicitly. |
+| Expanded alpha | `0.1.0a3`: database/Redis/synchronous adapters, comparison, diagnostics and the new documentation. |
+| Further alphas | `0.1.0a4` and so on for meaningful capability batches or alpha fixes. Record breaking changes explicitly. |
 | Beta | `0.1.0b1` after public API/schema behavior settles and user reports are resolved; no calendar deadline is promised. |
 | Release candidate | `0.1.0rc1` after clean installation, compatibility, offline replay, and lifecycle gates pass on supported runtimes. |
-| Stable local release | `0.1.0` after those contracts are satisfied. Local stability does not certify production deployment or add database support. |
+| Stable local release | `0.1.0` after those contracts are satisfied. Local stability does not certify production deployment or expand the documented database-driver scope. |
 | Stable fixes/features | `0.1.1` for compatible fixes; `0.2.0` for the next planned feature/API batch. Snapshot schema compatibility is tracked separately. |
 
 Every published version has an immutable `v<version>` Git tag pointing to a
 commit already merged into `main`. `pyproject.toml`, `src/rewind/version.py`, and
-the tag must match. Update the changelog and README in the release PR. Do not
+the tag must match. Update the changelog, README, installation guide and
+`docs/pypi.md` release labels in the release PR. Do not
 backdate tags or rewrite a published version to hide a correction.
 
 ## One-time account configuration
 
-Create or verify maintainer accounts separately on PyPI and TestPyPI, including
-their required account authentication setup. Confirm ownership/availability of
-`jaysoft-rewind` before the first upload. The public PyPI project endpoint
-returned 404 when checked on 2026-10-05; that does not reserve or guarantee
-availability. A pending publisher can create the project at first publication,
-but it also does not reserve the name.
+The project is already published as `jaysoft-rewind`; the following records
+document the setup used for its first release. Maintainer accounts and publisher
+registrations are separate on PyPI and TestPyPI. For a new project, a pending
+publisher can create the project at first publication but does not reserve its
+name.
 [PyPI pending-publisher documentation](https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc/).
 
 Register these publisher records on their respective indexes:
@@ -95,6 +99,12 @@ completed publication using the original build artifacts.
 ## Release operation and recovery
 
 1. Finish and merge the release PR; inspect current Python and offline CI.
+   Review `docs/pypi.md`, which supplies the package description through
+   `pyproject.toml`. Update its install commands and version status for the
+   candidate being published, along with the README and installation guide.
+   The build checks verify that the guide is included in the source archive and
+   embedded in both distributions. GitHub documentation updates immediately
+   after merge; an existing PyPI release keeps its uploaded description.
 2. Create and push the matching tag when ready to release. Run the default
    non-publishing rehearsal and inspect its artifacts and rendered metadata.
 3. Run the publishing workflow once. If TestPyPI propagation or a later job

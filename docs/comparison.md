@@ -1,5 +1,7 @@
 # Compare changed code against a recording
 
+[Documentation home](index.md) · [Quick start](getting-started.md)
+
 Strict `replay_file` still requires the original declared source fingerprint.
 Use the separate `compare_file` API when intentionally testing changed local
 application code against the same dependency observations:

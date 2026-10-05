@@ -31,6 +31,12 @@ Parallel contributors should use separate worktrees, agree on file/module owners
 
 Keep README.md current at feature milestones, including runnable commands, supported behavior, and important limits. Coordinate shared README edits through the integration owner to avoid conflicting parallel changes. Report measured validation separately from future plans.
 
+## Documentation changes
+
+Start with the [documentation hub](docs/index.md). Keep `README.md` focused on first steps and navigation; put detailed contracts in the relevant guide. Give new guides a link back to the hub. `docs/pypi.md` is the separately packaged long description and must use absolute links that work outside GitHub. Keep published-versus-development feature labels consistent across the README, installation guide and PyPI description.
+
+Run changed walkthrough commands with synthetic fixtures, check local links and heading anchors, and build into a clean output directory. `python scripts/verify_distribution.py DIRECTORY` checks that the source archive includes the guides and both distributions embed the PyPI description. Run `python -m twine check --strict DIRECTORY/*` with the `release` extra installed. Update release-status text before publishing; merging documentation does not update an already published PyPI version.
+
 ## Review contract
 
 Capture preserves application-visible outcomes and cancellation. Replay rejects missing, extra, reordered, transformed, or unsupported interactions without live fallback. Incomplete captures must never report successful reproduction.

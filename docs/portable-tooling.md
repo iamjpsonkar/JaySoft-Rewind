@@ -1,5 +1,7 @@
 # Portable recordings and capture conditions
 
+[Documentation home](index.md) · [Quick start](getting-started.md)
+
 `rewind export failure.rewind.json -o failure.rewind` creates a bounded archive
 containing a versioned manifest, checksum, and the validated recording. It never
 includes application source, environment files, or executable Python objects.
