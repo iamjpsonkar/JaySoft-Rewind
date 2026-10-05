@@ -16,37 +16,23 @@ under the MIT license.
 · [Source](https://github.com/iamjpsonkar/JaySoft-Rewind)
 · [Changelog](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/CHANGELOG.md)
 
-## Choose your version
+## Install 0.1.0a3
 
-**The published PyPI release is `0.1.0a2`. Development on `main` is
-`0.1.0a3`, which has not been published yet.** Rewind is alpha software; the
-supported runtime versions are Python 3.11 and 3.12.
-
-Install the published release:
+This guide covers **Rewind `0.1.0a3`**, an alpha release for Python 3.11 and 3.12.
 
 ```sh
-python -m pip install "jaysoft-rewind==0.1.0a2"
+python -m pip install "jaysoft-rewind==0.1.0a3"
 rewind --version
 ```
 
-Version `0.1.0a2` provides async callable capture, async HTTPX/ASGI integration,
-explicit deterministic sources, bounded background persistence, and local
-inspection/replay tools. See its
-[release documentation](https://github.com/iamjpsonkar/JaySoft-Rewind/tree/v0.1.0a2/docs)
-for the APIs available in that release.
-
-The features and example below describe **development `0.1.0a3`**. To try them
-before its release, install the current source tree; this requires Git:
+The core package has no mandatory third-party runtime dependencies. Install an
+optional integration with the matching extra: `httpx`, `fastapi`, `flask`,
+`sqlalchemy`, `redis`, or `all`. For example:
 
 ```sh
-python -m pip install "jaysoft-rewind @ git+https://github.com/iamjpsonkar/JaySoft-Rewind.git@main"
-```
-
-Optional integrations are separate extras. On the development source tree, choose
-`httpx`, `fastapi`, `flask`, `sqlalchemy`, `redis`, or `all`; for example:
-
-```sh
-python -m pip install "jaysoft-rewind[fastapi] @ git+https://github.com/iamjpsonkar/JaySoft-Rewind.git@main"
+python -m pip install "jaysoft-rewind[fastapi]==0.1.0a3"
+# Or, for Redis:
+python -m pip install "jaysoft-rewind[redis]==0.1.0a3"
 ```
 
 See the [installation guide](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/installation.md)
@@ -75,7 +61,7 @@ provides the tested contracts and exclusions for each integration.
 
 ## Try a failure and its replay
 
-**Requires development `0.1.0a3`.** Save this as `rewind_demo.py` and run
+Save this as `rewind_demo.py` and run
 `python rewind_demo.py`. It uses only synthetic fixture data and the core package.
 
 ```python
