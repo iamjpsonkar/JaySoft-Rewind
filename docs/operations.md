@@ -88,8 +88,13 @@ Python object overhead, or temporary serialization allocations.
   that every write succeeded. Inspect `persistence_failed` as well. `enable()` after
   shutdown raises `RuntimeError`; create a new writer and capture instance instead.
 
-Cancelled `aclose()` or `aflush()` callers do not stop the underlying bounded
-thread wait or writer. Process exit can lose queued artifacts. There is no WAL,
+Cancelling `aclose()` does not cancel dispatch of writer shutdown, even when the
+executor is occupied; shutdown still runs when a worker becomes available.
+Cancelling `aflush()` can cancel a wait that has not started; an already running
+thread wait continues. In both async methods the timeout bounds the writer wait
+after executor dispatch, not time spent waiting for an available executor thread
+or event-loop scheduling. They are not hard wall-clock deadlines. Process exit
+can lose queued artifacts. There is no WAL,
 retry, network exporter, multiprocess queue, or hard filesystem timeout. Use a new
 writer after forking, and construct the associated `Rewind` instance in that child;
 its own lifecycle lock is intended for threads in the constructing process.
