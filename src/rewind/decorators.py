@@ -167,6 +167,7 @@ class CaptureHandle:
         self.binding = "function"
         self.wrapper: Any = None
         self._recorder: Rewind | None = None
+        self._store_ready = False
         self._lock = threading.RLock()
         self._metrics: Counter[str] = Counter(
             calls=0,
@@ -201,10 +202,14 @@ class CaptureHandle:
 
     @property
     def recorder(self) -> Rewind:
-        """Lazily construct the advanced Rewind API, including optional adapters."""
+        """Build the advanced adapter API without creating a snapshot directory.
+
+        Storage is attached when this decorated function is first called outside
+        another capture or replay. Accessing adapters during imports is safe.
+        """
         with self._lock:
             if self._recorder is None:
-                self._recorder = self._new_recorder(recording=True)
+                self._recorder = self._new_recorder(recording=False)
             return self._recorder
 
     def stats(self) -> dict[str, int | bool]:
@@ -248,6 +253,15 @@ class CaptureHandle:
             return None
         try:
             rewind = self.recorder
+            with self._lock:
+                if not self._store_ready:
+                    if self.store is not None:
+                        rewind.store = (
+                            self.store
+                            if isinstance(self.store, LocalStore)
+                            else LocalStore(self.store)
+                        )
+                    self._store_ready = True
         except Exception:
             self._count("initialization_errors")
             return None
@@ -498,6 +512,7 @@ def capture(
 
     def decorate(target: Any) -> Any:
         if isinstance(target, type):
+            methods = []
             for name, descriptor in list(vars(target).items()):
                 if name.startswith("_"):
                     continue
@@ -508,6 +523,13 @@ def capture(
                 )
                 if not inspect.isfunction(function):
                     continue
+                if isinstance(getattr(function, "rewind", None), CaptureHandle):
+                    raise TypeError("decorate either the class or its individual methods, not both")
+                if inspect.isgeneratorfunction(function) or inspect.isasyncgenfunction(function):
+                    raise TypeError("generator methods are not supported by capture")
+                methods.append((name, descriptor, function))
+            # Validate before changing any method on the original class.
+            for name, descriptor, function in methods:
                 wrapped = decorate(function)
                 wrapped.rewind.owner = target
                 wrapped.rewind.binding = (
@@ -525,6 +547,8 @@ def capture(
             return type(target)(decorate(target.__func__))
         if not inspect.isfunction(target):
             raise TypeError("capture requires a Python function or class")
+        if isinstance(getattr(target, "rewind", None), CaptureHandle):
+            raise TypeError("function already has a capture decorator")
         if inspect.isgeneratorfunction(target) or inspect.isasyncgenfunction(target):
             raise TypeError("generator functions are not supported by capture")
         handle = CaptureHandle(
