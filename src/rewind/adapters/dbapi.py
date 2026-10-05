@@ -200,6 +200,7 @@ class Connection:
         self._target = f"connection:{identifier}"
         owner = _active()
         self._owner = weakref.ref(owner) if owner is not None else lambda: None
+        self._replayed = isinstance(owner, ReplaySession)
         self._cursors = 0
 
     def _live(self) -> Any:
@@ -208,8 +209,21 @@ class Connection:
         return self._inner
 
     def _call(self, method: str, args: Any, live: Callable[[], Any]) -> Any:
+        if self._retired_cleanup(method):
+            return None
         self._check_owner()
         return _call(self._dependency, self._target, method, args, live)
+
+    def _retired_cleanup(self, method: str) -> bool:
+        # SQLAlchemy may collect pooled connection wrappers during an unrelated
+        # capture. A retired replay object has no live resource to clean up and
+        # must never append observations to that new execution's recorder.
+        owner = self._owner()
+        return (
+            method in {"close", "rollback"}
+            and self._replayed
+            and (owner is None or (isinstance(owner, ReplaySession) and owner.closed))
+        )
 
     def _check_owner(self) -> None:
         active = _active()
@@ -328,6 +342,8 @@ class Cursor(Iterator[Any]):
         return self._inner
 
     def _call(self, method: str, args: Any, live: Callable[[], Any]) -> Any:
+        if method == "close" and self.connection._retired_cleanup(method):
+            return None
         self.connection._check_owner()
 
         def transform(value: Any, active: Recorder) -> Any:

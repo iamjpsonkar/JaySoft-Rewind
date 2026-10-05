@@ -410,3 +410,44 @@ def test_cursor_connection_is_readonly():
     with pytest.raises(AttributeError):
         cursor.connection = conn
     conn.close()
+
+
+def test_sqlalchemy_replay_gc_cannot_contaminate_unrelated_capture(recorder):
+    import gc
+
+    from rewind import CapturePolicy, Retention, Rewind
+
+    held = []
+
+    def original():
+        engine = create_engine()
+        connection = engine.connect()
+        held.append(connection)
+        return connection.exec_driver_sql("select 42").scalar()
+
+    assert recorder.run_sync(original) == 42
+    snapshot = saved(recorder)
+    assert snapshot.complete
+    held.pop().close()
+    assert recorder.replay_sync(snapshot, original).reproduced
+
+    unrelated = Rewind(
+        application="unrelated",
+        code_paths=[__file__],
+        store=recorder.store,
+        policy=CapturePolicy.synthetic(),
+        retain=Retention(always=True),
+    )
+    before = set(recorder.store.ids())
+
+    def new_request():
+        held.clear()
+        gc.collect()
+        return 7
+
+    assert unrelated.run_sync(new_request) == 7
+    identifier = (set(recorder.store.ids()) - before).pop()
+    captured = recorder.store.load(identifier)
+    assert captured.complete, captured.data["capture"]
+    assert captured.data["interactions"] == []
+    assert unrelated.replay_sync(captured, new_request).reproduced
