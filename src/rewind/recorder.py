@@ -34,7 +34,12 @@ class Recorder:
             self.reasons.append(reason)
 
     def check_task(self) -> None:
-        if asyncio.current_task() is not self.owner:
+        try:
+            task = asyncio.current_task()
+        except RuntimeError:
+            # ContextVars propagate to asyncio.to_thread, which has no event loop.
+            task = None
+        if task is not self.owner:
             self.mark("child_task_unsupported")
 
     def pack(self, value: Any) -> dict[str, Any]:

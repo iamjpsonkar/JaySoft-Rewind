@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import json
 
@@ -66,3 +67,13 @@ async def test_sealed_recorder_does_not_inspect_late_values(recorder):
     active.raised(RuntimeError("late secret"))
     assert active.bytes_used == count
     assert active.reasons == []
+
+
+async def test_thread_inherits_capture_without_changing_application_behavior(recorder):
+    async def operation():
+        return await asyncio.to_thread(recorder.value, "thread-value", lambda: 42)
+
+    assert await recorder.run(operation) == 42
+    snapshot = recorder.store.load(recorder.store.ids()[0])
+    assert not snapshot.complete
+    assert "child_task_unsupported" in snapshot.data["capture"]["ineligible_reasons"]
