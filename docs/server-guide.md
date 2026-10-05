@@ -12,6 +12,12 @@ catalog provider for a price. The provider returns HTTP 200 with a JSON object
 missing `unit_price`, so the handler raises `KeyError` and FastAPI returns HTTP
 500. The provider is an explicit local fixture; no external account is needed.
 
+You will use two terminals: one runs the server, and the other sends requests
+and opens recordings. A **snapshot** is one request's recorded inputs, supported
+dependency observations, and outcome. A **replay** runs application code again
+using those observations. Installing the package alone does not instrument an
+already running server; its startup and dependency clients must use Rewind.
+
 ## 1. Start the instrumented server
 
 Run these commands from a checkout of this repository; the `examples` directory
@@ -40,6 +46,8 @@ still apply; always-retain does not promise unlimited or complete recording.
 In a second terminal, activate the same virtual environment and run:
 
 ```bash
+cd /path/to/JaySoft-Rewind
+source .venv/bin/activate
 curl -i http://127.0.0.1:8000/quote \
   -H 'Content-Type: application/json' \
   -d '{"sku":"demo-widget","quantity":2}'
@@ -83,6 +91,11 @@ dependency calls, and handler outcome. The failure recording contains:
   request and the provider's malformed HTTP 200 response.
 - The final HTTP 500 response and the handler's `KeyError('unit_price')`.
 - A bounded `quote.handler` timeline showing handler entry and exception.
+
+On macOS, run `open report.html`; on a Linux desktop, run `xdg-open report.html`.
+You can also open the file directly from your browser. The generated report is
+self-contained. Choose a new output filename if a report already exists:
+the command deliberately does not overwrite it.
 
 The short inspector can label the outcome `return` because the outer ASGI result
 is an HTTP response. The nested response outcome also preserves the exception;
