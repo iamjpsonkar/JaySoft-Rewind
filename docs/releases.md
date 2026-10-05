@@ -2,14 +2,19 @@
 
 Distribution: **jaysoft-rewind**. Import and command: **rewind**.
 Maintainer: Jay Prakash Sonkar (`iamjpsonkar`, `iamjpsonkar@gmail.com`).
-The candidate in this repository is `0.1.0a2`; no index publication is implied
-by building, tagging, or merging it. Publishing is a separate manual workflow.
+The first public alpha, [`0.1.0a2`](https://pypi.org/project/jaysoft-rewind/0.1.0a2/),
+was published on 2026-10-05 from tag `v0.1.0a2` at commit
+`03e85640a759cfa652eaeba3855c56481382efeb`.
+The [release workflow](https://github.com/iamjpsonkar/JaySoft-Rewind/actions/runs/37321247773)
+passed validation, TestPyPI upload and wheel verification, and PyPI publication.
+A fresh PyPI installation verified the package version, public API imports,
+maintainer metadata, and CLI. Publishing remains a separate manual workflow.
 
 ## Release sequence
 
 | Stage | Candidate and gate |
 | --- | --- |
-| First public alpha | `0.1.0a2`, after account setup and the complete release workflow pass. Keep the local/test-environment support boundary. |
+| First public alpha | `0.1.0a2`, published 2026-10-05 after the complete release workflow passed. Retains the local/test-environment support boundary. |
 | Further alphas | `0.1.0a3`, `a4`, and so on for meaningful capability batches or alpha fixes. Record breaking changes explicitly. |
 | Beta | `0.1.0b1` after public API/schema behavior settles and user reports are resolved; no calendar deadline is promised. |
 | Release candidate | `0.1.0rc1` after clean installation, compatibility, offline replay, and lifecycle gates pass on supported runtimes. |
@@ -77,9 +82,10 @@ index. This avoids treating TestPyPI as a complete dependency mirror or mixing
 indexes for dependency resolution.
 [TestPyPI installation guidance](https://packaging.python.org/en/latest/guides/using-testpypi/).
 
-The actual OIDC exchange and index uploads can only be validated after external
-publisher setup. This repository preparation does not claim that those steps
-have run. No release tag or index upload is created by this plan.
+The first publication verified the OIDC exchange on both indexes. Its initial
+TestPyPI attempt failed because no matching publisher existed; after registering
+the separate TestPyPI publisher with environment `testpypi`, **Re-run failed jobs**
+completed publication using the original build artifacts.
 
 ## Release operation and recovery
 
@@ -115,5 +121,5 @@ python -m twine check --strict dist/release-check/*
 ```
 
 Use a clean output directory per version. Keep real recordings, environment
-files, and credentials out of distributions. Account setup, successful dry-run
-validation, and a deliberate publish dispatch are remaining first-release gates.
+files, and credentials out of distributions. For each new version, complete a
+successful dry run before deliberately dispatching publication.

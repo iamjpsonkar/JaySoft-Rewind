@@ -6,9 +6,18 @@ Capture a supported Python execution and replay its recorded HTTP observations i
 
 Maintained by [Jay Prakash Sonkar](https://github.com/iamjpsonkar) · [iamjpsonkar@gmail.com](mailto:iamjpsonkar@gmail.com) · [MIT license](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/LICENSE).
 
-## Install from source
+## Install
 
-Use Python 3.11 or 3.12. The distribution is `jaysoft-rewind`; the import and CLI remain `rewind`. Install from source until the first package release is published.
+Use Python 3.11 or 3.12. The distribution is [`jaysoft-rewind`](https://pypi.org/project/jaysoft-rewind/0.1.0a2/); the import and CLI remain `rewind`.
+
+```sh
+python -m pip install 'jaysoft-rewind==0.1.0a2'
+rewind --version
+```
+
+For HTTPX or FastAPI applications, install `'jaysoft-rewind[httpx]==0.1.0a2'` or `'jaysoft-rewind[fastapi]==0.1.0a2'`.
+
+For development and the repository examples, install from source:
 
 ```sh
 git clone https://github.com/iamjpsonkar/JaySoft-Rewind.git
@@ -201,7 +210,7 @@ Compatibility covers declared source files, Python major/minor, and installed HT
 
 ## Package releases
 
-The [PyPI release plan](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/releases.md) covers `jaysoft-rewind` alpha → beta → release-candidate → stable versions, exact version/tag checks, TestPyPI verification, and OIDC trusted publishing. The [manual release workflow](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/.github/workflows/release.yml) defaults to validation only; publishing requires an explicit dispatch option and the documented PyPI/TestPyPI account setup. No package has been published by this work.
+[`0.1.0a2`](https://pypi.org/project/jaysoft-rewind/0.1.0a2/) was published on October 5, 2026, after TestPyPI verification. The [PyPI release plan](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/releases.md) covers alpha → beta → release-candidate → stable versions, exact version/tag checks, and OIDC trusted publishing. The [manual release workflow](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/.github/workflows/release.yml) defaults to validation only; publishing requires an explicit dispatch option.
 
 ## Development
 

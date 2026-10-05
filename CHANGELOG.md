@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.1.0a2 — Unreleased
+## 0.1.0a2 — 2026-10-05
+
+First public alpha, published as `jaysoft-rewind` on PyPI after TestPyPI verification.
 
 ### Added
 
