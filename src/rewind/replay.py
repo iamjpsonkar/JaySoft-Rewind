@@ -66,7 +66,11 @@ class ReplaySession:
         raise ReplayDivergence(self.failure)
 
     def check_task(self) -> None:
-        if asyncio.current_task() is not self.owner:
+        try:
+            task = asyncio.current_task()
+        except RuntimeError:
+            task = None
+        if task is not self.owner:
             self.fail("child task is outside sequential replay scope")
 
     def consume(self, operation: str, dependency: str, value: Any) -> dict[str, Any]:

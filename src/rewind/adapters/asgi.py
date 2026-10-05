@@ -5,7 +5,7 @@ from typing import Any
 
 from .. import context
 from ..codecs import decode, encode
-from ..errors import ReplayDivergence
+from ..errors import ReplayDivergence, RewindError
 from ..recorder import Recorder
 from ..replay import ReplayReport, ReplaySession
 from ..snapshot import Snapshot
@@ -242,6 +242,11 @@ async def replay_asgi(rewind: Any, snapshot: Snapshot, app: Any) -> ReplayReport
         return session.report(outcome)
     except ReplayDivergence:
         return session.report({"kind": "return", "value": encode(None, rewind.limits)})
+    except RewindError:
+        return ReplayReport(
+            "replay_error", "unsupported ASGI replay outcome", session.cursor,
+            len(session.interactions),
+        )
     finally:
         session.closed = True
         context.current.reset(token)

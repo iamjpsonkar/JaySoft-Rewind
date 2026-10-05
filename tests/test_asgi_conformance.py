@@ -172,3 +172,46 @@ async def test_replay_cancellation_propagates_and_resets_context(recorder):
     with pytest.raises(asyncio.CancelledError):
         await recorder.replay_asgi(saved(recorder), app)
     assert current.get() is None
+
+
+async def test_non_http_scope_bypasses_capture(recorder):
+    seen = []
+
+    async def app(scope, receive, send):
+        seen.append(scope)
+
+    original = {"type": "lifespan"}
+    await recorder.asgi(app)(original, None, None)
+    assert seen == [original]
+    assert recorder.store.ids() == []
+
+
+async def test_lifespan_state_marks_http_capture_ineligible(recorder):
+    async def app(scope, receive, send):
+        assert scope["state"]["value"] == "application-state"
+        await receive()
+        await respond(send)
+
+    async def receive():
+        return {"type": "http.request", "body": b""}
+
+    async def send(message):
+        pass
+
+    incoming = scope()
+    incoming["state"] = {"value": "application-state"}
+    await recorder.asgi(app)(incoming, receive, send)
+    snapshot = saved(recorder)
+    assert not snapshot.complete
+    assert "asgi_scope_unsupported" in snapshot.data["capture"]["ineligible_reasons"]
+    assert b"application-state" not in snapshot.raw
+
+
+async def test_disabled_asgi_capture_preserves_exact_messages(recorder):
+    recorder.enabled = False
+    outgoing = await capture(recorder, lambda scope, receive, send: respond(send))
+    assert outgoing == [
+        {"type": "http.response.start", "status": 200, "headers": []},
+        {"type": "http.response.body", "body": b"ok"},
+    ]
+    assert recorder.store.ids() == []
