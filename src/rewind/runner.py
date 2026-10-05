@@ -30,6 +30,12 @@ class NetworkGuard:
         self.violations = 0
 
     def install(self) -> None:
+        # stdlib ctypes initializes PyDLL(None) once. Prepare that interpreter
+        # handle before enforcing native-load denial, so psycopg binary imports
+        # can use ctypes types without opening a library after guard installation.
+        import ctypes
+
+        _ = ctypes.pythonapi
         sys.addaudithook(self._audit)
 
     def _audit(self, event: str, args: tuple[Any, ...]) -> None:
