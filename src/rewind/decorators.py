@@ -12,7 +12,7 @@ from collections import Counter
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from types import MappingProxyType, MemberDescriptorType
+from types import GetSetDescriptorType, MappingProxyType, MemberDescriptorType
 from typing import Any
 
 from . import context
@@ -68,6 +68,8 @@ def _class_supported(owner: type) -> bool:
         if base.__module__ == "builtins":
             return False
         for name, value in vars(base).items():
+            if name in {"__dict__", "__weakref__"} and not isinstance(value, GetSetDescriptorType):
+                return False
             if name in _CLASS_METADATA:
                 continue
             if isinstance(value, (staticmethod, classmethod, property, MemberDescriptorType)):
@@ -240,6 +242,8 @@ class CaptureHandle:
 
     def _capture_state(self, recorder: Recorder, receiver: Any, owner: type) -> Any:
         try:
+            if not _class_supported(owner):
+                raise ValueError("receiver class state is unsupported")
             state = _state(receiver, owner)
             encode(state, recorder.limits)
             return state
