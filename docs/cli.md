@@ -71,3 +71,13 @@ See the [comparison guide](comparison.md) for typed outcomes and working example
 | `replay_error` | 3 | Check factory imports, guard violations, timeout or worker execution |
 
 Other completed commands return `0`; handled file/data/argument-value failures return `3` with a generic error. Command-line parser errors return `2`. Error messages deliberately avoid echoing recorded values. [Troubleshooting](troubleshooting.md) provides next steps.
+
+## Explore a snapshot
+
+```sh
+rewind explore snapshot.rewind.json --output report.html
+```
+
+Open the generated standalone HTML file in your browser to explore the request,
+dependency observations, outcome and optional timeline. The command validates data
+without importing application code. See [the explorer guide](explorer.md).

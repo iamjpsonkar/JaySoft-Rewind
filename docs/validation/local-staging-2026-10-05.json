@@ -1,0 +1,1459 @@
+{
+  "drill": {
+    "after_first_drain": {
+      "closed": false,
+      "dropped": 0,
+      "failed": 0,
+      "forked": false,
+      "in_flight": false,
+      "max_bytes": 2097152,
+      "max_items": 16,
+      "peak_pending_bytes": 93561,
+      "peak_pending_items": 16,
+      "pending_bytes": 0,
+      "pending_items": 0,
+      "rejected": 3,
+      "saved": 16,
+      "submitted": 16,
+      "worker_alive": true
+    },
+    "before_gate_release": {
+      "closed": false,
+      "dropped": 0,
+      "failed": 0,
+      "forked": false,
+      "in_flight": true,
+      "max_bytes": 2097152,
+      "max_items": 16,
+      "peak_pending_bytes": 93561,
+      "peak_pending_items": 16,
+      "pending_bytes": 93561,
+      "pending_items": 16,
+      "rejected": 3,
+      "saved": 0,
+      "submitted": 16,
+      "worker_alive": true
+    },
+    "budgets": {
+      "drain_seconds": {
+        "actual": 0.015762834111228585,
+        "maximum": 10,
+        "passed": true
+      },
+      "rss_peak_bytes": {
+        "actual": 44892160,
+        "maximum": 268435456,
+        "passed": true
+      }
+    },
+    "checks": {
+      "accepted_work_drains": true,
+      "active_request_retained": true,
+      "active_request_survives_disable": true,
+      "active_reservations_released": true,
+      "closed_wrapper_admits_nothing": true,
+      "closed_wrapper_matches_direct": true,
+      "disable_stops_new_capture": true,
+      "disabled_admits_nothing": true,
+      "disabled_matches_direct": true,
+      "disabled_under_pressure_matches_direct": true,
+      "inflight_store_gate_exercised": true,
+      "queue_bytes_bounded": true,
+      "queue_items_bounded": true,
+      "reenable_resumes_admission": true,
+      "reenabled_result_matches_direct": true,
+      "rollback_direct_matches_baseline": true,
+      "saturation_preserves_results": true,
+      "saturation_rejects_new_captures": true,
+      "shutdown_finishes": true
+    },
+    "drain_seconds": 0.015762834111228585,
+    "final_capture": {
+      "active_captures": 0,
+      "admission_rejected": 0,
+      "admitted": 20,
+      "closed": true,
+      "closed_rejected": 0,
+      "dropped": 0,
+      "enabled": false,
+      "enqueue_rejected": 3,
+      "incomplete": 0,
+      "pending_bytes": 0,
+      "pending_items": 0,
+      "persisted": 17,
+      "persistence_failed": 0,
+      "reserved_bytes": 0,
+      "retained": 20,
+      "submitted": 17
+    },
+    "final_writer": {
+      "closed": true,
+      "dropped": 0,
+      "failed": 0,
+      "forked": false,
+      "in_flight": false,
+      "max_bytes": 2097152,
+      "max_items": 16,
+      "peak_pending_bytes": 93561,
+      "peak_pending_items": 16,
+      "pending_bytes": 0,
+      "pending_items": 0,
+      "rejected": 3,
+      "saved": 17,
+      "submitted": 17,
+      "worker_alive": false
+    },
+    "passed": true,
+    "pid": 62807,
+    "rss_peak_bytes": 44892160,
+    "shutdown": {
+      "drained": true,
+      "dropped": 0,
+      "forked": false,
+      "in_flight": false,
+      "pending": 0,
+      "worker_alive": false
+    },
+    "workload": {
+      "database": "local SQLite :memory:",
+      "http": "HTTPX MockTransport",
+      "kind": "synthetic",
+      "redis": "in-memory command fixture",
+      "sources": "explicit time and UUID calls"
+    }
+  },
+  "finished_at_utc": "2026-10-05T16:11:25.364510+00:00",
+  "modes": {
+    "active": {
+      "checks": {
+        "admission_rejection_fraction": {
+          "actual": 0.0,
+          "maximum": 0,
+          "passed": true
+        },
+        "application_error_fraction": {
+          "actual": 0.0,
+          "maximum": 0,
+          "passed": true
+        },
+        "capture_rejection_fraction": {
+          "actual": 0.0,
+          "maximum": 0.05,
+          "passed": true
+        },
+        "drain_seconds": {
+          "actual": 0.0025625000707805157,
+          "maximum": 10,
+          "passed": true
+        },
+        "latency_p95_ms": {
+          "actual": 4.962368728592992,
+          "maximum": 200,
+          "passed": true
+        },
+        "queue_wait_p95_ms": {
+          "actual": 0.05220425082370636,
+          "maximum": 100,
+          "passed": true
+        },
+        "rss_peak_bytes": {
+          "actual": 44761088,
+          "maximum": 268435456,
+          "passed": true
+        },
+        "schedule_lag_p95_ms": {
+          "actual": 1.0987540823407471,
+          "maximum": 50,
+          "passed": true
+        },
+        "tracemalloc_peak_bytes": {
+          "actual": 162646,
+          "maximum": 67108864,
+          "passed": true
+        },
+        "writer_queue_lag_p95_ms": {
+          "actual": 0,
+          "maximum": 100,
+          "passed": true
+        }
+      },
+      "invariants": {
+        "memory_no_storage_failure": true,
+        "memory_persisted_artifacts_available": true,
+        "memory_requests_accounted": true,
+        "memory_reservations_released": true,
+        "memory_shutdown_drained": true,
+        "timing_no_storage_failure": true,
+        "timing_persisted_artifacts_available": true,
+        "timing_requests_accounted": true,
+        "timing_reservations_released": true,
+        "timing_shutdown_drained": true
+      },
+      "memory": {
+        "artifact_bytes": 0,
+        "artifact_count": 0,
+        "capture": {
+          "active_captures": 0,
+          "admission_rejected": 0,
+          "admitted": 20,
+          "closed": true,
+          "closed_rejected": 0,
+          "dropped": 0,
+          "enabled": false,
+          "enqueue_rejected": 0,
+          "incomplete": 0,
+          "pending_bytes": 0,
+          "pending_items": 0,
+          "persisted": 0,
+          "persistence_failed": 0,
+          "reserved_bytes": 0,
+          "retained": 0,
+          "submitted": 0
+        },
+        "drain_seconds": 0.0033030409831553698,
+        "load": {
+          "admission_rejections": 0,
+          "admitted": 20,
+          "application_errors": 0,
+          "completed": 20,
+          "completion_rate_per_second": 51.163904127562596,
+          "elapsed_seconds": 0.39090058393776417,
+          "latency_ms": {
+            "max": 14.173583826050162,
+            "p50": 10.565208503976464,
+            "p95": 12.028484081383796,
+            "p99": 13.744563877116885
+          },
+          "offered": 20,
+          "offered_rate_per_second": 50,
+          "peak_active_requests": 1,
+          "peak_request_queue_items": 1,
+          "queue_wait_ms": {
+            "max": 0.12491689994931221,
+            "p50": 0.05893746856600046,
+            "p95": 0.11430844897404314,
+            "p99": 0.12279520975425838
+          },
+          "schedule_lag_ms": {
+            "max": 2.2624169941991568,
+            "p50": 1.0921669891104102,
+            "p95": 1.2509833322837955,
+            "p99": 2.060130261816083
+          },
+          "scheduled_window_seconds": 0.38
+        },
+        "mode": "active",
+        "phase": "memory",
+        "pid": 62716,
+        "process_cpu_seconds": 0.152523,
+        "rss_before_bytes": 44187648,
+        "rss_peak_bytes": 44761088,
+        "shutdown": {
+          "drained": true,
+          "dropped": 0,
+          "forked": false,
+          "in_flight": false,
+          "pending": 0,
+          "worker_alive": false
+        },
+        "store_service_ms": {
+          "max": null,
+          "p50": null,
+          "p95": null,
+          "p99": null
+        },
+        "tracemalloc_peak_bytes": 162646,
+        "workload": {
+          "database": "local SQLite :memory:",
+          "http": "HTTPX MockTransport",
+          "kind": "synthetic",
+          "redis": "in-memory command fixture",
+          "sources": "explicit time and UUID calls"
+        },
+        "writer": null,
+        "writer_queue_lag_ms": {
+          "max": null,
+          "p50": null,
+          "p95": null,
+          "p99": null
+        }
+      },
+      "passed": true,
+      "timing": {
+        "artifact_bytes": 0,
+        "artifact_count": 0,
+        "capture": {
+          "active_captures": 0,
+          "admission_rejected": 0,
+          "admitted": 100,
+          "closed": true,
+          "closed_rejected": 0,
+          "dropped": 0,
+          "enabled": false,
+          "enqueue_rejected": 0,
+          "incomplete": 0,
+          "pending_bytes": 0,
+          "pending_items": 0,
+          "persisted": 0,
+          "persistence_failed": 0,
+          "reserved_bytes": 0,
+          "retained": 0,
+          "submitted": 0
+        },
+        "drain_seconds": 0.0025625000707805157,
+        "load": {
+          "admission_rejections": 0,
+          "admitted": 100,
+          "application_errors": 0,
+          "completed": 100,
+          "completion_rate_per_second": 50.38424813555975,
+          "elapsed_seconds": 1.9847472910769284,
+          "latency_ms": {
+            "max": 9.614708134904504,
+            "p50": 4.71212447155267,
+            "p95": 4.962368728592992,
+            "p99": 5.208713123574876
+          },
+          "offered": 100,
+          "offered_rate_per_second": 50,
+          "peak_active_requests": 1,
+          "peak_request_queue_items": 1,
+          "queue_wait_ms": {
+            "max": 0.08312496356666088,
+            "p50": 0.03556243609637022,
+            "p95": 0.05220425082370636,
+            "p99": 0.08044306887313725
+          },
+          "schedule_lag_ms": {
+            "max": 1.11008295789361,
+            "p50": 1.0628121672198176,
+            "p95": 1.0987540823407471,
+            "p99": 1.1076078237965703
+          },
+          "scheduled_window_seconds": 1.98
+        },
+        "mode": "active",
+        "phase": "timing",
+        "pid": 62701,
+        "process_cpu_seconds": 0.153034,
+        "rss_before_bytes": 44187648,
+        "rss_peak_bytes": 44515328,
+        "shutdown": {
+          "drained": true,
+          "dropped": 0,
+          "forked": false,
+          "in_flight": false,
+          "pending": 0,
+          "worker_alive": false
+        },
+        "store_service_ms": {
+          "max": null,
+          "p50": null,
+          "p95": null,
+          "p99": null
+        },
+        "tracemalloc_peak_bytes": null,
+        "workload": {
+          "database": "local SQLite :memory:",
+          "http": "HTTPX MockTransport",
+          "kind": "synthetic",
+          "redis": "in-memory command fixture",
+          "sources": "explicit time and UUID calls"
+        },
+        "writer": null,
+        "writer_queue_lag_ms": {
+          "max": null,
+          "p50": null,
+          "p95": null,
+          "p99": null
+        }
+      }
+    },
+    "background": {
+      "checks": {
+        "admission_rejection_fraction": {
+          "actual": 0.0,
+          "maximum": 0,
+          "passed": true
+        },
+        "application_error_fraction": {
+          "actual": 0.0,
+          "maximum": 0,
+          "passed": true
+        },
+        "capture_rejection_fraction": {
+          "actual": 0.0,
+          "maximum": 0.05,
+          "passed": true
+        },
+        "drain_seconds": {
+          "actual": 0.004034167155623436,
+          "maximum": 10,
+          "passed": true
+        },
+        "latency_p95_ms": {
+          "actual": 6.6787268850021055,
+          "maximum": 200,
+          "passed": true
+        },
+        "queue_wait_p95_ms": {
+          "actual": 0.08628356736153359,
+          "maximum": 100,
+          "passed": true
+        },
+        "rss_peak_bytes": {
+          "actual": 44974080,
+          "maximum": 268435456,
+          "passed": true
+        },
+        "schedule_lag_p95_ms": {
+          "actual": 1.1386375757865608,
+          "maximum": 50,
+          "passed": true
+        },
+        "tracemalloc_peak_bytes": {
+          "actual": 199923,
+          "maximum": 67108864,
+          "passed": true
+        },
+        "writer_queue_lag_p95_ms": {
+          "actual": 0.08524138247594236,
+          "maximum": 100,
+          "passed": true
+        }
+      },
+      "invariants": {
+        "memory_accepted_saved": true,
+        "memory_no_storage_failure": true,
+        "memory_persisted_artifacts_available": true,
+        "memory_queue_bounded": true,
+        "memory_requests_accounted": true,
+        "memory_reservations_released": true,
+        "memory_shutdown_drained": true,
+        "timing_accepted_saved": true,
+        "timing_no_storage_failure": true,
+        "timing_persisted_artifacts_available": true,
+        "timing_queue_bounded": true,
+        "timing_requests_accounted": true,
+        "timing_reservations_released": true,
+        "timing_shutdown_drained": true
+      },
+      "memory": {
+        "artifact_bytes": 117185,
+        "artifact_count": 20,
+        "capture": {
+          "active_captures": 0,
+          "admission_rejected": 0,
+          "admitted": 20,
+          "closed": true,
+          "closed_rejected": 0,
+          "dropped": 0,
+          "enabled": false,
+          "enqueue_rejected": 0,
+          "incomplete": 0,
+          "pending_bytes": 0,
+          "pending_items": 0,
+          "persisted": 20,
+          "persistence_failed": 0,
+          "reserved_bytes": 0,
+          "retained": 20,
+          "submitted": 20
+        },
+        "drain_seconds": 0.004567875061184168,
+        "load": {
+          "admission_rejections": 0,
+          "admitted": 20,
+          "application_errors": 0,
+          "completed": 20,
+          "completion_rate_per_second": 50.51669104382171,
+          "elapsed_seconds": 0.39590874989517033,
+          "latency_ms": {
+            "max": 14.906541910022497,
+            "p50": 13.55654199142009,
+            "p95": 14.373869204428047,
+            "p99": 14.800007368903607
+          },
+          "offered": 20,
+          "offered_rate_per_second": 50,
+          "peak_active_requests": 1,
+          "peak_request_queue_items": 1,
+          "queue_wait_ms": {
+            "max": 0.0813330989331007,
+            "p50": 0.057437457144260406,
+            "p95": 0.06367911119014026,
+            "p99": 0.07780230138450858
+          },
+          "schedule_lag_ms": {
+            "max": 0.9433338418602943,
+            "p50": 0.8817709749564528,
+            "p95": 0.938306434545666,
+            "p99": 0.9423283603973687
+          },
+          "scheduled_window_seconds": 0.38
+        },
+        "mode": "background",
+        "phase": "memory",
+        "pid": 62801,
+        "process_cpu_seconds": 0.280351,
+        "rss_before_bytes": 44154880,
+        "rss_peak_bytes": 44974080,
+        "shutdown": {
+          "drained": true,
+          "dropped": 0,
+          "forked": false,
+          "in_flight": false,
+          "pending": 0,
+          "worker_alive": false
+        },
+        "store_service_ms": {
+          "max": 6.802499992772937,
+          "p50": 3.190813004039228,
+          "p95": 3.6919624195434175,
+          "p99": 6.180392478127029
+        },
+        "tracemalloc_peak_bytes": 199923,
+        "workload": {
+          "database": "local SQLite :memory:",
+          "http": "HTTPX MockTransport",
+          "kind": "synthetic",
+          "redis": "in-memory command fixture",
+          "sources": "explicit time and UUID calls"
+        },
+        "writer": {
+          "closed": true,
+          "dropped": 0,
+          "failed": 0,
+          "forked": false,
+          "in_flight": false,
+          "max_bytes": 2097152,
+          "max_items": 16,
+          "peak_pending_bytes": 5862,
+          "peak_pending_items": 1,
+          "pending_bytes": 0,
+          "pending_items": 0,
+          "rejected": 0,
+          "saved": 20,
+          "submitted": 20,
+          "worker_alive": false
+        },
+        "writer_queue_lag_ms": {
+          "max": 0.19154208712279797,
+          "p50": 0.1609580358490348,
+          "p95": 0.18960203742608428,
+          "p99": 0.19115407718345523
+        }
+      },
+      "passed": true,
+      "timing": {
+        "artifact_bytes": 585406,
+        "artifact_count": 100,
+        "capture": {
+          "active_captures": 0,
+          "admission_rejected": 0,
+          "admitted": 100,
+          "closed": true,
+          "closed_rejected": 0,
+          "dropped": 0,
+          "enabled": false,
+          "enqueue_rejected": 0,
+          "incomplete": 0,
+          "pending_bytes": 0,
+          "pending_items": 0,
+          "persisted": 100,
+          "persistence_failed": 0,
+          "reserved_bytes": 0,
+          "retained": 100,
+          "submitted": 100
+        },
+        "drain_seconds": 0.004034167155623436,
+        "load": {
+          "admission_rejections": 0,
+          "admitted": 100,
+          "application_errors": 0,
+          "completed": 100,
+          "completion_rate_per_second": 50.34957923953535,
+          "elapsed_seconds": 1.9861139161512256,
+          "latency_ms": {
+            "max": 10.841708164662123,
+            "p50": 5.320270545780659,
+            "p95": 6.6787268850021055,
+            "p99": 10.69675538688898
+          },
+          "offered": 100,
+          "offered_rate_per_second": 50,
+          "peak_active_requests": 1,
+          "peak_request_queue_items": 1,
+          "queue_wait_ms": {
+            "max": 0.25199982337653637,
+            "p50": 0.036812969483435154,
+            "p95": 0.08628356736153359,
+            "p99": 0.15848640818148899
+          },
+          "schedule_lag_ms": {
+            "max": 2.519083209335804,
+            "p50": 1.0758956195786595,
+            "p95": 1.1386375757865608,
+            "p99": 2.0657047047279797
+          },
+          "scheduled_window_seconds": 1.98
+        },
+        "mode": "background",
+        "phase": "timing",
+        "pid": 62771,
+        "process_cpu_seconds": 0.38487400000000005,
+        "rss_before_bytes": 44318720,
+        "rss_peak_bytes": 44875776,
+        "shutdown": {
+          "drained": true,
+          "dropped": 0,
+          "forked": false,
+          "in_flight": false,
+          "pending": 0,
+          "worker_alive": false
+        },
+        "store_service_ms": {
+          "max": 4.476500209420919,
+          "p50": 1.6735205426812172,
+          "p95": 2.3605691152624786,
+          "p99": 2.6906222687102948
+        },
+        "tracemalloc_peak_bytes": null,
+        "workload": {
+          "database": "local SQLite :memory:",
+          "http": "HTTPX MockTransport",
+          "kind": "synthetic",
+          "redis": "in-memory command fixture",
+          "sources": "explicit time and UUID calls"
+        },
+        "writer": {
+          "closed": true,
+          "dropped": 0,
+          "failed": 0,
+          "forked": false,
+          "in_flight": false,
+          "max_bytes": 2097152,
+          "max_items": 16,
+          "peak_pending_bytes": 5859,
+          "peak_pending_items": 1,
+          "pending_bytes": 0,
+          "pending_items": 0,
+          "rejected": 0,
+          "saved": 100,
+          "submitted": 100,
+          "worker_alive": false
+        },
+        "writer_queue_lag_ms": {
+          "max": 0.500416150316596,
+          "p50": 0.05822908133268356,
+          "p95": 0.08524138247594236,
+          "p99": 0.41090402519330427
+        }
+      }
+    },
+    "direct": {
+      "checks": {
+        "admission_rejection_fraction": {
+          "actual": 0.0,
+          "maximum": 0,
+          "passed": true
+        },
+        "application_error_fraction": {
+          "actual": 0.0,
+          "maximum": 0,
+          "passed": true
+        },
+        "capture_rejection_fraction": {
+          "actual": 0.0,
+          "maximum": 0.05,
+          "passed": true
+        },
+        "drain_seconds": {
+          "actual": 0.004223041934892535,
+          "maximum": 10,
+          "passed": true
+        },
+        "latency_p95_ms": {
+          "actual": 6.872863904573022,
+          "maximum": 200,
+          "passed": true
+        },
+        "queue_wait_p95_ms": {
+          "actual": 0.11832863092422481,
+          "maximum": 100,
+          "passed": true
+        },
+        "rss_peak_bytes": {
+          "actual": 41156608,
+          "maximum": 268435456,
+          "passed": true
+        },
+        "schedule_lag_p95_ms": {
+          "actual": 1.6125804977491494,
+          "maximum": 50,
+          "passed": true
+        },
+        "tracemalloc_peak_bytes": {
+          "actual": 117633,
+          "maximum": 67108864,
+          "passed": true
+        },
+        "writer_queue_lag_p95_ms": {
+          "actual": 0,
+          "maximum": 100,
+          "passed": true
+        }
+      },
+      "invariants": {
+        "memory_no_storage_failure": true,
+        "memory_persisted_artifacts_available": true,
+        "memory_requests_accounted": true,
+        "memory_reservations_released": true,
+        "memory_shutdown_drained": true,
+        "timing_no_storage_failure": true,
+        "timing_persisted_artifacts_available": true,
+        "timing_requests_accounted": true,
+        "timing_reservations_released": true,
+        "timing_shutdown_drained": true
+      },
+      "memory": {
+        "artifact_bytes": 0,
+        "artifact_count": 0,
+        "capture": {
+          "active_captures": 0,
+          "admission_rejected": 0,
+          "admitted": 0,
+          "closed": true,
+          "closed_rejected": 0,
+          "dropped": 0,
+          "enabled": false,
+          "enqueue_rejected": 0,
+          "incomplete": 0,
+          "pending_bytes": 0,
+          "pending_items": 0,
+          "persisted": 0,
+          "persistence_failed": 0,
+          "reserved_bytes": 0,
+          "retained": 0,
+          "submitted": 0
+        },
+        "drain_seconds": 0.0034093339927494526,
+        "load": {
+          "admission_rejections": 0,
+          "admitted": 20,
+          "application_errors": 0,
+          "completed": 20,
+          "completion_rate_per_second": 51.99722984737037,
+          "elapsed_seconds": 0.3846358750015497,
+          "latency_ms": {
+            "max": 4.412167007103562,
+            "p50": 4.268875462003052,
+            "p95": 4.391820926684886,
+            "p99": 4.408097791019827
+          },
+          "offered": 20,
+          "offered_rate_per_second": 50,
+          "peak_active_requests": 1,
+          "peak_request_queue_items": 1,
+          "queue_wait_ms": {
+            "max": 0.10379194281995296,
+            "p50": 0.05731242708861828,
+            "p95": 0.10177314979955554,
+            "p99": 0.10338818421587348
+          },
+          "schedule_lag_ms": {
+            "max": 1.1424999684095383,
+            "p50": 1.08158343937248,
+            "p95": 1.1282500810921192,
+            "p99": 1.1396499909460545
+          },
+          "scheduled_window_seconds": 0.38
+        },
+        "mode": "direct",
+        "phase": "memory",
+        "pid": 62686,
+        "process_cpu_seconds": 0.02382999999999999,
+        "rss_before_bytes": 41156608,
+        "rss_peak_bytes": 41156608,
+        "shutdown": {
+          "drained": true,
+          "dropped": 0,
+          "forked": false,
+          "in_flight": false,
+          "pending": 0,
+          "worker_alive": false
+        },
+        "store_service_ms": {
+          "max": null,
+          "p50": null,
+          "p95": null,
+          "p99": null
+        },
+        "tracemalloc_peak_bytes": 117633,
+        "workload": {
+          "database": "local SQLite :memory:",
+          "http": "HTTPX MockTransport",
+          "kind": "synthetic",
+          "redis": "in-memory command fixture",
+          "sources": "explicit time and UUID calls"
+        },
+        "writer": null,
+        "writer_queue_lag_ms": {
+          "max": null,
+          "p50": null,
+          "p95": null,
+          "p99": null
+        }
+      },
+      "passed": true,
+      "timing": {
+        "artifact_bytes": 0,
+        "artifact_count": 0,
+        "capture": {
+          "active_captures": 0,
+          "admission_rejected": 0,
+          "admitted": 0,
+          "closed": true,
+          "closed_rejected": 0,
+          "dropped": 0,
+          "enabled": false,
+          "enqueue_rejected": 0,
+          "incomplete": 0,
+          "pending_bytes": 0,
+          "pending_items": 0,
+          "persisted": 0,
+          "persistence_failed": 0,
+          "reserved_bytes": 0,
+          "retained": 0,
+          "submitted": 0
+        },
+        "drain_seconds": 0.004223041934892535,
+        "load": {
+          "admission_rejections": 0,
+          "admitted": 100,
+          "application_errors": 0,
+          "completed": 100,
+          "completion_rate_per_second": 50.405388482352876,
+          "elapsed_seconds": 1.9839148751925677,
+          "latency_ms": {
+            "max": 14.489457942545414,
+            "p50": 3.8421667413786054,
+            "p95": 6.872863904573022,
+            "p99": 10.992901835124957
+          },
+          "offered": 100,
+          "offered_rate_per_second": 50,
+          "peak_active_requests": 1,
+          "peak_request_queue_items": 1,
+          "queue_wait_ms": {
+            "max": 0.28483406640589237,
+            "p50": 0.0450831139460206,
+            "p95": 0.11832863092422481,
+            "p99": 0.18929799320176294
+          },
+          "schedule_lag_ms": {
+            "max": 4.678291035816073,
+            "p50": 1.060604234226048,
+            "p95": 1.6125804977491494,
+            "p99": 2.801746153272698
+          },
+          "scheduled_window_seconds": 1.98
+        },
+        "mode": "direct",
+        "phase": "timing",
+        "pid": 62671,
+        "process_cpu_seconds": 0.084649,
+        "rss_before_bytes": 43974656,
+        "rss_peak_bytes": 44384256,
+        "shutdown": {
+          "drained": true,
+          "dropped": 0,
+          "forked": false,
+          "in_flight": false,
+          "pending": 0,
+          "worker_alive": false
+        },
+        "store_service_ms": {
+          "max": null,
+          "p50": null,
+          "p95": null,
+          "p99": null
+        },
+        "tracemalloc_peak_bytes": null,
+        "workload": {
+          "database": "local SQLite :memory:",
+          "http": "HTTPX MockTransport",
+          "kind": "synthetic",
+          "redis": "in-memory command fixture",
+          "sources": "explicit time and UUID calls"
+        },
+        "writer": null,
+        "writer_queue_lag_ms": {
+          "max": null,
+          "p50": null,
+          "p95": null,
+          "p99": null
+        }
+      }
+    },
+    "disabled": {
+      "checks": {
+        "admission_rejection_fraction": {
+          "actual": 0.0,
+          "maximum": 0,
+          "passed": true
+        },
+        "application_error_fraction": {
+          "actual": 0.0,
+          "maximum": 0,
+          "passed": true
+        },
+        "capture_rejection_fraction": {
+          "actual": 0.0,
+          "maximum": 0.05,
+          "passed": true
+        },
+        "drain_seconds": {
+          "actual": 0.0346624159719795,
+          "maximum": 10,
+          "passed": true
+        },
+        "latency_p95_ms": {
+          "actual": 6.896764552220701,
+          "maximum": 200,
+          "passed": true
+        },
+        "queue_wait_p95_ms": {
+          "actual": 0.13996477937325816,
+          "maximum": 100,
+          "passed": true
+        },
+        "rss_peak_bytes": {
+          "actual": 43368448,
+          "maximum": 268435456,
+          "passed": true
+        },
+        "schedule_lag_p95_ms": {
+          "actual": 2.506327023729682,
+          "maximum": 50,
+          "passed": true
+        },
+        "tracemalloc_peak_bytes": {
+          "actual": 117990,
+          "maximum": 67108864,
+          "passed": true
+        },
+        "writer_queue_lag_p95_ms": {
+          "actual": 0,
+          "maximum": 100,
+          "passed": true
+        }
+      },
+      "invariants": {
+        "memory_no_storage_failure": true,
+        "memory_persisted_artifacts_available": true,
+        "memory_requests_accounted": true,
+        "memory_reservations_released": true,
+        "memory_shutdown_drained": true,
+        "timing_no_storage_failure": true,
+        "timing_persisted_artifacts_available": true,
+        "timing_requests_accounted": true,
+        "timing_reservations_released": true,
+        "timing_shutdown_drained": true
+      },
+      "memory": {
+        "artifact_bytes": 0,
+        "artifact_count": 0,
+        "capture": {
+          "active_captures": 0,
+          "admission_rejected": 0,
+          "admitted": 0,
+          "closed": true,
+          "closed_rejected": 0,
+          "dropped": 0,
+          "enabled": false,
+          "enqueue_rejected": 0,
+          "incomplete": 0,
+          "pending_bytes": 0,
+          "pending_items": 0,
+          "persisted": 0,
+          "persistence_failed": 0,
+          "reserved_bytes": 0,
+          "retained": 0,
+          "submitted": 0
+        },
+        "drain_seconds": 0.0036444999277591705,
+        "load": {
+          "admission_rejections": 0,
+          "admitted": 20,
+          "application_errors": 0,
+          "completed": 20,
+          "completion_rate_per_second": 51.9687607556189,
+          "elapsed_seconds": 0.3848465830087662,
+          "latency_ms": {
+            "max": 7.365667028352618,
+            "p50": 4.482979536987841,
+            "p95": 5.791120836511255,
+            "p99": 7.050757789984344
+          },
+          "offered": 20,
+          "offered_rate_per_second": 50,
+          "peak_active_requests": 1,
+          "peak_request_queue_items": 1,
+          "queue_wait_ms": {
+            "max": 0.6674588657915592,
+            "p50": 0.11179200373589993,
+            "p95": 0.262323138304055,
+            "p99": 0.5864317202940578
+          },
+          "schedule_lag_ms": {
+            "max": 1.33033306337893,
+            "p50": 0.8120209677144885,
+            "p95": 1.2569066835567355,
+            "p99": 1.3156477874144912
+          },
+          "scheduled_window_seconds": 0.38
+        },
+        "mode": "disabled",
+        "phase": "memory",
+        "pid": 62691,
+        "process_cpu_seconds": 0.03323000000000001,
+        "rss_before_bytes": 43368448,
+        "rss_peak_bytes": 43368448,
+        "shutdown": {
+          "drained": true,
+          "dropped": 0,
+          "forked": false,
+          "in_flight": false,
+          "pending": 0,
+          "worker_alive": false
+        },
+        "store_service_ms": {
+          "max": null,
+          "p50": null,
+          "p95": null,
+          "p99": null
+        },
+        "tracemalloc_peak_bytes": 117990,
+        "workload": {
+          "database": "local SQLite :memory:",
+          "http": "HTTPX MockTransport",
+          "kind": "synthetic",
+          "redis": "in-memory command fixture",
+          "sources": "explicit time and UUID calls"
+        },
+        "writer": null,
+        "writer_queue_lag_ms": {
+          "max": null,
+          "p50": null,
+          "p95": null,
+          "p99": null
+        }
+      },
+      "passed": true,
+      "timing": {
+        "artifact_bytes": 0,
+        "artifact_count": 0,
+        "capture": {
+          "active_captures": 0,
+          "admission_rejected": 0,
+          "admitted": 0,
+          "closed": true,
+          "closed_rejected": 0,
+          "dropped": 0,
+          "enabled": false,
+          "enqueue_rejected": 0,
+          "incomplete": 0,
+          "pending_bytes": 0,
+          "pending_items": 0,
+          "persisted": 0,
+          "persistence_failed": 0,
+          "reserved_bytes": 0,
+          "retained": 0,
+          "submitted": 0
+        },
+        "drain_seconds": 0.0346624159719795,
+        "load": {
+          "admission_rejections": 0,
+          "admitted": 100,
+          "application_errors": 0,
+          "completed": 100,
+          "completion_rate_per_second": 50.07262929880538,
+          "elapsed_seconds": 1.9970990419387817,
+          "latency_ms": {
+            "max": 26.54029196128249,
+            "p50": 3.8003544323146343,
+            "p95": 6.896764552220701,
+            "p99": 14.921156885102452
+          },
+          "offered": 100,
+          "offered_rate_per_second": 50,
+          "peak_active_requests": 1,
+          "peak_request_queue_items": 1,
+          "queue_wait_ms": {
+            "max": 3.5811658017337322,
+            "p50": 0.03727106377482414,
+            "p95": 0.13996477937325816,
+            "p99": 2.0083045214414676
+          },
+          "schedule_lag_ms": {
+            "max": 10.647957911714911,
+            "p50": 1.059542060829699,
+            "p95": 2.506327023729682,
+            "p99": 6.6045919433236335
+          },
+          "scheduled_window_seconds": 1.98
+        },
+        "mode": "disabled",
+        "phase": "timing",
+        "pid": 62688,
+        "process_cpu_seconds": 0.06408599999999998,
+        "rss_before_bytes": 44138496,
+        "rss_peak_bytes": 44138496,
+        "shutdown": {
+          "drained": true,
+          "dropped": 0,
+          "forked": false,
+          "in_flight": false,
+          "pending": 0,
+          "worker_alive": false
+        },
+        "store_service_ms": {
+          "max": null,
+          "p50": null,
+          "p95": null,
+          "p99": null
+        },
+        "tracemalloc_peak_bytes": null,
+        "workload": {
+          "database": "local SQLite :memory:",
+          "http": "HTTPX MockTransport",
+          "kind": "synthetic",
+          "redis": "in-memory command fixture",
+          "sources": "explicit time and UUID calls"
+        },
+        "writer": null,
+        "writer_queue_lag_ms": {
+          "max": null,
+          "p50": null,
+          "p95": null,
+          "p99": null
+        }
+      }
+    },
+    "retained": {
+      "checks": {
+        "admission_rejection_fraction": {
+          "actual": 0.0,
+          "maximum": 0,
+          "passed": true
+        },
+        "application_error_fraction": {
+          "actual": 0.0,
+          "maximum": 0,
+          "passed": true
+        },
+        "capture_rejection_fraction": {
+          "actual": 0.0,
+          "maximum": 0.05,
+          "passed": true
+        },
+        "drain_seconds": {
+          "actual": 0.0022484580986201763,
+          "maximum": 10,
+          "passed": true
+        },
+        "latency_p95_ms": {
+          "actual": 11.305929091759024,
+          "maximum": 200,
+          "passed": true
+        },
+        "queue_wait_p95_ms": {
+          "actual": 0.13627049047499895,
+          "maximum": 100,
+          "passed": true
+        },
+        "rss_peak_bytes": {
+          "actual": 44744704,
+          "maximum": 268435456,
+          "passed": true
+        },
+        "schedule_lag_p95_ms": {
+          "actual": 1.6696351580321787,
+          "maximum": 50,
+          "passed": true
+        },
+        "tracemalloc_peak_bytes": {
+          "actual": 204039,
+          "maximum": 67108864,
+          "passed": true
+        },
+        "writer_queue_lag_p95_ms": {
+          "actual": 0,
+          "maximum": 100,
+          "passed": true
+        }
+      },
+      "invariants": {
+        "memory_no_storage_failure": true,
+        "memory_persisted_artifacts_available": true,
+        "memory_requests_accounted": true,
+        "memory_reservations_released": true,
+        "memory_shutdown_drained": true,
+        "timing_no_storage_failure": true,
+        "timing_persisted_artifacts_available": true,
+        "timing_requests_accounted": true,
+        "timing_reservations_released": true,
+        "timing_shutdown_drained": true
+      },
+      "memory": {
+        "artifact_bytes": 117189,
+        "artifact_count": 20,
+        "capture": {
+          "active_captures": 0,
+          "admission_rejected": 0,
+          "admitted": 20,
+          "closed": true,
+          "closed_rejected": 0,
+          "dropped": 0,
+          "enabled": false,
+          "enqueue_rejected": 0,
+          "incomplete": 0,
+          "pending_bytes": 0,
+          "pending_items": 0,
+          "persisted": 20,
+          "persistence_failed": 0,
+          "reserved_bytes": 0,
+          "retained": 20,
+          "submitted": 0
+        },
+        "drain_seconds": 0.0034495831932872534,
+        "load": {
+          "admission_rejections": 0,
+          "admitted": 20,
+          "application_errors": 0,
+          "completed": 20,
+          "completion_rate_per_second": 50.212057051280105,
+          "elapsed_seconds": 0.39831070811487734,
+          "latency_ms": {
+            "max": 22.768292110413313,
+            "p50": 16.71083294786513,
+            "p95": 22.017079475335777,
+            "p99": 22.618049583397806
+          },
+          "offered": 20,
+          "offered_rate_per_second": 50,
+          "peak_active_requests": 1,
+          "peak_request_queue_items": 1,
+          "queue_wait_ms": {
+            "max": 0.16504107043147087,
+            "p50": 0.05797960329800844,
+            "p95": 0.09394956286996609,
+            "p99": 0.1508227689191698
+          },
+          "schedule_lag_ms": {
+            "max": 2.890625037252903,
+            "p50": 0.5228540394455194,
+            "p95": 2.183231292292476,
+            "p99": 2.7491462882608166
+          },
+          "scheduled_window_seconds": 0.38
+        },
+        "mode": "retained",
+        "phase": "memory",
+        "pid": 62753,
+        "process_cpu_seconds": 0.286155,
+        "rss_before_bytes": 43958272,
+        "rss_peak_bytes": 44744704,
+        "shutdown": {
+          "drained": true,
+          "dropped": 0,
+          "forked": false,
+          "in_flight": false,
+          "pending": 0,
+          "worker_alive": false
+        },
+        "store_service_ms": {
+          "max": 4.605625057592988,
+          "p50": 3.254937590099871,
+          "p95": 3.9041689131408934,
+          "p99": 4.465333828702568
+        },
+        "tracemalloc_peak_bytes": 204039,
+        "workload": {
+          "database": "local SQLite :memory:",
+          "http": "HTTPX MockTransport",
+          "kind": "synthetic",
+          "redis": "in-memory command fixture",
+          "sources": "explicit time and UUID calls"
+        },
+        "writer": null,
+        "writer_queue_lag_ms": {
+          "max": null,
+          "p50": null,
+          "p95": null,
+          "p99": null
+        }
+      },
+      "passed": true,
+      "timing": {
+        "artifact_bytes": 585402,
+        "artifact_count": 100,
+        "capture": {
+          "active_captures": 0,
+          "admission_rejected": 0,
+          "admitted": 100,
+          "closed": true,
+          "closed_rejected": 0,
+          "dropped": 0,
+          "enabled": false,
+          "enqueue_rejected": 0,
+          "incomplete": 0,
+          "pending_bytes": 0,
+          "pending_items": 0,
+          "persisted": 100,
+          "persistence_failed": 0,
+          "reserved_bytes": 0,
+          "retained": 100,
+          "submitted": 0
+        },
+        "drain_seconds": 0.0022484580986201763,
+        "load": {
+          "admission_rejections": 0,
+          "admitted": 100,
+          "application_errors": 0,
+          "completed": 100,
+          "completion_rate_per_second": 50.292122848973,
+          "elapsed_seconds": 1.9883829581085593,
+          "latency_ms": {
+            "max": 12.408625101670623,
+            "p50": 7.049083011224866,
+            "p95": 11.305929091759024,
+            "p99": 11.898980976548048
+          },
+          "offered": 100,
+          "offered_rate_per_second": 50,
+          "peak_active_requests": 1,
+          "peak_request_queue_items": 1,
+          "queue_wait_ms": {
+            "max": 1.534417038783431,
+            "p50": 0.03618758637458086,
+            "p95": 0.13627049047499895,
+            "p99": 0.8183163497597016
+          },
+          "schedule_lag_ms": {
+            "max": 3.315499983727932,
+            "p50": 1.069708145223558,
+            "p95": 1.6696351580321787,
+            "p99": 2.4754436663351997
+          },
+          "scheduled_window_seconds": 1.98
+        },
+        "mode": "retained",
+        "phase": "timing",
+        "pid": 62726,
+        "process_cpu_seconds": 0.3882840000000001,
+        "rss_before_bytes": 43794432,
+        "rss_peak_bytes": 43794432,
+        "shutdown": {
+          "drained": true,
+          "dropped": 0,
+          "forked": false,
+          "in_flight": false,
+          "pending": 0,
+          "worker_alive": false
+        },
+        "store_service_ms": {
+          "max": 3.8644589949399233,
+          "p50": 1.6535210888832808,
+          "p95": 2.5976055767387143,
+          "p99": 3.1940222019329703
+        },
+        "tracemalloc_peak_bytes": null,
+        "workload": {
+          "database": "local SQLite :memory:",
+          "http": "HTTPX MockTransport",
+          "kind": "synthetic",
+          "redis": "in-memory command fixture",
+          "sources": "explicit time and UUID calls"
+        },
+        "writer": null,
+        "writer_queue_lag_ms": {
+          "max": null,
+          "p50": null,
+          "p95": null,
+          "p99": null
+        }
+      }
+    }
+  },
+  "passed": true,
+  "profile": {
+    "backlog_items": 32,
+    "budgets": {
+      "default": {
+        "admission_rejection_fraction": 0,
+        "application_error_fraction": 0,
+        "capture_rejection_fraction": 0.05,
+        "drain_seconds": 10,
+        "latency_p95_ms": 200,
+        "queue_wait_p95_ms": 100,
+        "rss_peak_bytes": 268435456,
+        "schedule_lag_p95_ms": 50,
+        "tracemalloc_peak_bytes": 67108864,
+        "writer_queue_lag_p95_ms": 100
+      },
+      "drill": {
+        "drain_seconds": 10,
+        "rss_peak_bytes": 268435456
+      },
+      "modes": {}
+    },
+    "concurrency": 8,
+    "drain_timeout_seconds": 10,
+    "io_delay_ms": 2,
+    "memory_requests": 20,
+    "modes": [
+      "direct",
+      "disabled",
+      "active",
+      "retained",
+      "background"
+    ],
+    "name": "synthetic-local-staging-example-budgets",
+    "offered_rate_per_second": 50,
+    "payload_bytes": 256,
+    "process_timeout_seconds": 45,
+    "queue_bytes": 2097152,
+    "queue_items": 16,
+    "requests": 100,
+    "schema_version": 1,
+    "store_bytes": 67108864,
+    "store_delay_ms": 0,
+    "warmup_requests": 5
+  },
+  "profile_sha256": "5e0cc80ca77365e348a59515d5d1cfc5dee5eb37714543ee18f15b9bfc95709e",
+  "provenance": {
+    "executable": "python",
+    "factory": "builtin:synthetic",
+    "git_dirty": false,
+    "git_revision": "fb3853b8232c41679de25414e71b15861bb98cfb",
+    "installed_versions": {
+      "httpx": "0.28.1",
+      "jaysoft-rewind": "0.1.0a2",
+      "redis": "6.4.0",
+      "sqlalchemy": "2.1.3"
+    },
+    "machine": "arm64",
+    "package_version": "0.1.0a3",
+    "pid": 62657,
+    "platform": "macOS-26.6-arm64-arm-64bit",
+    "python": "3.12.13 (main, Mar  3 2026, 12:39:30) [Clang 21.0.0 (clang-2100.0.123.102)]",
+    "rewind_source_path": "rewind",
+    "rewind_source_sha256": "4f0bd1e75f4aeb162ec6b0d4b234889455118165386e738774245a4b35aea571",
+    "script_sha256": "e44a857bc3328cc96cb936e63d36c35409125f9cc97df3be65a2ff49e8e44932",
+    "utc": "2026-10-05T16:11:09.665372+00:00"
+  },
+  "schema_version": 1,
+  "scope": "local staging validation, not production certification",
+  "report_note": "Host-specific absolute executable/source paths omitted; measurements and original source hashes unchanged."
+}

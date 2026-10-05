@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "name": "synthetic-local-staging-example-budgets",
+  "requests": 100,
+  "memory_requests": 20,
+  "warmup_requests": 5,
+  "offered_rate_per_second": 50,
+  "concurrency": 8,
+  "backlog_items": 32,
+  "payload_bytes": 256,
+  "io_delay_ms": 2,
+  "store_delay_ms": 0,
+  "queue_items": 16,
+  "queue_bytes": 2097152,
+  "store_bytes": 67108864,
+  "drain_timeout_seconds": 10,
+  "process_timeout_seconds": 45,
+  "modes": ["direct", "disabled", "active", "retained", "background"],
+  "budgets": {
+    "default": {
+      "latency_p95_ms": 200,
+      "schedule_lag_p95_ms": 50,
+      "queue_wait_p95_ms": 100,
+      "admission_rejection_fraction": 0,
+      "application_error_fraction": 0,
+      "capture_rejection_fraction": 0.05,
+      "rss_peak_bytes": 268435456,
+      "tracemalloc_peak_bytes": 67108864,
+      "drain_seconds": 10,
+      "writer_queue_lag_p95_ms": 100
+    },
+    "modes": {},
+    "drill": {"drain_seconds": 10, "rss_peak_bytes": 268435456}
+  }
+}

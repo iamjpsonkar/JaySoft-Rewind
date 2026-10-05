@@ -6,6 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 COPY pyproject.toml README.md LICENSE ./
+COPY docs/pypi.md ./docs/pypi.md
 COPY src ./src
 COPY examples ./examples
 COPY scripts ./scripts

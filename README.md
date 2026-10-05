@@ -1,5 +1,7 @@
 # Rewind
 
+**New to Rewind? [How to use Rewind in your server](docs/server-guide.md)** — plug in, send a request, explore its snapshot, and replay the same handler.
+
 **Capture a Python failure. Replay it locally. Turn it into a test.**
 
 [![Checks](https://github.com/iamjpsonkar/JaySoft-Rewind/actions/workflows/checks.yml/badge.svg?branch=main)](https://github.com/iamjpsonkar/JaySoft-Rewind/actions/workflows/checks.yml)
@@ -15,57 +17,90 @@ Rewind records the dependency observations your application receives, then suppl
 Capture a failing execution → Inspect the recording → Replay locally → Generate a test
 ```
 
+## How to use
+
+1. **Plug Rewind into your server.** Wrap the FastAPI/ASGI app and configure the
+   supported dependency adapters used by its handler.
+2. **Choose retention.** Use `Retention(always=True)` to record every admitted
+   request, or `Condition.parse("exception or status >= 500")` to retain failures.
+3. **Hit your normal endpoint.** The client sends an ordinary HTTP request.
+4. **Explore the artifact.** Run `rewind explore snapshot.rewind.json --output report.html`.
+5. **Replay the handler.** Run `rewind replay snapshot.rewind.json --app app:replay_target`.
+
+The [server walkthrough](docs/server-guide.md) includes the complete runnable
+application, curl commands, conditional capture, browser exploration and offline
+reproduction. No condition in its setup means record every admitted request.
+Replay checks the recorded request, supported dependency observations and outcome;
+unsupported or incomplete capture is reported explicitly.
+
 ## Choose your version
 
 | I want to… | Start here |
 | --- | --- |
-| Install this alpha | `python -m pip install 'jaysoft-rewind[httpx]==0.1.0a3'` |
+| Install this alpha | `python -m pip install 'jaysoft-rewind[httpx]==0.2.0a1'` |
 | Run the repository examples | Use the source checkout below |
 | Add Rewind to an application | [Installation and optional integrations](docs/installation.md) |
 | Browse the package overview | [PyPI guide](docs/pypi.md) · [Published package](https://pypi.org/project/jaysoft-rewind/) |
 
-**Release: `0.1.0a3`.** [Package releases](https://pypi.org/project/jaysoft-rewind/#history) are available on PyPI. The distribution is `jaysoft-rewind`; the Python import and command are both `rewind`. Use Python 3.11 or 3.12. This alpha is intended for synthetic fixtures and controlled development environments.
+**Release: `0.2.0a1`.** [Package releases](https://pypi.org/project/jaysoft-rewind/#history) are available on PyPI. The distribution is `jaysoft-rewind`; the Python import and command are both `rewind`. Use Python 3.11 or 3.12. This alpha is intended for synthetic fixtures and controlled development environments.
 
 ## Quick start
 
-Try a complete failure without API keys, databases or a running web server. These commands use a macOS/Linux shell; [PowerShell commands](docs/installation.md#windows-powershell) are also available.
+Run a small instrumented server, send a normal request, then replay its handler.
+Use Python 3.11 or 3.12 and a macOS/Linux shell.
 
-**1. Install the examples from source.**
+**1. Install and start the demo server.**
 
 ```sh
 git clone https://github.com/iamjpsonkar/JaySoft-Rewind.git
 cd JaySoft-Rewind
-python3 -m venv .venv
+python3.12 -m venv .venv
 . .venv/bin/activate
-python -m pip install -e '.[dev]'
+python -m pip install -e '.[fastapi]'
+python -m examples.server_demo --store .rewind/server-demo --port 8000
 ```
 
-**2. Capture and replay a synthetic HTTP failure.**
+**2. Send a request from a second terminal.**
 
 ```sh
-artifact="$(python -m examples.http_failure)"
-rewind inspect "$artifact"
-rewind replay "$artifact" --app examples.http_failure:replay_target
+curl -i http://127.0.0.1:8000/quote \
+  -H 'Content-Type: application/json' \
+  -d '{"sku":"demo-widget","quantity":2}'
 ```
 
-The provider fixture omits `payment_id`, causing a `KeyError`. The replay report should contain:
+The handler returns HTTP 500 because its provider response lacks `unit_price`.
+Rewind retains the request, provider observation, exception and optional handler
+timeline. No `--when` in this demo means every admitted request is retained.
 
-```json
-{"status": "reproduced", "consumed": 1, "total": 1}
-```
-
-This is an excerpt: `reproduced` means the same recorded failure occurred and every expected interaction matched. The process exits with code `0`.
-
-**3. Save a reproduction test.**
+**3. Explore the snapshot.** In the project directory, activate the same environment:
 
 ```sh
-rewind test "$artifact" --app examples.http_failure:replay_target --output test_reproduction.py
-python -m pytest test_reproduction.py
+. .venv/bin/activate
+rewind list --store .rewind/server-demo
+artifact=.rewind/server-demo/PASTE_SNAPSHOT_ID.rewind.json
+rewind explore "$artifact" --output report.html
 ```
 
-The generated test asserts the recorded outcome, including the failure. When you fix the application, use [explicit comparison and desired outcomes](docs/comparison.md) to test the intended behavior. Test generation refuses to overwrite existing tests or fixtures.
+Replace `PASTE_SNAPSHOT_ID` with the listed ID. Open `report.html` in your browser.
 
-[Follow the full walkthrough →](docs/getting-started.md)
+**4. Stop the server, then replay the same handler.**
+
+```sh
+rewind replay "$artifact" --app examples.server_demo:replay_target
+```
+
+Expected report: `"status": "reproduced"`, `"consumed": 1`, `"total": 1`.
+The handler receives the recorded request and provider response, then raises the
+same error. The replay factory forbids live provider calls.
+
+**5. Choose a condition when needed.**
+
+```sh
+python -m examples.server_demo --when 'exception or status >= 500'
+```
+
+[Full beginner server walkthrough →](docs/server-guide.md) ·
+[Generate a test or compare a fix →](docs/comparison.md)
 
 ## Choose an example
 
@@ -143,6 +178,7 @@ The application explicitly configures each adapter. Installing an extra or wrapp
 | --- | --- |
 | See available commands | `rewind --help` |
 | Find captured HTTP demo recordings | `rewind list --store .rewind/demo` |
+| Explore a recording in your browser | `rewind explore "$artifact" --output report.html` |
 | Inspect a recording | `rewind inspect "$artifact"` |
 | Show recorded dependency timing | `rewind inspect "$artifact" --timeline` |
 | Share a recording archive | `rewind export "$artifact" -o failure.rewind` |
@@ -170,7 +206,7 @@ Strict replay checks the declared source fingerprint. Use `rewind compare` in `0
 <details>
 <summary><strong>Does replay contact the original services?</strong></summary>
 
-Supported adapters return recorded observations without live fallback. The default Python audit guard blocks selected external operations, but is not an OS sandbox. To verify the seven repository examples with an independent network boundary, run `./scripts/verify_offline.sh`. Docker needs network access during image build; replay runs with `--network none`. [Security model →](SECURITY.md)
+Supported adapters return recorded observations without live fallback. The default Python audit guard blocks selected external operations, but is not an OS sandbox. To verify the repository examples with an independent network boundary, run `./scripts/verify_offline.sh`. Docker needs network access during image build; replay runs with `--network none`. [Security model →](SECURITY.md)
 
 </details>
 
@@ -185,10 +221,30 @@ Capture is bounded: defaults include 64 KiB per body, 1 MiB per artifact and 1,0
 
 [Documentation home](docs/index.md) brings together walkthroughs, adapter guides, the [snapshot specification](docs/snapshot-format.md), [release guide](docs/releases.md) and [implementation ledger](docs/implementation-roadmap.md).
 
-Validation for `0.1.0a3` includes 488 passing default-suite tests, a separate 84-test Redis run that includes the four normally skipped real-server cases, and seven offline Docker examples. The suites overlap. [CI](https://github.com/iamjpsonkar/JaySoft-Rewind/actions/workflows/checks.yml) checks Python 3.11/3.12, lint, types and distributions. [Measured benchmarks](docs/benchmarks/README.md) describe synthetic workloads; production readiness remains a separate evidence gate.
+Validation for `0.2.0a1`: 626 default-suite tests passed, with 28 opt-in service
+cases skipped in that run. Separate real-service checks cover PostgreSQL, MySQL,
+Redis, Kafka and Celery; nine Docker examples replay with networking disabled.
+Ruff, mypy and Python 3.11/3.12 CI pass. The
+[synthetic staging report](docs/validation/README.md) records workload budgets,
+independent memory measurements and rollback evidence. These are explicit local
+validation results, not production certification.
 
 Found a problem? Check [troubleshooting](docs/troubleshooting.md), then [open an issue](https://github.com/iamjpsonkar/JaySoft-Rewind/issues) with your version and a synthetic reproduction. See [contributing](CONTRIBUTING.md) for development setup and [SECURITY.md](SECURITY.md) for sensitive reports.
 
 Maintained by [Jay Prakash Sonkar](https://github.com/iamjpsonkar) · [iamjpsonkar@gmail.com](mailto:iamjpsonkar@gmail.com) · [MIT license](LICENSE).
 
 [Back to top ↑](#rewind)
+
+### Expanded integrations and deployment validation
+
+The `0.2.0a1` alpha adds explicit [PostgreSQL/MySQL](docs/external-databases.md),
+[Kafka/Celery](docs/messaging.md), and [filesystem/S3](docs/filesystem-and-s3.md)
+boundaries. Each guide states the supported calls and its conformance environment.
+
+Run the [local synthetic staging suite](docs/deployment-validation.md) to measure
+fixed-arrival load, memory, queue budgets and disable/drain/rollback behavior.
+[Measured reports](docs/validation/README.md) retain the configuration and source
+revision that produced each result.
+
+[Protected-branch workflow](docs/repository-governance.md) ·
+[API and artifact compatibility](docs/compatibility-policy.md)

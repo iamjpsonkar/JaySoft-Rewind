@@ -1,5 +1,7 @@
 # Your first replay
 
+For the primary server workflow, start with [How to use Rewind in your server](server-guide.md): instrument, send a request, explore, and replay the same handler. This page is the smaller callable exercise.
+
 [Documentation home](index.md) · [Installation](installation.md) · [CLI reference](cli.md)
 
 This walkthrough uses a synthetic provider response with a missing field. It needs no credentials or external service. Complete the source installation with `.[dev]` and run the commands from the repository root.

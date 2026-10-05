@@ -119,7 +119,17 @@ def _validate(data: Any, limits: Limits) -> None:
         )
         _require(
             item.get("operation")
-            in ("http.request", "value", "db.call", "redis.command", "redis.pipeline", "wsgi.read"),
+            in (
+                "http.request",
+                "value",
+                "db.call",
+                "redis.command",
+                "redis.pipeline",
+                "wsgi.read",
+                "messaging.call",
+                "cloud.call",
+                "filesystem.call",
+            ),
             "unknown required operation",
         )
         _require(type(item.get("dependency")) is str, "invalid dependency name")

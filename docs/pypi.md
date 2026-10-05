@@ -16,34 +16,35 @@ under the MIT license.
 · [Source](https://github.com/iamjpsonkar/JaySoft-Rewind)
 · [Changelog](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/CHANGELOG.md)
 
-## Install 0.1.0a3
+## Install 0.2.0a1
 
-This guide covers **Rewind `0.1.0a3`**, an alpha release for Python 3.11 and 3.12.
+This guide covers **Rewind `0.2.0a1`**, an alpha release for Python 3.11 and 3.12.
 
 ```sh
-python -m pip install "jaysoft-rewind==0.1.0a3"
+python -m pip install "jaysoft-rewind==0.2.0a1"
 rewind --version
 ```
 
 The core package has no mandatory third-party runtime dependencies. Install an
 optional integration with the matching extra: `httpx`, `fastapi`, `flask`,
-`sqlalchemy`, `redis`, or `all`. For example:
+`sqlalchemy`, `redis`, `postgres`, `mysql`, `kafka`, `celery`, `s3`, `encryption`, or `all`. For example:
 
 ```sh
-python -m pip install "jaysoft-rewind[fastapi]==0.1.0a3"
+python -m pip install "jaysoft-rewind[fastapi]==0.2.0a1"
 # Or, for Redis:
-python -m pip install "jaysoft-rewind[redis]==0.1.0a3"
+python -m pip install "jaysoft-rewind[redis]==0.2.0a1"
 ```
 
 See the [installation guide](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/installation.md)
 for environment setup and version selection.
 
-## What you can capture in 0.1.0a3
+## What you can capture in 0.2.0a1
 
 - **Functions and requests:** synchronous or asynchronous callables, FastAPI/ASGI
   HTTP requests, and Flask/WSGI requests.
 - **Dependency observations:** HTTPX requests, synchronous SQLite DB-API and
-  SQLAlchemy SQLite operations, and supported Redis commands and pipelines.
+  SQLAlchemy operations with SQLite, PostgreSQL and MySQL; supported Redis
+  commands and pipelines; explicit Kafka/Celery, filesystem and S3 observations.
 - **Sources of variation:** explicit time, date, UUID, random, environment, and
   wait observations through Rewind's source APIs.
 - **Optional diagnostics:** bounded function-entry, return, exception, and named
@@ -59,7 +60,20 @@ or instrument your application. The
 [support matrix](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/support-matrix.md)
 provides the tested contracts and exclusions for each integration.
 
-## Try a failure and its replay
+## Server workflow
+
+Configure Rewind in the server process, wrap its supported dependencies, and send
+an ordinary request. Keep every admitted request with `Retention(always=True)`,
+or use a status/exception/duration condition. Explore a retained artifact with
+`rewind explore snapshot.rewind.json --output report.html`, then replay the same
+handler with `rewind replay snapshot.rewind.json --app app:replay_target`.
+
+The server tutorial demonstrates a real HTTP 500 caused by an incomplete provider
+response, followed by reproduction after stopping the server. The HTML explorer
+works locally and contains the recorded request, dependency calls, handler result
+or exception, and optional function timeline. It does not upload artifacts.
+
+## Optional: try a small callable failure
 
 Save this as `rewind_demo.py` and run
 `python rewind_demo.py`. It uses only synthetic fixture data and the core package.
@@ -143,3 +157,14 @@ OS-level network boundary for the included examples.
 - [Command-line reference](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/cli.md)
 - [Troubleshooting](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/troubleshooting.md)
 - [Report an issue](https://github.com/iamjpsonkar/JaySoft-Rewind/issues)
+
+## Validation and compatibility
+
+The [local staging suite](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/deployment-validation.md)
+measures fixed-arrival load, independent memory use, queue budgets, disable/drain,
+and rollback. The bundled profile uses synthetic data and stated example budgets.
+See the [compatibility policy](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/compatibility-policy.md)
+for alpha API, schema and release guarantees.
+
+New to Rewind? Read the [server walkthrough](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/server-guide.md)
+for a complete first recording, offline replay, and existing-backend example.

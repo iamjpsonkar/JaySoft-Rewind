@@ -12,6 +12,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  service-conformance:
+    uses: ./.github/workflows/services.yml
   python:
     runs-on: ubuntu-latest
     timeout-minutes: 10

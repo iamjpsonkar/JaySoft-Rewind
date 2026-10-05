@@ -6,6 +6,8 @@ import socket
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import httpx
+
 from examples import (
     background_capture,
     combined_failure,
@@ -13,9 +15,24 @@ from examples import (
     fastapi_failure,
     flask_failure,
     http_failure,
+    messaging_failure,
+    server_demo,
     sources_failure,
 )
-from rewind import replay_file
+from rewind import LocalStore, replay_file
+
+
+async def record_server(path: Path) -> Path:
+    store = LocalStore(path)
+    target = server_demo.make_target(store)
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=target.entrypoint, raise_app_exceptions=False),
+        base_url="http://server.example",
+    ) as client:
+        response = await client.post("/quote", json={"sku": "demo-widget", "quantity": 2})
+    if response.status_code != 500 or len(store.ids()) != 1:
+        raise RuntimeError("server demo did not capture its expected handler failure")
+    return path / f"{store.ids()[0]}.rewind.json"
 
 
 def main() -> None:
@@ -41,6 +58,20 @@ def main() -> None:
             if not report.reproduced or report.consumed != report.total:
                 raise RuntimeError(f"{name} replay failed: {report.to_dict()}")
             print(json.dumps({"example": name, **report.to_dict()}))
+
+        messaging_artifact = messaging_failure.record(Path(directory) / "messaging")
+        messaging_report = replay_file(
+            messaging_artifact, "examples.messaging_failure:replay_target"
+        )
+        if not messaging_report.reproduced:
+            raise RuntimeError(f"messaging replay failed: {messaging_report.to_dict()}")
+        print(json.dumps({"example": "messaging", **messaging_report.to_dict()}))
+
+        server_artifact = asyncio.run(record_server(Path(directory) / "server"))
+        server_report = replay_file(server_artifact, "examples.server_demo:replay_target")
+        if not server_report.reproduced or server_report.consumed != 1:
+            raise RuntimeError(f"server handler replay failed: {server_report.to_dict()}")
+        print(json.dumps({"example": "server", **server_report.to_dict()}))
 
         flask_artifact = flask_failure.record(Path(directory) / "flask")
         flask_report = replay_file(flask_artifact, "examples.flask_failure:replay_target")

@@ -3,6 +3,7 @@
 from .comparison import ComparisonReport, compare_file
 from .conditions import Condition, Retention
 from .core import Rewind
+from .encrypted_storage import EncryptedLocalStore
 from .limits import Limits
 from .persistence import BackgroundWriter, ShutdownReport
 from .policy import CapturePolicy
@@ -19,6 +20,7 @@ __all__ = [
     "CapturePolicy",
     "Condition",
     "ComparisonReport",
+    "EncryptedLocalStore",
     "Limits",
     "LocalStore",
     "ReplayReport",
