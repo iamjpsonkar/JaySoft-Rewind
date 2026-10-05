@@ -233,7 +233,7 @@ async def replay_asgi(rewind: Any, snapshot: Snapshot, app: Any) -> ReplayReport
         try:
             await app(incoming["scope"], receive, send)
         except ReplayDivergence:
-            pass
+            session.failure = session.failure or "application raised replay divergence"
         except Exception as exc:
             exception = exc
         if not session.failure and delivered != len(incoming["chunks"]):
@@ -253,6 +253,7 @@ async def replay_asgi(rewind: Any, snapshot: Snapshot, app: Any) -> ReplayReport
             )
         return session.report(outcome)
     except ReplayDivergence:
+        session.failure = session.failure or "application raised replay divergence"
         return session.report({"kind": "return", "value": encode(None, rewind.limits)})
     except RewindError:
         return ReplayReport(

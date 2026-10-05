@@ -35,6 +35,7 @@ class NetworkGuard:
     def _audit(self, event: str, args: tuple[Any, ...]) -> None:
         if event in {
             "socket.connect",
+            "sqlite3.connect",  # Prevent changed code from bypassing the DBAPI replay adapter.
             "socket.bind",
             "socket.getaddrinfo",
             "socket.gethostbyname",
@@ -57,6 +58,21 @@ def replay_file(
     path: str | Path, factory: str, *, timeout: float = 30, isolation: str = "python-guard"
 ) -> ReplayReport:
     """Replay in a fresh interpreter with a finite parent-enforced timeout."""
+    data = _run_worker(path, factory, timeout=timeout, isolation=isolation)
+    try:
+        return ReplayReport(**data)
+    except (ValueError, TypeError):
+        return ReplayReport("replay_error", "invalid worker report", isolation=isolation)
+
+
+def _run_worker(
+    path: str | Path,
+    factory: str,
+    *,
+    timeout: float,
+    isolation: str,
+    comparison: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     if not math.isfinite(timeout) or timeout <= 0:
         raise ValueError("timeout must be finite and positive")
     if isolation not in {"python-guard", "adapter-only"}:
@@ -69,16 +85,28 @@ def replay_file(
         factory,
         isolation,
     ]
+    request = None
+    if comparison is not None:
+        from .codecs import dumps
+
+        command.append("compare")
+        request = dumps(comparison)
     try:
-        result = subprocess.run(command, capture_output=True, timeout=timeout, check=False)
+        result = subprocess.run(
+            command, input=request, capture_output=True, timeout=timeout, check=False
+        )
     except subprocess.TimeoutExpired:
-        return ReplayReport("replay_error", "replay worker exceeded timeout", isolation=isolation)
+        return ReplayReport(
+            "replay_error", "replay worker exceeded timeout", isolation=isolation
+        ).to_dict()
     if result.returncode != 0:
         return ReplayReport(
             "replay_error", "replay worker exited unexpectedly", isolation=isolation
-        )
+        ).to_dict()
     try:
         data = json.loads(result.stdout)
-        return ReplayReport(**data)
+        if type(data) is not dict:
+            raise ValueError("invalid worker report")
+        return data
     except (ValueError, TypeError):
-        return ReplayReport("replay_error", "invalid worker report", isolation=isolation)
+        return ReplayReport("replay_error", "invalid worker report", isolation=isolation).to_dict()

@@ -1,6 +1,7 @@
 """Strict sequential matching with sticky, payload-free divergence reports."""
 
 import asyncio
+import threading
 from dataclasses import asdict, dataclass
 from typing import Any, NoReturn
 
@@ -58,7 +59,11 @@ class ReplaySession:
         self.interactions = self.data["interactions"]
         self.cursor = 0
         self.failure: str | None = None
-        self.owner = asyncio.current_task()
+        try:
+            self.owner = asyncio.current_task()
+        except RuntimeError:
+            self.owner = None
+        self.owner_thread = threading.get_ident()
         self.closed = False
 
     def fail(self, detail: str) -> NoReturn:
@@ -70,8 +75,8 @@ class ReplaySession:
             task = asyncio.current_task()
         except RuntimeError:
             task = None
-        if task is not self.owner:
-            self.fail("child task is outside sequential replay scope")
+        if task is not self.owner or threading.get_ident() != self.owner_thread:
+            self.fail("child task or thread is outside sequential replay scope")
 
     def consume(self, operation: str, dependency: str, value: Any) -> dict[str, Any]:
         if self.closed:

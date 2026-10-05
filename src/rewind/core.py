@@ -11,7 +11,7 @@ from typing import Any, TypeVar
 
 from . import context
 from .codecs import decode, encode
-from .conditions import Retention
+from .conditions import Condition, Retention
 from .errors import ReplayDivergence, RewindError
 from .fingerprint import fingerprint
 from .limits import Limits
@@ -22,11 +22,20 @@ from .replay import ReplayReport, ReplaySession
 from .snapshot import Snapshot
 from .sources import Sources
 from .storage import LocalStore
+from .tracing import TraceConfig
 
 T = TypeVar("T")
 _COUNTERS = (
-    "admitted", "admission_rejected", "retained", "incomplete", "persisted",
-    "persistence_failed", "submitted", "enqueue_rejected", "closed_rejected", "dropped",
+    "admitted",
+    "admission_rejected",
+    "retained",
+    "incomplete",
+    "persisted",
+    "persistence_failed",
+    "submitted",
+    "enqueue_rejected",
+    "closed_rejected",
+    "dropped",
 )
 
 
@@ -42,6 +51,7 @@ class Rewind:
         limits: Limits | None = None,
         retain: Retention | None = None,
         enabled: bool = True,
+        trace_config: TraceConfig | None = None,
     ) -> None:
         if store is not None and writer is not None:
             raise ValueError("store and writer are mutually exclusive")
@@ -52,6 +62,9 @@ class Rewind:
         self.retain = retain or Retention()
         self.writer = writer
         self.sources = Sources()
+        if trace_config is not None and not isinstance(trace_config, TraceConfig):
+            raise TypeError("trace_config must be TraceConfig")
+        self.trace_config = trace_config or TraceConfig()
         self._metrics: Counter[str] = Counter({key: 0 for key in _COUNTERS})
         self._active = 0
         self._lock = threading.Lock()
@@ -144,7 +157,10 @@ class Rewind:
         )
 
     async def aclose(
-        self, timeout: float = 5.0, *, drain: bool = True  # noqa: ASYNC109
+        self,
+        timeout: float = 5.0,  # noqa: ASYNC109
+        *,
+        drain: bool = True,
     ) -> ShutdownReport:
         """Run bounded shutdown off the event loop; cancellation does not stop the worker."""
         # Admission stops synchronously before yielding to the executor.
@@ -170,7 +186,9 @@ class Rewind:
             self._active += 1
             self._metrics["admitted"] += 1
         try:
-            return Recorder(self.application, self.policy, self.limits, kind)
+            return Recorder(
+                self.application, self.policy, self.limits, kind, trace_config=self.trace_config
+            )
         except Exception:
             with self._lock:
                 self._active -= 1
@@ -184,13 +202,14 @@ class Rewind:
         *,
         failed: bool,
         status: int | None = None,
+        retain: Retention | Condition | None = None,
     ) -> None:
         try:
             with self._lock:
                 if self._closed:
                     self._metrics["closed_rejected"] += 1
                     return
-            if not self.retain.matches(
+            if not (retain or self.retain).matches(
                 failed=failed, status=status, duration=time.monotonic() - recorder.started
             ):
                 return
@@ -223,10 +242,25 @@ class Rewind:
             recorder.interactions.clear()
             recorder.input = encode(None, self.limits)
             recorder.bytes_used = 0
+            recorder.interaction_started.clear()
+            if recorder.diagnostics is not None:
+                try:
+                    recorder.diagnostics.clear()
+                except Exception:
+                    pass
             with self._lock:
                 self._active -= 1
 
     async def run(self, function: Callable[..., Awaitable[T]], *args: Any, **kwargs: Any) -> T:
+        return await self._run_async(function, args, kwargs, None)
+
+    async def _run_async(
+        self,
+        function: Callable[..., Awaitable[T]],
+        args: tuple,
+        kwargs: dict,
+        retain: Condition | None,
+    ) -> T:
         recorder = self.start("callable")
         if recorder is None:
             return await function(*args, **kwargs)
@@ -246,20 +280,97 @@ class Rewind:
             raise
         finally:
             context.current.reset(token)
-            self.finish(recorder, outcome, failed=failed)
+            self.finish(recorder, outcome, failed=failed, retain=retain)
 
-    def capture(self) -> Callable:
-        def decorate(function: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:
+    def run_sync(self, function: Callable[..., T], *args: Any, **kwargs: Any) -> T:
+        """Capture a synchronous entry point on its calling thread."""
+        return self._run_sync(function, args, kwargs, None)
+
+    def _run_sync(
+        self,
+        function: Callable[..., T],
+        args: tuple,
+        kwargs: dict,
+        retain: Condition | None,
+    ) -> T:
+        recorder = self.start("callable_sync")
+        if recorder is None:
+            return function(*args, **kwargs)
+        recorder.set_input({"args": args, "kwargs": kwargs})
+        token = context.current.set(recorder)
+        outcome = {"kind": "return", "value": encode(None, self.limits)}
+        failed = False
+        try:
+            result = function(*args, **kwargs)
+            outcome = recorder.returned(result)
+            return result
+        except BaseException as exc:
+            failed = True
+            if not isinstance(exc, Exception):
+                recorder.mark("execution_interrupted")
+            outcome = recorder.raised(exc)
+            raise
+        finally:
+            context.current.reset(token)
+            self.finish(recorder, outcome, failed=failed, retain=retain)
+
+    def capture(self, *, when: str | None = None) -> Callable:
+        retain = Condition.parse(when) if when is not None else None
+
+        def decorate(function: Callable) -> Callable:
             if not asyncio.iscoroutinefunction(function):
-                raise TypeError("capture supports async callables")
+
+                @functools.wraps(function)
+                def synchronous(*args: Any, **kwargs: Any) -> Any:
+                    return self._run_sync(function, args, kwargs, retain)
+
+                return synchronous
 
             @functools.wraps(function)
             async def wrapped(*args: Any, **kwargs: Any) -> T:
-                return await self.run(function, *args, **kwargs)
+                return await self._run_async(function, args, kwargs, retain)
 
             return wrapped
 
         return decorate
+
+    def trace(self, function: Any = None, *, name: str | None = None) -> Any:
+        """Add optional diagnostic spans; enable with TraceConfig(enabled=True)."""
+        from .tracing import trace
+
+        return trace(function, name=name)
+
+    def replay_sync(self, snapshot: Snapshot, function: Callable[..., Any]) -> ReplayReport:
+        """Replay a synchronous callable without creating an event loop."""
+        failure = self.preflight(snapshot, "callable_sync")
+        if failure:
+            return failure
+        session = ReplaySession(snapshot, self.limits)
+        incoming = decode(session.data["input"]["value"], self.limits)
+        token = context.current.set(session)
+        try:
+            try:
+                result = function(*incoming["args"], **incoming["kwargs"])
+                outcome = {"kind": "return", "value": encode(result, self.limits)}
+            except ReplayDivergence:
+                session.failure = session.failure or "application raised replay divergence"
+                outcome = {"kind": "return", "value": encode(None, self.limits)}
+            except Exception as exc:
+                outcome = session.policy.exception(exc, self.limits, session.fail)
+            return session.report(outcome)
+        except ReplayDivergence:
+            session.failure = session.failure or "application raised replay divergence"
+            return session.report({"kind": "return", "value": encode(None, self.limits)})
+        except RewindError:
+            return ReplayReport(
+                "replay_error",
+                "unsupported replay value or adapter outcome",
+                session.cursor,
+                len(session.interactions),
+            )
+        finally:
+            session.closed = True
+            context.current.reset(token)
 
     def preflight(self, snapshot: Snapshot, kind: str) -> ReplayReport | None:
         data = Snapshot.from_bytes(snapshot.raw, self.limits).data
@@ -287,11 +398,13 @@ class Rewind:
                 result = await function(*incoming["args"], **incoming["kwargs"])
                 outcome = {"kind": "return", "value": encode(result, self.limits)}
             except ReplayDivergence:
+                session.failure = session.failure or "application raised replay divergence"
                 outcome = {"kind": "return", "value": encode(None, self.limits)}
             except Exception as exc:
                 outcome = session.policy.exception(exc, self.limits, session.fail)
             return session.report(outcome)
         except ReplayDivergence:
+            session.failure = session.failure or "application raised replay divergence"
             return session.report({"kind": "return", "value": encode(None, self.limits)})
         except RewindError:
             return ReplayReport(
@@ -329,6 +442,21 @@ class Rewind:
         from .adapters.httpx import RecordingTransport
 
         return RecordingTransport(transport, dependency=dependency)
+
+    def httpx_sync_transport(self, transport: Any = None, *, dependency: str = "http") -> Any:
+        from .adapters.httpx import RecordingSyncTransport
+
+        return RecordingSyncTransport(transport, dependency=dependency)
+
+    def wsgi(self, app: Any) -> Any:
+        from .adapters.wsgi import CaptureWSGI
+
+        return CaptureWSGI(app, self)
+
+    def replay_wsgi(self, snapshot: Snapshot, app: Any) -> ReplayReport:
+        from .adapters.wsgi import replay_wsgi
+
+        return replay_wsgi(self, snapshot, app)
 
     def asgi(self, app: Any) -> Any:
         from .adapters.asgi import CaptureMiddleware

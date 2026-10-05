@@ -1,33 +1,52 @@
 """Bounded per-execution recorder. Application exceptions never belong to storage."""
 
 import asyncio
+import threading
 import time
 import uuid
 from datetime import UTC, datetime
 from typing import Any
 
 from .codecs import dumps, encode
+from .errors import InvalidSnapshot
 from .limits import Limits
 from .policy import CapturePolicy
 from .snapshot import Snapshot
+from .tracing import TraceBuffer, TraceConfig
 from .version import SCHEMA_VERSION, __version__
 
 
 class Recorder:
     def __init__(
-        self, application: dict[str, Any], policy: CapturePolicy, limits: Limits, kind: str
+        self,
+        application: dict[str, Any],
+        policy: CapturePolicy,
+        limits: Limits,
+        kind: str,
+        *,
+        trace_config: TraceConfig | None = None,
     ) -> None:
         self.application = application
         self.policy = policy
         self.limits = limits
         self.kind = kind
-        self.owner = asyncio.current_task()
+        try:
+            self.owner = asyncio.current_task()
+        except RuntimeError:
+            self.owner = None
+        self.owner_thread = threading.get_ident()
         self.started = time.monotonic()
         self.sealed = False
         self.reasons: list[str] = []
         self.interactions: list[dict[str, Any]] = []
+        self.interaction_started: dict[int, int] = {}
         self.input = encode(None, limits)
         self.bytes_used = 0
+        self.diagnostics = (
+            TraceBuffer(trace_config, byte_limit=limits.snapshot_bytes // 8)
+            if trace_config is not None and trace_config.enabled
+            else None
+        )
 
     def mark(self, reason: str) -> None:
         if not self.sealed and reason not in self.reasons and len(self.reasons) < 32:
@@ -39,7 +58,7 @@ class Recorder:
         except RuntimeError:
             # ContextVars propagate to asyncio.to_thread, which has no event loop.
             task = None
-        if task is not self.owner:
+        if task is not self.owner or threading.get_ident() != self.owner_thread:
             self.mark("child_task_unsupported")
 
     def pack(self, value: Any) -> dict[str, Any]:
@@ -72,6 +91,7 @@ class Recorder:
         if "recording_limit" in self.reasons:
             return None
         slot = len(self.interactions)
+        self.interaction_started[slot] = time.perf_counter_ns()
         self.interactions.append(
             {
                 "sequence": slot + 1,
@@ -104,6 +124,9 @@ class Recorder:
         if slot is not None and not self.sealed:
             self.check_task()
             self.interactions[slot]["outcome"] = outcome
+            started = self.interaction_started.pop(slot, None)
+            if started is not None:
+                self.interactions[slot]["duration_ns"] = max(0, time.perf_counter_ns() - started)
 
     def seal(self, outcome: dict[str, Any]) -> Snapshot:
         if any(item["outcome"] is None for item in self.interactions):
@@ -121,4 +144,18 @@ class Recorder:
             "outcome": outcome,
         }
         self.sealed = True
+        if self.diagnostics is not None:
+            try:
+                remaining = max(0, self.limits.snapshot_bytes - len(dumps(document)) - 32)
+                diagnostics = self.diagnostics.finish(byte_budget=remaining)
+                if diagnostics is not None:
+                    document["diagnostics"] = diagnostics
+                    try:
+                        return Snapshot.from_dict(document, self.limits)
+                    except InvalidSnapshot:
+                        # Optional data cannot make an otherwise valid required
+                        # recording fail structural/byte validation.
+                        document.pop("diagnostics", None)
+            except Exception:
+                document.pop("diagnostics", None)
         return Snapshot.from_dict(document, self.limits)

@@ -19,7 +19,18 @@ def verify(directory: Path) -> dict[str, str]:
     wheel, source = wheels[0].resolve(), archives[0]
     with zipfile.ZipFile(wheel) as archive:
         names = set(archive.namelist())
-        required = {"rewind/py.typed", "rewind/persistence.py", "rewind/sources.py"}
+        required = {
+            "rewind/py.typed",
+            "rewind/persistence.py",
+            "rewind/sources.py",
+            "rewind/tracing.py",
+            "rewind/comparison.py",
+            "rewind/portable.py",
+            "rewind/adapters/dbapi.py",
+            "rewind/adapters/sqlalchemy.py",
+            "rewind/adapters/redis.py",
+            "rewind/adapters/wsgi.py",
+        }
         if not required <= names:
             raise ValueError("wheel is missing required library files")
         metadata_paths = [name for name in names if name.endswith(".dist-info/METADATA")]
@@ -44,10 +55,24 @@ def verify(directory: Path) -> dict[str, str]:
             raise ValueError("source and wheel metadata differ")
         names = {name.partition("/")[2] for name in archive.getnames()}
         required = {
-            "README.md", "pyproject.toml", "tests/__init__.py", "tests/runner_targets.py",
-            "examples/background_capture.py", "examples/sources_failure.py",
-            "docs/background-persistence.md", "docs/operations.md", "docs/performance.md",
-            "scripts/benchmark_capture.py", "scripts/verify_offline.sh",
+            "README.md",
+            "pyproject.toml",
+            "tests/__init__.py",
+            "tests/runner_targets.py",
+            "examples/background_capture.py",
+            "examples/sources_failure.py",
+            "docs/background-persistence.md",
+            "docs/operations.md",
+            "docs/performance.md",
+            "scripts/benchmark_capture.py",
+            "scripts/verify_offline.sh",
+            "examples/combined_failure.py",
+            "examples/database_failure.py",
+            "examples/flask_failure.py",
+            "docs/support-matrix.md",
+            "docs/snapshot-format.md",
+            "tests/fixtures/golden-v0.1.json",
+            "tests/fixtures/golden_app.py",
         }
         if not required <= names:
             raise ValueError("source archive is missing documentation, helpers, or examples")
@@ -59,6 +84,10 @@ sys.path.insert(0, sys.argv[1])
 import rewind
 assert hasattr(rewind, "BackgroundWriter")
 assert hasattr(rewind.Rewind, "aclose")
+assert hasattr(rewind.Rewind, "run_sync")
+assert hasattr(rewind, "TraceConfig")
+assert hasattr(rewind, "Condition")
+assert hasattr(rewind, "compare_file")
 assert rewind.__version__ == sys.argv[2]
 assert str(rewind.__file__).startswith(sys.argv[1])
 print(json.dumps({"version": rewind.__version__}))
@@ -66,7 +95,11 @@ print(json.dumps({"version": rewind.__version__}))
     with tempfile.TemporaryDirectory(prefix="rewind-wheel-check-") as directory_name:
         result = subprocess.run(
             [sys.executable, "-I", "-c", script, str(wheel), version],
-            cwd=directory_name, capture_output=True, text=True, timeout=30, check=True,
+            cwd=directory_name,
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=True,
         )
     return {"wheel": wheel.name, "source": source.name, **json.loads(result.stdout)}
 
