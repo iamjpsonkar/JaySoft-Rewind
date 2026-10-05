@@ -123,7 +123,56 @@ async def test_all_rejected_does_not_claim_inflight_drill_was_exercised(profile)
     assert not result["checks"]["active_request_retained"]
 
 
+async def test_measurement_accounts_for_queue_rejection_before_draining(profile, monkeypatch):
+    original_recorder = validation.recorder
+    original_load = validation.offered_load
+    state = {}
+
+    def gated_recorder(mode, path, settings):
+        rewind, writer, store = original_recorder(mode, path, settings, gated=True)
+        state.update(writer=writer, store=store)
+        return rewind, writer, store
+
+    async def load_before_releasing_store(invoke, settings, requests):
+        try:
+            load = await original_load(invoke, settings, requests)
+            assert await asyncio.to_thread(state["store"].entered.wait, 5)
+            state["before_release"] = state["writer"].stats()
+            return load
+        finally:
+            state["store"].release.set()
+
+    monkeypatch.setattr(validation, "recorder", gated_recorder)
+    monkeypatch.setattr(validation, "offered_load", load_before_releasing_store)
+    result = await validation.measurement("background", "timing", profile, "builtin:synthetic")
+
+    # Four completed requests compete for two slots while the first save is
+    # blocked. This reproduces the scheduling-dependent CI observation without
+    # relying on disk speed, sleep durations, or a particular writer schedule.
+    assert result["load"]["completed"] == profile["requests"] == 4
+    assert result["load"]["admission_rejections"] == result["load"]["application_errors"] == 0
+    before = state["before_release"]
+    assert before["in_flight"] and before["pending_items"] == 2
+    assert before["submitted"] == before["rejected"] == 2
+    assert result["capture"]["retained"] == 4
+    assert result["capture"]["enqueue_rejected"] == 2
+    assert result["artifact_count"] == result["writer"]["saved"] == before["submitted"]
+    assert result["writer"]["failed"] == result["writer"]["dropped"] == 0
+    assert result["writer"]["pending_items"] == result["writer"]["pending_bytes"] == 0
+    assert result["shutdown"]["drained"] and not result["shutdown"]["worker_alive"]
+    checks = validation.evaluate(
+        validation.budget_values(result, result), {"capture_rejection_fraction": 0.05},
+    )
+    assert checks["capture_rejection_fraction"] == {
+        "actual": 0.5, "maximum": 0.05, "passed": False,
+    }
+
+
 def test_cli_collects_independent_timing_memory_and_drill_processes(profile, tmp_path):
+    # This test requires every artifact, independent of how long fsync takes.
+    # Reserve the entire offered batch, including any in-flight write. Saturation
+    # and exact rejection accounting are covered by the gated measurement test.
+    profile["queue_items"] = max(profile["requests"], profile["memory_requests"])
     config = tmp_path / "profile.json"
     output = tmp_path / "report.json"
     config.write_text(json.dumps(profile))
@@ -145,6 +194,10 @@ def test_cli_collects_independent_timing_memory_and_drill_processes(profile, tmp
             assert measurement["phase"] == phase
             pids.add(measurement["pid"])
             assert measurement["artifact_count"] == (requests if mode == "background" else 0)
+            assert measurement["capture"]["enqueue_rejected"] == 0
+            if mode == "background":
+                assert measurement["writer"]["submitted"] == requests
+                assert measurement["writer"]["rejected"] == 0
         assert entry["timing"]["tracemalloc_peak_bytes"] is None
         assert entry["memory"]["tracemalloc_peak_bytes"] > 0
     assert len(pids) == 5
