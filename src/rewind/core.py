@@ -15,6 +15,7 @@ from .conditions import Retention
 from .errors import ReplayDivergence, RewindError
 from .fingerprint import fingerprint
 from .limits import Limits
+from .persistence import BackgroundWriter, ShutdownReport, _timeout
 from .policy import CapturePolicy
 from .recorder import Recorder
 from .replay import ReplayReport, ReplaySession
@@ -23,6 +24,10 @@ from .sources import Sources
 from .storage import LocalStore
 
 T = TypeVar("T")
+_COUNTERS = (
+    "admitted", "admission_rejected", "retained", "incomplete", "persisted",
+    "persistence_failed", "submitted", "enqueue_rejected", "closed_rejected", "dropped",
+)
 
 
 class Rewind:
@@ -32,32 +37,143 @@ class Rewind:
         application: str,
         code_paths: list[str | Path],
         store: LocalStore | None = None,
+        writer: BackgroundWriter | None = None,
         policy: CapturePolicy | None = None,
         limits: Limits | None = None,
         retain: Retention | None = None,
         enabled: bool = True,
     ) -> None:
+        if store is not None and writer is not None:
+            raise ValueError("store and writer are mutually exclusive")
         self.application = fingerprint(application, code_paths)
         self.limits = limits or Limits()
         self.policy = policy or CapturePolicy()
         self.store = store
         self.retain = retain or Retention()
-        self.enabled = enabled
+        self.writer = writer
         self.sources = Sources()
-        self.metrics: Counter[str] = Counter()
+        self._metrics: Counter[str] = Counter({key: 0 for key in _COUNTERS})
         self._active = 0
         self._lock = threading.Lock()
+        self._enabled = bool(enabled)
+        self._closed = False
+
+    @property
+    def enabled(self) -> bool:
+        with self._lock:
+            return self._enabled and not self._closed
+
+    @enabled.setter
+    def enabled(self, value: bool) -> None:
+        if value:
+            self.enable()
+        else:
+            self.disable()
+
+    def enable(self) -> None:
+        """Resume admission; shutdown is terminal and cannot be reversed."""
+        with self._lock:
+            if self._closed:
+                raise RuntimeError("capture is closed")
+            self._enabled = True
+
+    def disable(self) -> None:
+        """Stop new captures while already admitted executions finish normally."""
+        with self._lock:
+            self._enabled = False
+
+    def stats(self) -> dict[str, int | bool]:
+        """Return a safe copy of fixed counters and conservative memory reservations.
+
+        Writer counters describe its entire lifetime. Dedicate one writer to this
+        instance when per-application accounting is required.
+        """
+        with self._lock:
+            result: dict[str, int | bool] = dict(self._metrics)
+            result.update(
+                active_captures=self._active,
+                reserved_bytes=self._active * self.limits.snapshot_bytes,
+                pending_items=0,
+                pending_bytes=0,
+                enabled=self._enabled and not self._closed,
+                closed=self._closed,
+            )
+            if self.writer is not None:
+                writer = self.writer.stats()
+                result["persisted"] += int(writer["saved"])
+                result["persistence_failed"] += int(writer["failed"])
+                result["dropped"] = int(writer["dropped"])
+                result["pending_items"] = int(writer["pending_items"])
+                result["pending_bytes"] = int(writer["pending_bytes"])
+            return result
+
+    @property
+    def metrics(self) -> Counter[str]:
+        """Compatibility counter view; mutate neither live counters nor metric labels."""
+        current = self.stats()
+        return Counter({key: int(current[key]) for key in _COUNTERS})
+
+    def flush(self, timeout: float = 5.0) -> bool:
+        """Bound the wait for queued artifacts; active application work is excluded."""
+        timeout = _timeout(timeout)
+        return self.writer.flush(timeout=timeout) if self.writer is not None else True
+
+    async def aflush(self, timeout: float = 5.0) -> bool:  # noqa: ASYNC109
+        """Wait for the writer off the event loop without stopping new admission."""
+        # The timeout bounds a thread wait; cancelling the coroutine cannot replace it.
+        return await asyncio.to_thread(self.flush, timeout)
+
+    def close(self, timeout: float = 5.0, *, drain: bool = True) -> ShutdownReport:
+        """Stop admission and bound writer shutdown; never wait for application tasks.
+
+        Active captures may continue executing, but their final artifacts are rejected
+        after this call. Stop accepting requests and await application tasks before
+        closing if their artifacts must be included.
+        """
+        # Validate before making a terminal state change, including without a writer.
+        timeout = _timeout(timeout)
+        if type(drain) is not bool:
+            raise ValueError("drain must be a boolean")
+        with self._lock:
+            self._closed = True
+            self._enabled = False
+        if self.writer is not None:
+            return self.writer.close(timeout=timeout, drain=drain)
+        return ShutdownReport(
+            drained=True, pending=0, in_flight=False, dropped=0, worker_alive=False
+        )
+
+    async def aclose(
+        self, timeout: float = 5.0, *, drain: bool = True  # noqa: ASYNC109
+    ) -> ShutdownReport:
+        """Run bounded shutdown off the event loop; cancellation does not stop the worker."""
+        # Admission stops synchronously before yielding to the executor.
+        timeout = _timeout(timeout)
+        if type(drain) is not bool:
+            raise ValueError("drain must be a boolean")
+        with self._lock:
+            self._closed = True
+            self._enabled = False
+        return await asyncio.to_thread(self.close, timeout, drain=drain)
 
     def start(self, kind: str) -> Recorder | None:
-        if not self.enabled or context.current.get() is not None:
+        if context.current.get() is not None:
             return None
         with self._lock:
+            if not self._enabled or self._closed:
+                return None
             if (self._active + 1) * self.limits.snapshot_bytes > self.limits.active_bytes:
-                self.metrics["admission_rejected"] += 1
+                self._metrics["admission_rejected"] += 1
                 return None
             self._active += 1
-        self.metrics["admitted"] += 1
-        return Recorder(self.application, self.policy, self.limits, kind)
+            self._metrics["admitted"] += 1
+        try:
+            return Recorder(self.application, self.policy, self.limits, kind)
+        except Exception:
+            with self._lock:
+                self._active -= 1
+                self._metrics["persistence_failed"] += 1
+            return None
 
     def finish(
         self,
@@ -68,22 +184,43 @@ class Rewind:
         status: int | None = None,
     ) -> None:
         try:
+            with self._lock:
+                if self._closed:
+                    self._metrics["closed_rejected"] += 1
+                    return
             if not self.retain.matches(
                 failed=failed, status=status, duration=time.monotonic() - recorder.started
             ):
                 return
             snapshot = recorder.seal(outcome)
-            self.metrics["retained"] += 1
-            if not snapshot.complete:
-                self.metrics["incomplete"] += 1
+            with self._lock:
+                self._metrics["retained"] += 1
+                if not snapshot.complete:
+                    self._metrics["incomplete"] += 1
+                # Linearize admission to the writer with terminal shutdown. submit
+                # never performs store I/O and retains only immutable snapshot bytes.
+                if self._closed:
+                    self._metrics["closed_rejected"] += 1
+                    return
+                if self.writer is not None:
+                    key = "submitted" if self.writer.submit(snapshot) else "enqueue_rejected"
+                    self._metrics[key] += 1
+                    return
             if self.store is not None:
                 self.store.save(snapshot)
-                self.metrics["persisted"] += 1
+                with self._lock:
+                    self._metrics["persisted"] += 1
         except Exception:
             # Diagnostics contain no application payload or arbitrary exception message.
-            self.metrics["persistence_failed"] += 1
+            with self._lock:
+                self._metrics["persistence_failed"] += 1
         finally:
             recorder.sealed = True
+            # Inherited task contexts can retain a recorder after the request ends.
+            # Release captured payloads even when persistence was rejected or failed.
+            recorder.interactions.clear()
+            recorder.input = encode(None, self.limits)
+            recorder.bytes_used = 0
             with self._lock:
                 self._active -= 1
 
