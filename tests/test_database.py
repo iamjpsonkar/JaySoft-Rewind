@@ -385,3 +385,28 @@ async def test_malformed_database_result_diverges(recorder, monkeypatch):
     snapshot = Snapshot.from_dict(data, recorder.limits)
     no_database(monkeypatch)
     assert (await recorder.replay(snapshot, operation)).status == "diverged"
+
+
+async def test_isolation_level_and_cursor_connection_identity(recorder, monkeypatch):
+    async def operation():
+        conn = RecordingSQLite().connect(":memory:")
+        conn.isolation_level = None
+        assert conn.isolation_level is None
+        cursor = conn.execute("select 42")
+        assert cursor.connection is conn
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return result
+
+    assert await recorder.run(operation) == (42,)
+    no_database(monkeypatch)
+    assert (await recorder.replay(saved(recorder), operation)).reproduced
+
+
+def test_cursor_connection_is_readonly():
+    conn = RecordingSQLite().connect(":memory:")
+    cursor = conn.cursor()
+    with pytest.raises(AttributeError):
+        cursor.connection = conn
+    conn.close()

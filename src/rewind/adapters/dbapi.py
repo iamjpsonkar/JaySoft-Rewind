@@ -291,9 +291,13 @@ class Connection:
 
 class Cursor(Iterator[Any]):
     def __init__(self, connection: Connection, inner: Any, identifier: int) -> None:
-        self.connection = connection
+        self._connection = connection
         self._inner = inner
         self._target = f"{connection._target}/cursor:{identifier}"
+
+    @property
+    def connection(self) -> Connection:
+        return self._connection
 
     def _live(self) -> Any:
         if self._inner is None:
@@ -378,7 +382,7 @@ class Cursor(Iterator[Any]):
         self._call("set_arraysize", size, lambda: setattr(self._live(), "arraysize", size))
 
     def __setattr__(self, name: str, value: Any) -> None:
-        if name.startswith("_") or name in ("connection", "arraysize"):
+        if name.startswith("_") or name == "arraysize":
             object.__setattr__(self, name, value)
             return
         active = _active()
