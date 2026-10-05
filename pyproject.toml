@@ -33,6 +33,9 @@ Homepage = "https://github.com/iamjpsonkar/JaySoft-Rewind"
 Repository = "https://github.com/iamjpsonkar/JaySoft-Rewind"
 Issues = "https://github.com/iamjpsonkar/JaySoft-Rewind/issues"
 
+[project.scripts]
+rewind = "rewind.cli:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
