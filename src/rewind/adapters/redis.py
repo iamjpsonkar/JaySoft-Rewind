@@ -7,13 +7,13 @@ from typing import Any
 from .. import context
 from ..codecs import decode, dumps, encode
 from ..errors import CaptureLimit, RewindError
-from ..policy import sensitive
 from ..recorder import Recorder
 from ..replay import ReplaySession
 
 # Deliberately excludes authentication, scripts, blocking calls, pub/sub, WATCH,
 # administration, and helpers which execute multiple commands internally.
-_METHODS = frozenset("""
+_METHODS = frozenset(
+    """
 get set setex psetex setnx getset getdel getex mget mset msetnx append strlen
 incr incrby incrbyfloat decr decrby delete unlink exists expire pexpire expireat
 pexpireat ttl pttl persist type rename renamenx hget hset hdel hexists hgetall
@@ -23,11 +23,21 @@ sismember smismember spop srandmember sdiff sinter sunion zadd zrem zcard zcount
 zincrby zrank zrevrank zscore zmscore zrange zrevrange zrangebyscore
 zrevrangebyscore zremrangebyrank zremrangebyscore zpopmin zpopmax scan hscan
 sscan zscan ping echo
-""".split())
-_EXCEPTIONS = frozenset({
-    "ConnectionError", "TimeoutError", "ResponseError", "DataError", "BusyLoadingError",
-    "AuthenticationError", "AuthorizationError", "ReadOnlyError", "NoScriptError",
-})
+""".split()
+)
+_EXCEPTIONS = frozenset(
+    {
+        "ConnectionError",
+        "TimeoutError",
+        "ResponseError",
+        "DataError",
+        "BusyLoadingError",
+        "AuthenticationError",
+        "AuthorizationError",
+        "ReadOnlyError",
+        "NoScriptError",
+    }
+)
 
 
 def _active() -> Recorder | ReplaySession | None:
@@ -83,7 +93,7 @@ def _pack(value: Any, active: Recorder) -> Any:
             pairs = []
             for key, val in item.items():
                 label = key.decode("utf-8", errors="replace") if type(key) is bytes else key
-                if type(label) is str and sensitive(label):
+                if type(label) is str and active.policy.is_sensitive(label):
                     active.mark("sensitive_value_removed")
                     val = "[REDACTED]"
                 pairs.append((visit(key, depth + 1), visit(val, depth + 1)))
@@ -286,8 +296,10 @@ class RecordingPipeline:
                     if active is not None:
                         packed = encode(data, active.limits)
                         self.bytes_used += len(dumps(packed))
-                        if (self.bytes_used > active.limits.snapshot_bytes // 2
-                                or len(self.commands) >= active.limits.items):
+                        if (
+                            self.bytes_used > active.limits.snapshot_bytes // 2
+                            or len(self.commands) >= active.limits.items
+                        ):
                             raise CaptureLimit("Redis pipeline exceeds limits")
                         data = decode(packed, active.limits)
                     self.commands.append(data)
@@ -305,8 +317,12 @@ class RecordingPipeline:
         active = _active()
         if self.unsupported or (self.queued and self.scope is not active):
             _unsupported(active)
-        data = {"transaction": self.transaction, "shard_hint": self.shard_hint,
-                "commands": self.commands, "raise_on_error": raise_on_error}
+        data = {
+            "transaction": self.transaction,
+            "shard_hint": self.shard_hint,
+            "commands": self.commands,
+            "raise_on_error": raise_on_error,
+        }
         return active, data
 
     def _clear(self) -> None:

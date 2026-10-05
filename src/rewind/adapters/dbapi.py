@@ -1,6 +1,7 @@
 """Explicit SQLite DB-API boundary; replay never opens a database connection."""
 
 import math
+import re
 import sqlite3
 import weakref
 from collections.abc import Callable, Iterator
@@ -61,7 +62,14 @@ def _normalize(value: Any, active: Recorder | ReplaySession) -> Any:
     return visit(value, 0)
 
 
-def _call(dependency: str, target: str, method: str, args: Any, live: Callable[[], Any]) -> Any:
+def _call(
+    dependency: str,
+    target: str,
+    method: str,
+    args: Any,
+    live: Callable[[], Any],
+    captured: Callable[[Any, Recorder], Any] | None = None,
+) -> Any:
     active = _active()
     request = {"target": target, "method": method, "args": args}
     if isinstance(active, ReplaySession):
@@ -99,7 +107,21 @@ def _call(dependency: str, target: str, method: str, args: Any, live: Callable[[
     slot = None
     if isinstance(active, Recorder):
         try:
-            slot = active.begin("db.call", dependency, _normalize(request, active))
+            captured_request = _normalize(request, active)
+            sql = args.get("sql") if type(args) is dict else None
+            if (
+                type(sql) is str
+                and len(sql) <= active.limits.snapshot_bytes
+                and any(
+                    active.policy.is_sensitive(word)
+                    for word in re.findall(r"[a-zA-Z_][a-zA-Z_0-9]*", sql)
+                )
+            ):
+                # SQL text may itself contain literals; omit the entire statement
+                # and bindings rather than pretending to parse arbitrary SQL.
+                captured_request["args"] = {"sql": "[REDACTED]", "parameters": None}
+                active.mark("sensitive_database_query_removed")
+            slot = active.begin("db.call", dependency, captured_request)
         except Exception:
             active.mark("database_input_capture_failed")
     try:
@@ -129,7 +151,8 @@ def _call(dependency: str, target: str, method: str, args: Any, live: Callable[[
         raise
     if isinstance(active, Recorder):
         try:
-            active.finish(slot, active.returned({"result": result}))
+            observed = captured(result, active) if captured is not None else result
+            active.finish(slot, active.returned({"result": observed}))
         except Exception:
             active.mark("database_output_capture_failed")
     return result
@@ -306,7 +329,50 @@ class Cursor(Iterator[Any]):
 
     def _call(self, method: str, args: Any, live: Callable[[], Any]) -> Any:
         self.connection._check_owner()
-        return _call(self.connection._dependency, self._target, method, args, live)
+
+        def transform(value: Any, active: Recorder) -> Any:
+            return self._redact_rows(method, value, active)
+
+        return _call(
+            self.connection._dependency,
+            self._target,
+            method,
+            args,
+            live,
+            transform if method in {"fetchone", "fetchmany", "fetchall", "next"} else None,
+        )
+
+    def _redact_rows(self, method: str, value: Any, active: Recorder) -> Any:
+        if not active.policy.capture_values:
+            return None
+        columns = self._live().description or ()
+        indexes = [
+            i
+            for i, column in enumerate(columns)
+            if type(column[0]) is str and active.policy.is_sensitive(column[0])
+        ]
+        if not indexes:
+            return value
+
+        def row(item: Any) -> Any:
+            if item is None:
+                return None
+            if type(item) not in (tuple, list) or len(item) > active.limits.items:
+                raise CaptureLimit("unsupported database row")
+            result = list(item)
+            for index in indexes:
+                if index < len(result):
+                    result[index] = "[REDACTED]"
+                    active.mark("sensitive_value_removed")
+            return tuple(result) if type(item) is tuple else result
+
+        if method == "next":
+            return {"done": value["done"], "row": row(value["row"])}
+        if method in {"fetchmany", "fetchall"}:
+            if len(value) > active.limits.items:
+                raise CaptureLimit("database row count limit")
+            return [row(item) for item in value]
+        return row(value)
 
     def execute(self, sql: str, parameters: Any = ()) -> "Cursor":
         def live() -> None:

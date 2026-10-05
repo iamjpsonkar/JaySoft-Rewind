@@ -11,7 +11,6 @@ from typing import Any, TypeVar
 
 from . import context
 from .errors import RewindError
-from .policy import sensitive
 from .recorder import Recorder
 from .replay import ReplaySession
 
@@ -67,7 +66,7 @@ class Sources:
     def getenv(self, key: str, default: str | None = None) -> str | None:
         """Observe one environment value; known secret keys never enter recordings."""
         active = context.current.get()
-        if isinstance(active, Recorder) and sensitive(key):
+        if isinstance(active, Recorder) and active.policy.is_sensitive(key):
             active.mark("sensitive_environment_removed")
             return os.getenv(key, default)
         return _observe("getenv", {"key": key, "default": default}, lambda: os.getenv(key, default))
@@ -75,7 +74,7 @@ class Sources:
     def environ(self, key: str) -> str:
         """Observe a required environment value, including a missing-key exception."""
         active = context.current.get()
-        if isinstance(active, Recorder) and sensitive(key):
+        if isinstance(active, Recorder) and active.policy.is_sensitive(key):
             active.mark("sensitive_environment_removed")
             return os.environ[key]
         return _observe("environ", {"key": key}, lambda: os.environ[key])

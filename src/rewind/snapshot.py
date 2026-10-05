@@ -40,12 +40,21 @@ def _validate(data: Any, limits: Limits) -> None:
         "invalid dependency fingerprint",
     )
     policy = data.get("policy")
+    policy_fields = {"capture_values", "capture_bodies", "capture_binary", "exception_args"}
     _require(
         type(policy) is dict
-        and set(policy) == {"capture_values", "capture_bodies", "capture_binary", "exception_args"}
-        and all(type(v) is bool for v in policy.values()),
+        and set(policy) in (policy_fields, policy_fields | {"redacted_keys"})
+        and all(type(policy[k]) is bool for k in policy_fields),
         "unsupported policy",
     )
+    if "redacted_keys" in policy:
+        keys = policy["redacted_keys"]
+        _require(
+            type(keys) is list
+            and len(keys) <= 64
+            and all(type(k) is str and 0 < len(k) <= 128 for k in keys),
+            "invalid redaction keys",
+        )
     cap = data.get("capture")
     _require(type(cap) is dict and type(cap.get("complete")) is bool, "invalid capture state")
     reasons = cap.get("ineligible_reasons")

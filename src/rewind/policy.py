@@ -45,20 +45,42 @@ class CapturePolicy:
     capture_bodies: bool = False
     capture_binary: bool = False
     exception_args: bool = False
+    redacted_keys: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if (
+            type(self.redacted_keys) not in (tuple, list)
+            or len(self.redacted_keys) > 64
+            or any(type(key) is not str or not key or len(key) > 128 for key in self.redacted_keys)
+        ):
+            raise ValueError("redacted_keys must contain at most 64 bounded field names")
+        object.__setattr__(self, "redacted_keys", tuple(self.redacted_keys))
+
+    def is_sensitive(self, key: str) -> bool:
+        normalized = key.lower().replace("-", "").replace("_", "")
+        return sensitive(key) or any(
+            normalized == value.lower().replace("-", "").replace("_", "")
+            for value in self.redacted_keys
+        )
 
     @classmethod
     def synthetic(cls) -> "CapturePolicy":
         """Opt in to fixture data. Never use this as a production privacy guarantee."""
         return cls(True, True, True, True)
 
-    def to_dict(self) -> dict[str, bool]:
-        return asdict(self)
+    def to_dict(self) -> dict[str, Any]:
+        result = asdict(self)
+        if self.redacted_keys:
+            result["redacted_keys"] = list(self.redacted_keys)
+        else:
+            result.pop("redacted_keys")
+        return result
 
     def _scrub(self, value: Any, mark: Mark) -> Any:
         if type(value) is dict:
             result = {}
             for key, item in value.items():
-                if sensitive(key):
+                if self.is_sensitive(key):
                     result[key] = "[REDACTED]"
                     mark("sensitive_value_removed")
                 else:
@@ -81,7 +103,7 @@ class CapturePolicy:
         result = []
         for name, value in pairs:
             key = name.decode("latin-1").lower()
-            if sensitive(key):
+            if self.is_sensitive(key):
                 result.append([key, "[REDACTED]"])
                 mark("sensitive_header_removed")
             else:
@@ -98,7 +120,7 @@ class CapturePolicy:
             changed = True
         query = []
         for key, value in parse_qsl(parts.query, keep_blank_values=True):
-            if sensitive(key):
+            if self.is_sensitive(key):
                 value = "[REDACTED]"
                 mark("sensitive_query_removed")
                 changed = True

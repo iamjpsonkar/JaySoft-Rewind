@@ -39,3 +39,18 @@ capture policy; this does not classify every possible secret or PII value.
 and skips the delay on replay. Async `sleep` retains one scheduling yield.
 `getrandbits` and `randrange` complement the existing explicit random methods.
 None of these methods patches global APIs or reconstructs thread scheduling.
+
+## Application-specific redaction
+
+`CapturePolicy(redacted_keys=('customer_id', 'email'))` adds field names to the
+built-in sensitive-key rules; it does not enable value/body capture by itself.
+Names are case-insensitive and ignore hyphens/underscores. The rules apply to
+structured values, JSON bodies, headers, URL queries, explicit environment
+observations, Redis mappings, and SQLite result-column names.
+
+SQL statements containing sensitive identifiers have their statement and bindings
+omitted. Fetch observations inspect column names and redact corresponding cells
+without modifying the rows returned to the application. Required redaction makes
+strict replay ineligible. This is conservative filtering, not a general SQL parser
+or universal PII detector: sensitive literals without identifiable fields and
+secrets copied into unrelated scalars still require an application data policy.
