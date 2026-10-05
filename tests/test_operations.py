@@ -360,3 +360,100 @@ async def test_asgi_cancellation_with_broken_writer_preserves_cancellation(tmp_p
         assert current.get() is None
     finally:
         await rewind.aclose()
+
+
+async def test_cancelled_close_still_closes_writer_when_executor_was_occupied(tmp_path):
+    writer = BackgroundWriter(LocalStore(tmp_path / "artifacts"))
+    rewind = make_rewind(writer=writer)
+    entered, release = asyncio.Event(), threading.Event()
+    loop = asyncio.get_running_loop()
+    executor = ThreadPoolExecutor(max_workers=1)
+    loop.set_default_executor(executor)
+
+    def occupy_executor():
+        loop.call_soon_threadsafe(entered.set)
+        assert release.wait(3)
+
+    occupying = loop.run_in_executor(None, occupy_executor)
+    try:
+        await asyncio.wait_for(entered.wait(), timeout=1)
+        closing = asyncio.create_task(rewind.aclose(timeout=1))
+        await asyncio.sleep(0)
+        assert rewind.stats()["closed"] and not writer.stats()["closed"]
+        closing.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await closing
+        release.set()
+        await occupying
+        # This runs after the shielded close in the same one-worker executor.
+        await loop.run_in_executor(None, lambda: None)
+        assert writer.stats()["closed"] and not writer.stats()["worker_alive"]
+    finally:
+        release.set()
+        await occupying
+        writer.close(timeout=1)
+
+
+async def test_retained_asgi_callbacks_release_payload_and_remain_transparent(
+    tmp_path, monkeypatch
+):
+    from rewind.adapters import asgi
+
+    rewind = make_rewind(store=LocalStore(tmp_path / "artifacts"))
+    exchanges, callbacks, sent = [], {}, []
+    original_exchange = asgi.Exchange
+
+    def inspect_exchange(*args):
+        exchange = original_exchange(*args)
+        exchanges.append(exchange)
+        return exchange
+
+    monkeypatch.setattr(asgi, "Exchange", inspect_exchange)
+    messages = iter([
+        {"type": "http.request", "body": b"original"},
+        {"type": "http.request", "body": b"late-body"},
+    ])
+
+    async def receive():
+        return next(messages)
+
+    async def send(message):
+        if message.get("fail"):
+            raise ValueError("late send failure")
+        sent.append(message)
+
+    async def app(scope, receive, send):
+        callbacks.update(receive=receive, send=send)
+        await receive()
+        await send({"type": "http.response.start", "status": 200,
+                    "headers": [(b"authorization", b"response-secret")]})
+        await send({"type": "http.response.body", "body": b"response"})
+
+    incoming = {
+        "type": "http", "headers": [(b"authorization", b"request-secret")],
+        "query_string": b"token=query-secret",
+    }
+    await rewind.asgi(app)(incoming, receive, send)
+    exchange = exchanges[0]
+    assert exchange.scope == {} and exchange.headers == [] and exchange.request_lengths == []
+    assert exchange.request == exchange.response == bytearray()
+    assert exchange.active.sealed
+    assert incoming["headers"] == [(b"authorization", b"request-secret")]
+    artifact = rewind.store.load(rewind.store.ids()[0])
+    assert b"request-secret" not in artifact.raw and b"response-secret" not in artifact.raw
+    assert b"query-secret" not in artifact.raw
+
+    late_input = await callbacks["receive"]()
+    late_output = {"type": "http.response.body", "body": b"late-response"}
+    await callbacks["send"](late_output)
+    assert late_input["body"] == b"late-body" and sent[-1] is late_output
+    late_headers = iter([(b"authorization", b"late-secret")])
+    late_start = {"type": "http.response.start", "status": 200, "headers": late_headers}
+    await callbacks["send"](late_start)
+    assert sent[-1] is late_start
+    assert list(late_headers) == [(b"authorization", b"late-secret")]
+    with pytest.raises(ValueError, match="late send failure"):
+        await callbacks["send"]({"type": "http.response.body", "fail": True})
+    assert exchange.request == exchange.response == bytearray()
+    assert exchange.scope == {} and exchange.headers == [] and exchange.request_lengths == []
+    assert rewind.store.load(artifact.id).raw == artifact.raw

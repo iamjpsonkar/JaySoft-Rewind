@@ -154,7 +154,9 @@ class Rewind:
         with self._lock:
             self._closed = True
             self._enabled = False
-        return await asyncio.to_thread(self.close, timeout, drain=drain)
+        # Shield executor dispatch too: cancellation while the pool is occupied
+        # must not leave a terminal capture instance with an open writer.
+        return await asyncio.shield(asyncio.to_thread(self.close, timeout, drain=drain))
 
     def start(self, kind: str) -> Recorder | None:
         if context.current.get() is not None:
