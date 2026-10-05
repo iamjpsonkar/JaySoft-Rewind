@@ -59,6 +59,8 @@ class Exchange:
         self.active.check_task()
 
     def received(self, message: dict[str, Any]) -> None:
+        if isinstance(self.active, Recorder) and self.active.sealed:
+            return
         self.check_task()
         if message["type"] == "http.disconnect":
             self.mark("client_disconnected")
@@ -73,6 +75,8 @@ class Exchange:
                 self.request_complete = True
 
     def sent(self, message: dict[str, Any]) -> None:
+        if isinstance(self.active, Recorder) and self.active.sealed:
+            return
         self.check_task()
         if message["type"] == "http.response.start":
             self.status = message["status"]
@@ -135,6 +139,8 @@ class CaptureMiddleware:
 
         async def receive_capture() -> dict[str, Any]:
             message = await receive()
+            if recorder.sealed:
+                return message
             try:
                 exchange.received(message)
             except Exception:
@@ -142,6 +148,9 @@ class CaptureMiddleware:
             return message
 
         async def send_capture(message: dict[str, Any]) -> None:
+            if recorder.sealed:
+                await send(message)
+                return
             try:
                 observed = dict(message)
                 if "headers" in observed:
@@ -182,6 +191,9 @@ class CaptureMiddleware:
                 outcome = recorder.returned(None)
             exchange.request.clear()
             exchange.response.clear()
+            exchange.scope.clear()
+            exchange.headers.clear()
+            exchange.request_lengths.clear()
             self.rewind.finish(
                 recorder, outcome, failed=exception is not None, status=exchange.status
             )

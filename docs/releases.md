@@ -1,0 +1,119 @@
+# PyPI release plan
+
+Distribution: **jaysoft-rewind**. Import and command: **rewind**.
+Maintainer: Jay Prakash Sonkar (`iamjpsonkar`, `iamjpsonkar@gmail.com`).
+The candidate in this repository is `0.1.0a2`; no index publication is implied
+by building, tagging, or merging it. Publishing is a separate manual workflow.
+
+## Release sequence
+
+| Stage | Candidate and gate |
+| --- | --- |
+| First public alpha | `0.1.0a2`, after account setup and the complete release workflow pass. Keep the local/test-environment support boundary. |
+| Further alphas | `0.1.0a3`, `a4`, and so on for meaningful capability batches or alpha fixes. Record breaking changes explicitly. |
+| Beta | `0.1.0b1` after public API/schema behavior settles and user reports are resolved; no calendar deadline is promised. |
+| Release candidate | `0.1.0rc1` after clean installation, compatibility, offline replay, and lifecycle gates pass on supported runtimes. |
+| Stable local release | `0.1.0` after those contracts are satisfied. Local stability does not certify production deployment or add database support. |
+| Stable fixes/features | `0.1.1` for compatible fixes; `0.2.0` for the next planned feature/API batch. Snapshot schema compatibility is tracked separately. |
+
+Every published version has an immutable `v<version>` Git tag pointing to a
+commit already merged into `main`. `pyproject.toml`, `src/rewind/version.py`, and
+the tag must match. Update the changelog and README in the release PR. Do not
+backdate tags or rewrite a published version to hide a correction.
+
+## One-time account configuration
+
+Create or verify maintainer accounts separately on PyPI and TestPyPI, including
+their required account authentication setup. Confirm ownership/availability of
+`jaysoft-rewind` before the first upload. The public PyPI project endpoint
+returned 404 when checked on 2026-10-05; that does not reserve or guarantee
+availability. A pending publisher can create the project at first publication,
+but it also does not reserve the name.
+[PyPI pending-publisher documentation](https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc/).
+
+Register these publisher records on their respective indexes:
+
+| Setting | TestPyPI | PyPI |
+| --- | --- | --- |
+| Project | `jaysoft-rewind` | `jaysoft-rewind` |
+| Repository owner | `iamjpsonkar` | `iamjpsonkar` |
+| Repository | `JaySoft-Rewind` | `JaySoft-Rewind` |
+| Workflow filename | `release.yml` | `release.yml` |
+| GitHub environment | `testpypi` | `pypi` |
+
+Create the two GitHub environments and restrict deployment to release tags
+matching `v*`. The workflow validates that the tag commit is on `main` too.
+Choose environment reviewer rules according to maintainer preference; the
+manual workflow dispatch is already an explicit release action. These account
+and environment settings are not configured merely by committing YAML.
+[Publisher configuration](https://docs.pypi.org/trusted-publishers/adding-a-publisher/).
+
+The workflow uses short-lived OIDC credentials, with `id-token: write` limited
+to the upload jobs. No PyPI API-token secret is needed. TestPyPI and PyPI use
+separate publisher registrations and upload endpoints.
+[Trusted publishing](https://docs.pypi.org/trusted-publishers/using-a-publisher/).
+
+## Implemented workflow
+
+`.github/workflows/release.yml` runs only through **Actions → Package release →
+Run workflow**, selecting the version tag. Ordinary pushes, PRs, and tag creation
+do not upload anything.
+
+With `publish=false` (default), it validates tag/source/main ancestry, runs tests,
+lint and type checks on Python 3.11/3.12, checks the offline Docker examples,
+builds one wheel and one source archive, verifies their contents and isolated
+wheel import, and runs `twine check --strict`. It retains the distributions as
+a seven-day workflow artifact. No upload job executes.
+
+After inspecting that rehearsal, dispatch the same unchanged tag with
+`publish=true`. The workflow repeats the gates, builds the distributions once,
+uploads them to TestPyPI, downloads that exact wheel and compares its bytes,
+installs it without the source tree, then uploads the **same built artifacts**
+to PyPI. The upload jobs do not check out or build source code.
+
+The TestPyPI installation uses `--no-deps` because the core has no runtime
+dependencies. Optional integrations are tested earlier from the normal package
+index. This avoids treating TestPyPI as a complete dependency mirror or mixing
+indexes for dependency resolution.
+[TestPyPI installation guidance](https://packaging.python.org/en/latest/guides/using-testpypi/).
+
+The actual OIDC exchange and index uploads can only be validated after external
+publisher setup. This repository preparation does not claim that those steps
+have run. No release tag or index upload is created by this plan.
+
+## Release operation and recovery
+
+1. Finish and merge the release PR; inspect current Python and offline CI.
+2. Create and push the matching tag when ready to release. Run the default
+   non-publishing rehearsal and inspect its artifacts and rendered metadata.
+3. Run the publishing workflow once. If TestPyPI propagation or a later job
+   fails, use **Re-run failed jobs** so already-uploaded versions are not rebuilt
+   or uploaded again. Keep the original build artifact available.
+4. Verify the public project metadata, maintainer, license, supported runtimes,
+   and a clean `pip install --no-deps jaysoft-rewind==<version>`. Verify an
+   optional extra separately. Add a GitHub release with the matching changelog
+   and mark alpha/beta/rc versions as prereleases.
+5. If a published build is defective, diagnose before the next upload. Prefer
+   a new version and a documented correction. Consider yanking the defective
+   version rather than deleting history; yanking does not guarantee users
+   pinned to that exact version stop receiving it.
+   [PyPI yanking behavior](https://docs.pypi.org/project-management/yanking/).
+
+Upload retries must use the original artifacts. The workflow does not suppress
+existing-file errors: rebuilding an already uploaded version can produce
+different archive bytes. If the original artifact is gone or a source change
+is needed, advance the version and start with a new tag.
+
+Local preparation commands:
+
+```sh
+python -m pip install -e '.[dev,release]'
+python scripts/check_release.py --tag v0.1.0a2 --ref-type tag
+python -m build --outdir dist/release-check
+python scripts/verify_distribution.py dist/release-check
+python -m twine check --strict dist/release-check/*
+```
+
+Use a clean output directory per version. Keep real recordings, environment
+files, and credentials out of distributions. Account setup, successful dry-run
+validation, and a deliberate publish dispatch are remaining first-release gates.

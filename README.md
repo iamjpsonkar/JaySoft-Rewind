@@ -2,13 +2,13 @@
 
 Capture a supported Python execution and replay its recorded HTTP observations in a fresh local process. Rewind reports whether the original outcome reproduced or where execution diverged.
 
-**Local alpha — `0.1.0a1`.** Intended for synthetic fixtures and controlled development environments. Production deployment, arbitrary Python process replay, database adapters, and Redis adapters are outside this release.
+**Local alpha — `0.1.0a2`.** Intended for synthetic fixtures and controlled development environments. Production deployment, arbitrary Python process replay, database adapters, and Redis adapters are outside this release.
 
-Maintained by [Jay Prakash Sonkar](https://github.com/iamjpsonkar) · [iamjpsonkar@gmail.com](mailto:iamjpsonkar@gmail.com) · [MIT license](LICENSE).
+Maintained by [Jay Prakash Sonkar](https://github.com/iamjpsonkar) · [iamjpsonkar@gmail.com](mailto:iamjpsonkar@gmail.com) · [MIT license](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/LICENSE).
 
 ## Install from source
 
-Use Python 3.11 or 3.12. The distribution is `jaysoft-rewind`; its import and CLI names are `rewind`. These instructions do not assume a published package exists.
+Use Python 3.11 or 3.12. The distribution is `jaysoft-rewind`; the import and CLI remain `rewind`. Install from source until the first package release is published.
 
 ```sh
 git clone https://github.com/iamjpsonkar/JaySoft-Rewind.git
@@ -46,7 +46,7 @@ Replay uses the explicitly selected factory in a fresh interpreter with a defaul
 ./scripts/verify_offline.sh
 ```
 
-The script builds a local image, then verifies the HTTP, FastAPI, and deterministic-source examples inside a read-only Docker container with `--network none`, temporary writable storage, and no added capabilities. Building needs network access for dependencies; replay runs without external networking. See [SECURITY.md](SECURITY.md).
+The script builds a local image, then verifies the HTTP, FastAPI, deterministic-source, and background-persistence examples inside a read-only Docker container with `--network none`, temporary writable storage, and no added capabilities. Building needs network access for dependencies; replay runs without external networking. See [SECURITY.md](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/SECURITY.md).
 
 ## Integrate a callable or FastAPI app
 
@@ -85,7 +85,41 @@ This snippet uses a live transport during capture. Supply your controlled servic
 
 For FastAPI, wrap the app with `rewind.asgi(app)` and return `ReplayTarget(rewind, wrapped_app, kind="asgi")`. Middleware does not intercept other clients or databases. Supported requests consume their bodies, emit buffered responses, and perform dependency calls sequentially in the owning task. Configure local startup dependencies inside the factory; the runner does not drive ASGI lifespan.
 
-`Rewind.value(name, factory)` records explicit observations. `Retention` supports exceptions, status thresholds, duration thresholds, and `always=True`; defaults retain exceptions and HTTP statuses of at least 500. Retained artifacts are written synchronously.
+`Rewind.value(name, factory)` records explicit observations. `Retention` supports exceptions, status thresholds, duration thresholds, and `always=True`; defaults retain exceptions and HTTP statuses of at least 500. The existing `store=` capture path writes retained artifacts synchronously.
+
+## Background persistence and operational controls
+
+Pass `writer=` to move filesystem writes off the request event loop. It is mutually exclusive with `store=`. Policy filtering and serialization still happen during capture.
+
+```python
+from rewind import BackgroundWriter, LocalStore, Rewind
+
+writer = BackgroundWriter(
+    LocalStore(".rewind/snapshots"), max_items=128, max_bytes=16 * 1024 * 1024,
+)
+rewind = Rewind(application="checkout", code_paths=[__file__], writer=writer)
+
+# Wrap application calls with await rewind.run(...) or rewind.asgi(app).
+# The default policy keeps diagnostic data; use synthetic policy only for fixtures.
+rewind.disable()  # Stop new captures; already admitted requests still finish.
+rewind.enable()
+# At shutdown: stop incoming requests and await application tasks first.
+# report = await rewind.aclose(timeout=5, drain=True)
+```
+
+`rewind.stats()` returns a safe copy of active reservations, pending bytes/items, accepted submissions, rejected recordings, completed writes, and failures. `aflush()` waits for writer idle; `aclose()` stops admission permanently and performs a bounded drain off the event loop. Neither method waits for application requests. A drained queue can still contain failed writes in its history; inspect `persistence_failed` as well. See [operations and rollback](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/operations.md).
+
+The timeout bounds the writer wait after executor dispatch; it does not bound delays from an occupied executor or stalled event loop. Cancelling `aclose()` does not cancel the scheduled shutdown.
+
+```sh
+python -m examples.background_capture --store .rewind/background-demo
+```
+
+The example records, drains, and replays a synthetic failure, then prints capture statistics and the replay report.
+
+`BackgroundWriter` provides a worker for already sealed snapshots. Configure both `max_items` and `max_bytes`; both budgets include the current filesystem write. `submit(snapshot)` returns immediately after bounded bookkeeping and rejects work when full. Acceptance means queued, not persisted.
+
+`flush(timeout=5)` waits for idle. `close(timeout=5, drain=True)` stops submissions and bounds the drain wait; pending work is dropped at the deadline, while an active filesystem call can outlive it. `stats()` exposes completion, failure, rejection, and high-water counts without payload labels. See the [background persistence guide](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/background-persistence.md) for the complete contract and shutdown report. Disk writes move to a daemon thread; serialization still occurs before submission, and abrupt process exit can lose queued recordings.
 
 ## Record time, randomness, and UUIDs
 
@@ -156,7 +190,8 @@ Test generation copies a fixture beside the test and refuses to overwrite either
 | Independent simultaneous captures with isolated context | Race/scheduling reproduction, distributed execution, complete heap state |
 | Bounded JSON/bytes and explicit value providers | Arbitrary Python objects, transparent global nondeterminism capture |
 | Strict input and outcome comparison, no adapter fallback | Changed-source comparison or unmatched live calls |
-| Versioned local JSON, atomic publication, TTL/quota cleanup on save | Background persistence, encrypted storage, coordinated multi-process retention |
+| Versioned local JSON, atomic publication, TTL/quota cleanup on save | Encrypted storage, coordinated multi-process retention, crash-durable queues |
+| Bounded background writer, enable/disable, metrics, finite shutdown | Cancellation of a running filesystem write, automatic application-task shutdown |
 
 Default budgets: 64 KiB per body, 1 MiB per artifact, 1,000 interactions, and 64 MiB in active capture reservations. Default local storage: 256 MiB with 24-hour retention, enforced during saves. These are payload/accounting budgets, not process RSS guarantees or periodic cleanup. Publication can temporarily exceed quota; cleanup follows a successful write. Store locking is local to each `LocalStore` instance.
 
@@ -164,7 +199,27 @@ Default policy excludes values, bodies, and exception arguments. Known sensitive
 
 Compatibility covers declared source files, Python major/minor, and installed HTTPX/FastAPI/Starlette versions. It does not fingerprint the entire environment or discover all imported code. Include relevant source trees in `code_paths` and supply a compatible environment. Inspecting an artifact does not execute application code; replaying a factory does.
 
+## Package releases
+
+The [PyPI release plan](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/releases.md) covers `jaysoft-rewind` alpha → beta → release-candidate → stable versions, exact version/tag checks, TestPyPI verification, and OIDC trusted publishing. The [manual release workflow](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/.github/workflows/release.yml) defaults to validation only; publishing requires an explicit dispatch option and the documented PyPI/TestPyPI account setup. No package has been published by this work.
+
 ## Development
+
+Run the synthetic performance and queue-saturation toolkit with:
+
+```sh
+python -m scripts.benchmark_capture --output /tmp/rewind-benchmark.json
+```
+
+It compares baseline, disabled, discarded, synchronous, and background capture, then checks a gated failure storm. Reports include latency percentiles, CPU and drain time, allocation measurements, saved/rejected counts, and queue high-water marks. See [measurement methodology](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/performance.md); read persistence counts alongside throughput, since dropping recordings can make a saturated writer look faster.
+
+The [published local sample](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/benchmarks/README.md) saved every measured artifact. Background capture reduced foreground disk waiting, while throughput including final drain remained comparable to synchronous persistence. Both failure storms respected their budgets and drained successfully. These synthetic observations do not establish production performance.
+
+The operational alpha passes 184 local tests, Ruff, and mypy. Its release checks also validate archive contents, import the built wheel outside the source tree, run a benchmark smoke scenario, and exercise four examples under Docker network isolation.
+
+The local alpha baseline at `8e143cc` passed 118 tests, lint, type checks, and distribution builds. [Its CI run](https://github.com/iamjpsonkar/JaySoft-Rewind/actions/runs/37316532798) also verified Python 3.11/3.12 and all three examples in Docker with external networking disabled. These checks validate the documented local scope; they do not establish production readiness.
+
+Development proceeds in complete feature batches: implementation, meaningful tests, operational documentation, and runnable examples belong together on one branch and pull request. Parallel contributors use isolated worktrees and agree on interfaces before integration. README updates accompany each feature milestone; support claims follow observed checks.
 
 ```sh
 ruff check src tests examples scripts
@@ -173,4 +228,4 @@ python -m pytest -q
 python -m build
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md), [CHANGELOG.md](CHANGELOG.md), and the [project plan](REWIND_PROJECT_PLAN.md). Performance and production-readiness claims require further evidence.
+See [CONTRIBUTING.md](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/CONTRIBUTING.md), [CHANGELOG.md](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/CHANGELOG.md), and the [project plan](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/REWIND_PROJECT_PLAN.md). Performance and production-readiness claims require further evidence.

@@ -1,0 +1,1764 @@
+{
+  "measurements": {
+    "cpu": {
+      "background": {
+        "completion_counts": {
+          "comparison_caveat": "Completion throughput includes calls whose snapshots were rejected; compare persisted counts before interpreting speed differences.",
+          "measured_operations": 600,
+          "persisted_artifacts": 600,
+          "storage_failures": 0,
+          "writer_rejected": 0
+        },
+        "delta_from_baseline": {
+          "p50_latency_us": {
+            "absolute": 131.291,
+            "relative_percent": 1921.1442786069654
+          },
+          "throughput_ops_per_second": {
+            "absolute": -116391.27432828909,
+            "relative_percent": -95.49176613171568
+          }
+        },
+        "median": {
+          "drain_seconds": 0.489862083,
+          "including_drain_ops_per_second": 384.19664721190895,
+          "including_drain_process_cpu_seconds": 0.425008,
+          "latency_us": {
+            "p50": 138.125,
+            "p95": 312.50415,
+            "p99": 468.4954099999994
+          },
+          "process_cpu_seconds": 0.033904,
+          "throughput_ops_per_second": 5494.914442945767,
+          "wall_seconds": 0.036397291
+        },
+        "memory_pass": {
+          "iterations": 30,
+          "tracemalloc_peak_bytes": 140202,
+          "writer_stats": {
+            "closed": true,
+            "dropped": 0,
+            "failed": 0,
+            "forked": false,
+            "in_flight": false,
+            "max_bytes": 1048576,
+            "max_items": 256,
+            "peak_pending_bytes": 32370,
+            "peak_pending_items": 30,
+            "pending_bytes": 0,
+            "pending_items": 0,
+            "rejected": 0,
+            "saved": 30,
+            "submitted": 30,
+            "worker_alive": false
+          }
+        },
+        "trials": [
+          {
+            "artifact_bytes": 215800,
+            "artifact_count": 200,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 200,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 200,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 200,
+              "submitted": 200
+            },
+            "drain_seconds": 0.546142459,
+            "including_drain_ops_per_second": 261.5796542371858,
+            "including_drain_process_cpu_seconds": 0.438739,
+            "latency_us": {
+              "p50": 200.1245,
+              "p95": 3769.718749999971,
+              "p99": 15830.687739999934
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.046388,
+            "shutdown": {
+              "drained": true,
+              "dropped": 0,
+              "forked": false,
+              "in_flight": false,
+              "pending": 0,
+              "worker_alive": false
+            },
+            "throughput_ops_per_second": 915.5706522983112,
+            "wall_seconds": 0.218443,
+            "writer_stats": {
+              "closed": true,
+              "dropped": 0,
+              "failed": 0,
+              "forked": false,
+              "in_flight": false,
+              "max_bytes": 1048576,
+              "max_items": 256,
+              "peak_pending_bytes": 214721,
+              "peak_pending_items": 199,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "rejected": 0,
+              "saved": 200,
+              "submitted": 200,
+              "worker_alive": false
+            }
+          },
+          {
+            "artifact_bytes": 215800,
+            "artifact_count": 200,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 200,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 200,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 200,
+              "submitted": 200
+            },
+            "drain_seconds": 0.489862083,
+            "including_drain_ops_per_second": 384.19664721190895,
+            "including_drain_process_cpu_seconds": 0.425008,
+            "latency_us": {
+              "p50": 134.27100000000002,
+              "p95": 237.3902,
+              "p99": 298.9960099999998
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.031797,
+            "shutdown": {
+              "drained": true,
+              "dropped": 0,
+              "forked": false,
+              "in_flight": false,
+              "pending": 0,
+              "worker_alive": false
+            },
+            "throughput_ops_per_second": 6513.6677756511735,
+            "wall_seconds": 0.030704667,
+            "writer_stats": {
+              "closed": true,
+              "dropped": 0,
+              "failed": 0,
+              "forked": false,
+              "in_flight": false,
+              "max_bytes": 1048576,
+              "max_items": 256,
+              "peak_pending_bytes": 215800,
+              "peak_pending_items": 200,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "rejected": 0,
+              "saved": 200,
+              "submitted": 200,
+              "worker_alive": false
+            }
+          },
+          {
+            "artifact_bytes": 215800,
+            "artifact_count": 200,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 200,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 200,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 200,
+              "submitted": 200
+            },
+            "drain_seconds": 0.425190542,
+            "including_drain_ops_per_second": 433.2869839747271,
+            "including_drain_process_cpu_seconds": 0.399778,
+            "latency_us": {
+              "p50": 138.125,
+              "p95": 312.50415,
+              "p99": 468.4954099999994
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.033904,
+            "shutdown": {
+              "drained": true,
+              "dropped": 0,
+              "forked": false,
+              "in_flight": false,
+              "pending": 0,
+              "worker_alive": false
+            },
+            "throughput_ops_per_second": 5494.914442945767,
+            "wall_seconds": 0.036397291,
+            "writer_stats": {
+              "closed": true,
+              "dropped": 0,
+              "failed": 0,
+              "forked": false,
+              "in_flight": false,
+              "max_bytes": 1048576,
+              "max_items": 256,
+              "peak_pending_bytes": 215800,
+              "peak_pending_items": 200,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "rejected": 0,
+              "saved": 200,
+              "submitted": 200,
+              "worker_alive": false
+            }
+          }
+        ]
+      },
+      "baseline": {
+        "completion_counts": {
+          "comparison_caveat": null,
+          "measured_operations": 600,
+          "persisted_artifacts": 0,
+          "storage_failures": 0,
+          "writer_rejected": 0
+        },
+        "delta_from_baseline": {
+          "p50_latency_us": {
+            "absolute": 0.0,
+            "relative_percent": 0.0
+          },
+          "throughput_ops_per_second": {
+            "absolute": 0.0,
+            "relative_percent": 0.0
+          }
+        },
+        "median": {
+          "drain_seconds": 0.0,
+          "including_drain_ops_per_second": 121886.18877123485,
+          "including_drain_process_cpu_seconds": 0.001535,
+          "latency_us": {
+            "p50": 6.834,
+            "p95": 7.39229999999998,
+            "p99": 18.009169999999877
+          },
+          "process_cpu_seconds": 0.001533,
+          "throughput_ops_per_second": 121886.18877123485,
+          "wall_seconds": 0.001640875
+        },
+        "memory_pass": {
+          "iterations": 30,
+          "tracemalloc_peak_bytes": 7660,
+          "writer_stats": null
+        },
+        "trials": [
+          {
+            "artifact_bytes": 0,
+            "artifact_count": 0,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 0,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 0,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 0,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 129803.37384929309,
+            "including_drain_process_cpu_seconds": 0.001509,
+            "latency_us": {
+              "p50": 6.834,
+              "p95": 7.041,
+              "p99": 10.085659999999999
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.001507,
+            "shutdown": null,
+            "throughput_ops_per_second": 129803.37384929309,
+            "wall_seconds": 0.001540792,
+            "writer_stats": null
+          },
+          {
+            "artifact_bytes": 0,
+            "artifact_count": 0,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 0,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 0,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 0,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 121886.18877123485,
+            "including_drain_process_cpu_seconds": 0.001535,
+            "latency_us": {
+              "p50": 6.834,
+              "p95": 7.39229999999998,
+              "p99": 18.009169999999877
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.001533,
+            "shutdown": null,
+            "throughput_ops_per_second": 121886.18877123485,
+            "wall_seconds": 0.001640875,
+            "writer_stats": null
+          },
+          {
+            "artifact_bytes": 0,
+            "artifact_count": 0,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 0,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 0,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 0,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 112404.25967182452,
+            "including_drain_process_cpu_seconds": 0.001669,
+            "latency_us": {
+              "p50": 6.875,
+              "p95": 10.835749999999985,
+              "p99": 32.291999999999774
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.001666,
+            "shutdown": null,
+            "throughput_ops_per_second": 112404.25967182452,
+            "wall_seconds": 0.001779292,
+            "writer_stats": null
+          }
+        ]
+      },
+      "disabled": {
+        "completion_counts": {
+          "comparison_caveat": null,
+          "measured_operations": 600,
+          "persisted_artifacts": 0,
+          "storage_failures": 0,
+          "writer_rejected": 0
+        },
+        "delta_from_baseline": {
+          "p50_latency_us": {
+            "absolute": 0.41600000000000037,
+            "relative_percent": 6.087211003804516
+          },
+          "throughput_ops_per_second": {
+            "absolute": -2000.080574022213,
+            "relative_percent": -1.640941105949345
+          }
+        },
+        "median": {
+          "drain_seconds": 0.0,
+          "including_drain_ops_per_second": 119886.10819721264,
+          "including_drain_process_cpu_seconds": 0.001602,
+          "latency_us": {
+            "p50": 7.25,
+            "p95": 7.465199999999998,
+            "p99": 12.29540999999996
+          },
+          "process_cpu_seconds": 0.001599,
+          "throughput_ops_per_second": 119886.10819721264,
+          "wall_seconds": 0.00166825
+        },
+        "memory_pass": {
+          "iterations": 30,
+          "tracemalloc_peak_bytes": 8084,
+          "writer_stats": null
+        },
+        "trials": [
+          {
+            "artifact_bytes": 0,
+            "artifact_count": 0,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 0,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": false,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 0,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 0,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 119886.10819721264,
+            "including_drain_process_cpu_seconds": 0.001602,
+            "latency_us": {
+              "p50": 7.291,
+              "p95": 7.465199999999998,
+              "p99": 11.36674999999997
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.001599,
+            "shutdown": null,
+            "throughput_ops_per_second": 119886.10819721264,
+            "wall_seconds": 0.00166825,
+            "writer_stats": null
+          },
+          {
+            "artifact_bytes": 0,
+            "artifact_count": 0,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 0,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": false,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 0,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 0,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 126372.32446094305,
+            "including_drain_process_cpu_seconds": 0.001542,
+            "latency_us": {
+              "p50": 7.2085,
+              "p95": 7.3351,
+              "p99": 12.29540999999996
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.001538,
+            "shutdown": null,
+            "throughput_ops_per_second": 126372.32446094305,
+            "wall_seconds": 0.001582625,
+            "writer_stats": null
+          },
+          {
+            "artifact_bytes": 0,
+            "artifact_count": 0,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 0,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": false,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 0,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 0,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 115509.58787334143,
+            "including_drain_process_cpu_seconds": 0.001631,
+            "latency_us": {
+              "p50": 7.25,
+              "p95": 7.5,
+              "p99": 26.80449999999999
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.001628,
+            "shutdown": null,
+            "throughput_ops_per_second": 115509.58787334143,
+            "wall_seconds": 0.001731458,
+            "writer_stats": null
+          }
+        ]
+      },
+      "discarded": {
+        "completion_counts": {
+          "comparison_caveat": null,
+          "measured_operations": 600,
+          "persisted_artifacts": 0,
+          "storage_failures": 0,
+          "writer_rejected": 0
+        },
+        "delta_from_baseline": {
+          "p50_latency_us": {
+            "absolute": 49.937,
+            "relative_percent": 730.7140766754463
+          },
+          "throughput_ops_per_second": {
+            "absolute": -106807.26038242287,
+            "relative_percent": -87.62868169000407
+          }
+        },
+        "median": {
+          "drain_seconds": 0.0,
+          "including_drain_ops_per_second": 15078.928388811977,
+          "including_drain_process_cpu_seconds": 0.013165,
+          "latency_us": {
+            "p50": 56.771,
+            "p95": 132.325,
+            "p99": 156.42325
+          },
+          "process_cpu_seconds": 0.013159,
+          "throughput_ops_per_second": 15078.928388811977,
+          "wall_seconds": 0.013263542
+        },
+        "memory_pass": {
+          "iterations": 30,
+          "tracemalloc_peak_bytes": 75386,
+          "writer_stats": null
+        },
+        "trials": [
+          {
+            "artifact_bytes": 0,
+            "artifact_count": 0,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 200,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 0,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 0,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 13188.588573736575,
+            "including_drain_process_cpu_seconds": 0.013921,
+            "latency_us": {
+              "p50": 56.7915,
+              "p95": 148.72229999999985,
+              "p99": 234.49141999999833
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.013918,
+            "shutdown": null,
+            "throughput_ops_per_second": 13188.588573736575,
+            "wall_seconds": 0.015164625,
+            "writer_stats": null
+          },
+          {
+            "artifact_bytes": 0,
+            "artifact_count": 0,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 200,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 0,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 0,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 15078.928388811977,
+            "including_drain_process_cpu_seconds": 0.013165,
+            "latency_us": {
+              "p50": 56.771,
+              "p95": 132.325,
+              "p99": 152.89800999999983
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.013159,
+            "shutdown": null,
+            "throughput_ops_per_second": 15078.928388811977,
+            "wall_seconds": 0.013263542,
+            "writer_stats": null
+          },
+          {
+            "artifact_bytes": 0,
+            "artifact_count": 0,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 200,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 0,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 0,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 15224.41820076151,
+            "including_drain_process_cpu_seconds": 0.012913,
+            "latency_us": {
+              "p50": 56.416,
+              "p95": 126.24099999999997,
+              "p99": 156.42325
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.012909,
+            "shutdown": null,
+            "throughput_ops_per_second": 15224.41820076151,
+            "wall_seconds": 0.013136791,
+            "writer_stats": null
+          }
+        ]
+      },
+      "synchronous": {
+        "completion_counts": {
+          "comparison_caveat": null,
+          "measured_operations": 600,
+          "persisted_artifacts": 600,
+          "storage_failures": 0,
+          "writer_rejected": 0
+        },
+        "delta_from_baseline": {
+          "p50_latency_us": {
+            "absolute": 2221.208,
+            "relative_percent": 32502.311969563947
+          },
+          "throughput_ops_per_second": {
+            "absolute": -121493.73471380532,
+            "relative_percent": -99.67801597425765
+          }
+        },
+        "median": {
+          "drain_seconds": 0.0,
+          "including_drain_ops_per_second": 392.4540574295408,
+          "including_drain_process_cpu_seconds": 0.425697,
+          "latency_us": {
+            "p50": 2228.042,
+            "p95": 5466.071149999985,
+            "p99": 8037.350829999922
+          },
+          "process_cpu_seconds": 0.425694,
+          "throughput_ops_per_second": 392.4540574295408,
+          "wall_seconds": 0.509613791
+        },
+        "memory_pass": {
+          "iterations": 30,
+          "tracemalloc_peak_bytes": 136336,
+          "writer_stats": null
+        },
+        "trials": [
+          {
+            "artifact_bytes": 215800,
+            "artifact_count": 200,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 200,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 200,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 200,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 392.4540574295408,
+            "including_drain_process_cpu_seconds": 0.411327,
+            "latency_us": {
+              "p50": 2228.042,
+              "p95": 4333.742299999997,
+              "p99": 8037.350829999922
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.411324,
+            "shutdown": null,
+            "throughput_ops_per_second": 392.4540574295408,
+            "wall_seconds": 0.509613791,
+            "writer_stats": null
+          },
+          {
+            "artifact_bytes": 215800,
+            "artifact_count": 200,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 200,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 200,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 200,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 252.05494346084987,
+            "including_drain_process_cpu_seconds": 0.438572,
+            "latency_us": {
+              "p50": 2350.3125,
+              "p95": 9696.553499999995,
+              "p99": 30462.638009999682
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.438569,
+            "shutdown": null,
+            "throughput_ops_per_second": 252.05494346084987,
+            "wall_seconds": 0.793477792,
+            "writer_stats": null
+          },
+          {
+            "artifact_bytes": 215800,
+            "artifact_count": 200,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 200,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 200,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 200,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 392.76516742474433,
+            "including_drain_process_cpu_seconds": 0.425697,
+            "latency_us": {
+              "p50": 2057.1665000000003,
+              "p95": 5466.071149999985,
+              "p99": 7607.253749999995
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.425694,
+            "shutdown": null,
+            "throughput_ops_per_second": 392.76516742474433,
+            "wall_seconds": 0.509210125,
+            "writer_stats": null
+          }
+        ]
+      }
+    },
+    "io": {
+      "background": {
+        "completion_counts": {
+          "comparison_caveat": "Completion throughput includes calls whose snapshots were rejected; compare persisted counts before interpreting speed differences.",
+          "measured_operations": 600,
+          "persisted_artifacts": 600,
+          "storage_failures": 0,
+          "writer_rejected": 0
+        },
+        "delta_from_baseline": {
+          "p50_latency_us": {
+            "absolute": 131.08300000000008,
+            "relative_percent": 11.193510167049169
+          },
+          "throughput_ops_per_second": {
+            "absolute": -475.23892510999485,
+            "relative_percent": -14.048706099756048
+          }
+        },
+        "median": {
+          "drain_seconds": 0.361677458,
+          "including_drain_ops_per_second": 460.4231760000349,
+          "including_drain_process_cpu_seconds": 0.406435,
+          "latency_us": {
+            "p50": 1302.1455,
+            "p95": 1738.3521,
+            "p99": 2222.3049999999994
+          },
+          "process_cpu_seconds": 0.074737,
+          "throughput_ops_per_second": 2907.5560578261725,
+          "wall_seconds": 0.068786292
+        },
+        "memory_pass": {
+          "iterations": 30,
+          "tracemalloc_peak_bytes": 150099,
+          "writer_stats": {
+            "closed": true,
+            "dropped": 0,
+            "failed": 0,
+            "forked": false,
+            "in_flight": false,
+            "max_bytes": 1048576,
+            "max_items": 256,
+            "peak_pending_bytes": 31262,
+            "peak_pending_items": 29,
+            "pending_bytes": 0,
+            "pending_items": 0,
+            "rejected": 0,
+            "saved": 30,
+            "submitted": 30,
+            "worker_alive": false
+          }
+        },
+        "trials": [
+          {
+            "artifact_bytes": 215600,
+            "artifact_count": 200,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 200,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 200,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 200,
+              "submitted": 200
+            },
+            "drain_seconds": 0.361677458,
+            "including_drain_ops_per_second": 460.4231760000349,
+            "including_drain_process_cpu_seconds": 0.411901,
+            "latency_us": {
+              "p50": 1315.521,
+              "p95": 2168.045849999999,
+              "p99": 3047.4749999999976
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.076668,
+            "shutdown": {
+              "drained": true,
+              "dropped": 0,
+              "forked": false,
+              "in_flight": false,
+              "pending": 0,
+              "worker_alive": false
+            },
+            "throughput_ops_per_second": 2750.8219765533413,
+            "wall_seconds": 0.072705541,
+            "writer_stats": {
+              "closed": true,
+              "dropped": 0,
+              "failed": 0,
+              "forked": false,
+              "in_flight": false,
+              "max_bytes": 1048576,
+              "max_items": 256,
+              "peak_pending_bytes": 182182,
+              "peak_pending_items": 169,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "rejected": 0,
+              "saved": 200,
+              "submitted": 200,
+              "worker_alive": false
+            }
+          },
+          {
+            "artifact_bytes": 215600,
+            "artifact_count": 200,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 200,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 200,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 200,
+              "submitted": 200
+            },
+            "drain_seconds": 0.39440875,
+            "including_drain_ops_per_second": 431.78355091287875,
+            "including_drain_process_cpu_seconds": 0.406435,
+            "latency_us": {
+              "p50": 1302.1455,
+              "p95": 1738.3521,
+              "p99": 2222.3049999999994
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.074737,
+            "shutdown": {
+              "drained": true,
+              "dropped": 0,
+              "forked": false,
+              "in_flight": false,
+              "pending": 0,
+              "worker_alive": false
+            },
+            "throughput_ops_per_second": 2907.5560578261725,
+            "wall_seconds": 0.068786292,
+            "writer_stats": {
+              "closed": true,
+              "dropped": 0,
+              "failed": 0,
+              "forked": false,
+              "in_flight": false,
+              "max_bytes": 1048576,
+              "max_items": 256,
+              "peak_pending_bytes": 177870,
+              "peak_pending_items": 165,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "rejected": 0,
+              "saved": 200,
+              "submitted": 200,
+              "worker_alive": false
+            }
+          },
+          {
+            "artifact_bytes": 215600,
+            "artifact_count": 200,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 200,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 200,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 200,
+              "submitted": 200
+            },
+            "drain_seconds": 0.341689542,
+            "including_drain_ops_per_second": 488.2786667483622,
+            "including_drain_process_cpu_seconds": 0.397662,
+            "latency_us": {
+              "p50": 1291.417,
+              "p95": 1586.2496999999998,
+              "p99": 2149.9916599999997
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.073339,
+            "shutdown": {
+              "drained": true,
+              "dropped": 0,
+              "forked": false,
+              "in_flight": false,
+              "pending": 0,
+              "worker_alive": false
+            },
+            "throughput_ops_per_second": 2944.960528325919,
+            "wall_seconds": 0.067912625,
+            "writer_stats": {
+              "closed": true,
+              "dropped": 0,
+              "failed": 0,
+              "forked": false,
+              "in_flight": false,
+              "max_bytes": 1048576,
+              "max_items": 256,
+              "peak_pending_bytes": 180026,
+              "peak_pending_items": 167,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "rejected": 0,
+              "saved": 200,
+              "submitted": 200,
+              "worker_alive": false
+            }
+          }
+        ]
+      },
+      "baseline": {
+        "completion_counts": {
+          "comparison_caveat": null,
+          "measured_operations": 600,
+          "persisted_artifacts": 0,
+          "storage_failures": 0,
+          "writer_rejected": 0
+        },
+        "delta_from_baseline": {
+          "p50_latency_us": {
+            "absolute": 0.0,
+            "relative_percent": 0.0
+          },
+          "throughput_ops_per_second": {
+            "absolute": 0.0,
+            "relative_percent": 0.0
+          }
+        },
+        "median": {
+          "drain_seconds": 0.0,
+          "including_drain_ops_per_second": 3382.7949829361673,
+          "including_drain_process_cpu_seconds": 0.004059,
+          "latency_us": {
+            "p50": 1171.0625,
+            "p95": 1241.3121499999997,
+            "p99": 1319.1869899999995
+          },
+          "process_cpu_seconds": 0.004053,
+          "throughput_ops_per_second": 3382.7949829361673,
+          "wall_seconds": 0.059122708
+        },
+        "memory_pass": {
+          "iterations": 30,
+          "tracemalloc_peak_bytes": 12060,
+          "writer_stats": null
+        },
+        "trials": [
+          {
+            "artifact_bytes": 0,
+            "artifact_count": 0,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 0,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 0,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 0,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 3382.7949829361673,
+            "including_drain_process_cpu_seconds": 0.004059,
+            "latency_us": {
+              "p50": 1171.0625,
+              "p95": 1241.3121499999997,
+              "p99": 1319.1869899999995
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.004053,
+            "shutdown": null,
+            "throughput_ops_per_second": 3382.7949829361673,
+            "wall_seconds": 0.059122708,
+            "writer_stats": null
+          },
+          {
+            "artifact_bytes": 0,
+            "artifact_count": 0,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 0,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 0,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 0,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 3401.9752718922423,
+            "including_drain_process_cpu_seconds": 0.003762,
+            "latency_us": {
+              "p50": 1170.875,
+              "p95": 1200.82295,
+              "p99": 1242.59592
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.003758,
+            "shutdown": null,
+            "throughput_ops_per_second": 3401.9752718922423,
+            "wall_seconds": 0.058789375,
+            "writer_stats": null
+          },
+          {
+            "artifact_bytes": 0,
+            "artifact_count": 0,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 0,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 0,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 0,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 3345.444287714097,
+            "including_drain_process_cpu_seconds": 0.004105,
+            "latency_us": {
+              "p50": 1172.9585,
+              "p95": 1273.7854,
+              "p99": 1724.8203299999998
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.004099,
+            "shutdown": null,
+            "throughput_ops_per_second": 3345.444287714097,
+            "wall_seconds": 0.059782792,
+            "writer_stats": null
+          }
+        ]
+      },
+      "disabled": {
+        "completion_counts": {
+          "comparison_caveat": null,
+          "measured_operations": 600,
+          "persisted_artifacts": 0,
+          "storage_failures": 0,
+          "writer_rejected": 0
+        },
+        "delta_from_baseline": {
+          "p50_latency_us": {
+            "absolute": 15.5625,
+            "relative_percent": 1.328921385493942
+          },
+          "throughput_ops_per_second": {
+            "absolute": -84.40174902256331,
+            "relative_percent": -2.4950299810751475
+          }
+        },
+        "median": {
+          "drain_seconds": 0.0,
+          "including_drain_ops_per_second": 3298.393233913604,
+          "including_drain_process_cpu_seconds": 0.004829,
+          "latency_us": {
+            "p50": 1186.625,
+            "p95": 1317.7976,
+            "p99": 1577.30117
+          },
+          "process_cpu_seconds": 0.004825,
+          "throughput_ops_per_second": 3298.393233913604,
+          "wall_seconds": 0.060635584
+        },
+        "memory_pass": {
+          "iterations": 30,
+          "tracemalloc_peak_bytes": 13480,
+          "writer_stats": null
+        },
+        "trials": [
+          {
+            "artifact_bytes": 0,
+            "artifact_count": 0,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 0,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": false,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 0,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 0,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 3298.393233913604,
+            "including_drain_process_cpu_seconds": 0.004829,
+            "latency_us": {
+              "p50": 1186.625,
+              "p95": 1317.7976,
+              "p99": 1577.30117
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.004825,
+            "shutdown": null,
+            "throughput_ops_per_second": 3298.393233913604,
+            "wall_seconds": 0.060635584,
+            "writer_stats": null
+          },
+          {
+            "artifact_bytes": 0,
+            "artifact_count": 0,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 0,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": false,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 0,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 0,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 3324.1457822083175,
+            "including_drain_process_cpu_seconds": 0.004604,
+            "latency_us": {
+              "p50": 1186.771,
+              "p95": 1294.7148999999995,
+              "p99": 1506.57208
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.004598,
+            "shutdown": null,
+            "throughput_ops_per_second": 3324.1457822083175,
+            "wall_seconds": 0.060165833,
+            "writer_stats": null
+          },
+          {
+            "artifact_bytes": 0,
+            "artifact_count": 0,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 0,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": false,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 0,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 0,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 3271.245529352297,
+            "including_drain_process_cpu_seconds": 0.005168,
+            "latency_us": {
+              "p50": 1185.021,
+              "p95": 1426.48365,
+              "p99": 1618.2798199999997
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.005164,
+            "shutdown": null,
+            "throughput_ops_per_second": 3271.245529352297,
+            "wall_seconds": 0.061138792,
+            "writer_stats": null
+          }
+        ]
+      },
+      "discarded": {
+        "completion_counts": {
+          "comparison_caveat": null,
+          "measured_operations": 600,
+          "persisted_artifacts": 0,
+          "storage_failures": 0,
+          "writer_rejected": 0
+        },
+        "delta_from_baseline": {
+          "p50_latency_us": {
+            "absolute": 41.3744999999999,
+            "relative_percent": 3.5330735976943917
+          },
+          "throughput_ops_per_second": {
+            "absolute": -219.8186582725889,
+            "relative_percent": -6.498137173001028
+          }
+        },
+        "median": {
+          "drain_seconds": 0.0,
+          "including_drain_ops_per_second": 3162.9763246635785,
+          "including_drain_process_cpu_seconds": 0.021777,
+          "latency_us": {
+            "p50": 1212.437,
+            "p95": 1492.6878,
+            "p99": 1606.3257399999989
+          },
+          "process_cpu_seconds": 0.021773,
+          "throughput_ops_per_second": 3162.9763246635785,
+          "wall_seconds": 0.063231583
+        },
+        "memory_pass": {
+          "iterations": 30,
+          "tracemalloc_peak_bytes": 85530,
+          "writer_stats": null
+        },
+        "trials": [
+          {
+            "artifact_bytes": 0,
+            "artifact_count": 0,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 200,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 0,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 0,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 3126.6630916400877,
+            "including_drain_process_cpu_seconds": 0.02458,
+            "latency_us": {
+              "p50": 1212.437,
+              "p95": 1612.5749999999998,
+              "p99": 1916.2842499999988
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.024577,
+            "shutdown": null,
+            "throughput_ops_per_second": 3126.6630916400877,
+            "wall_seconds": 0.063965958,
+            "writer_stats": null
+          },
+          {
+            "artifact_bytes": 0,
+            "artifact_count": 0,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 200,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 0,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 0,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 3162.9763246635785,
+            "including_drain_process_cpu_seconds": 0.021777,
+            "latency_us": {
+              "p50": 1228.7495,
+              "p95": 1492.6878,
+              "p99": 1606.3257399999989
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.021773,
+            "shutdown": null,
+            "throughput_ops_per_second": 3162.9763246635785,
+            "wall_seconds": 0.063231583,
+            "writer_stats": null
+          },
+          {
+            "artifact_bytes": 0,
+            "artifact_count": 0,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 200,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 0,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 0,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 3247.7396422234797,
+            "including_drain_process_cpu_seconds": 0.020912,
+            "latency_us": {
+              "p50": 1195.208,
+              "p95": 1367.2002999999997,
+              "p99": 1488.1407499999998
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.020909,
+            "shutdown": null,
+            "throughput_ops_per_second": 3247.7396422234797,
+            "wall_seconds": 0.061581291,
+            "writer_stats": null
+          }
+        ]
+      },
+      "synchronous": {
+        "completion_counts": {
+          "comparison_caveat": null,
+          "measured_operations": 600,
+          "persisted_artifacts": 600,
+          "storage_failures": 0,
+          "writer_rejected": 0
+        },
+        "delta_from_baseline": {
+          "p50_latency_us": {
+            "absolute": 8176.0005,
+            "relative_percent": 698.1694401451673
+          },
+          "throughput_ops_per_second": {
+            "absolute": -2993.2553552227346,
+            "relative_percent": -88.484681168135
+          }
+        },
+        "median": {
+          "drain_seconds": 0.0,
+          "including_drain_ops_per_second": 389.539627713433,
+          "including_drain_process_cpu_seconds": 0.424316,
+          "latency_us": {
+            "p50": 9347.063,
+            "p95": 17326.096149999994,
+            "p99": 27368.72332999994
+          },
+          "process_cpu_seconds": 0.424312,
+          "throughput_ops_per_second": 389.539627713433,
+          "wall_seconds": 0.513426583
+        },
+        "memory_pass": {
+          "iterations": 30,
+          "tracemalloc_peak_bytes": 149286,
+          "writer_stats": null
+        },
+        "trials": [
+          {
+            "artifact_bytes": 215600,
+            "artifact_count": 200,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 200,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 200,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 200,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 379.9755420002954,
+            "including_drain_process_cpu_seconds": 0.424316,
+            "latency_us": {
+              "p50": 8020.9165,
+              "p95": 23900.347899999993,
+              "p99": 29509.964749999996
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.424312,
+            "shutdown": null,
+            "throughput_ops_per_second": 379.9755420002954,
+            "wall_seconds": 0.526349667,
+            "writer_stats": null
+          },
+          {
+            "artifact_bytes": 215600,
+            "artifact_count": 200,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 200,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 200,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 200,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 422.73277185614296,
+            "including_drain_process_cpu_seconds": 0.414647,
+            "latency_us": {
+              "p50": 9347.063,
+              "p95": 13860.414299999995,
+              "p99": 15393.095589999999
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.414643,
+            "shutdown": null,
+            "throughput_ops_per_second": 422.73277185614296,
+            "wall_seconds": 0.473112125,
+            "writer_stats": null
+          },
+          {
+            "artifact_bytes": 215600,
+            "artifact_count": 200,
+            "capture_stats": {
+              "active_captures": 0,
+              "admission_rejected": 0,
+              "admitted": 200,
+              "closed": false,
+              "closed_rejected": 0,
+              "dropped": 0,
+              "enabled": true,
+              "enqueue_rejected": 0,
+              "incomplete": 0,
+              "pending_bytes": 0,
+              "pending_items": 0,
+              "persisted": 200,
+              "persistence_failed": 0,
+              "reserved_bytes": 0,
+              "retained": 200,
+              "submitted": 0
+            },
+            "drain_seconds": 0.0,
+            "including_drain_ops_per_second": 389.539627713433,
+            "including_drain_process_cpu_seconds": 0.42519,
+            "latency_us": {
+              "p50": 9991.229,
+              "p95": 17326.096149999994,
+              "p99": 27368.72332999994
+            },
+            "operations": 200,
+            "process_cpu_seconds": 0.425185,
+            "shutdown": null,
+            "throughput_ops_per_second": 389.539627713433,
+            "wall_seconds": 0.513426583,
+            "writer_stats": null
+          }
+        ]
+      }
+    }
+  },
+  "metadata": {
+    "clock": "perf_counter_ns",
+    "cpu_clock": "process_time_ns",
+    "implementation": "CPython",
+    "measurement_notes": "Local synthetic run; no concurrent tests or builds launched by this session. Machine not isolated from background system activity. Results do not establish production performance.",
+    "platform": "macOS-26.6-arm64-arm-64bit",
+    "python": "3.12.13 (main, Mar  3 2026, 12:39:30) [Clang 21.0.0 (clang-2100.0.123.102)]",
+    "rss_high_water": {
+      "bytes": 35389440,
+      "scope": "process lifetime high-water mark; shared across all modes",
+      "source_unit": "bytes"
+    },
+    "settings": {
+      "concurrency": 4,
+      "drain_timeout": 30,
+      "io_delay": 0.001,
+      "iterations": 200,
+      "memory_iterations": 30,
+      "modes": [
+        "background",
+        "synchronous",
+        "discarded",
+        "disabled",
+        "baseline",
+        "storm"
+      ],
+      "payload_bytes": 256,
+      "queue_bytes": 1048576,
+      "queue_items": 256,
+      "repeats": 3,
+      "warmup": 20,
+      "workloads": [
+        "cpu",
+        "io"
+      ]
+    },
+    "source_commit": "fc5ebf54dd4391e7c4f4e313d037c4485218ad62",
+    "source_tree_clean": true,
+    "versions": {
+      "fastapi": "0.142.2",
+      "httpx": "0.28.1",
+      "jaysoft-rewind": "0.1.0a2",
+      "starlette": "1.7.0"
+    }
+  },
+  "schema_version": 1,
+  "storm": {
+    "after_drain": {
+      "closed": true,
+      "dropped": 0,
+      "failed": 0,
+      "forked": false,
+      "in_flight": false,
+      "max_bytes": 1048576,
+      "max_items": 256,
+      "peak_pending_bytes": 344832,
+      "peak_pending_items": 256,
+      "pending_bytes": 0,
+      "pending_items": 0,
+      "rejected": 2,
+      "saved": 256,
+      "submitted": 256,
+      "worker_alive": false
+    },
+    "artifact_bytes": 344832,
+    "artifact_count": 256,
+    "attempts": 258,
+    "before_release": {
+      "closed": false,
+      "dropped": 0,
+      "failed": 0,
+      "forked": false,
+      "in_flight": true,
+      "max_bytes": 1048576,
+      "max_items": 256,
+      "peak_pending_bytes": 344832,
+      "peak_pending_items": 256,
+      "pending_bytes": 344832,
+      "pending_items": 256,
+      "rejected": 2,
+      "saved": 0,
+      "submitted": 256,
+      "worker_alive": true
+    },
+    "drain_seconds": 0.556268708,
+    "in_flight_exercised": true,
+    "invariants": {
+      "accepted_bytes_are_reserved": true,
+      "accepted_writes_saved": true,
+      "admissions_accounted": true,
+      "capacity_rejection_observed": true,
+      "drained_items": true,
+      "no_store_failures": true,
+      "peak_bytes_within_budget": true,
+      "peak_items_within_budget": true,
+      "pending_bytes_within_budget": true,
+      "pending_items_within_budget": true,
+      "saved_artifacts_accounted": true,
+      "worker_stopped": true
+    },
+    "latency_us_after_first": {
+      "p50": 646.709,
+      "p95": 852.9083999999999,
+      "p99": 983.438
+    },
+    "passed": true,
+    "shutdown": {
+      "drained": true,
+      "dropped": 0,
+      "forked": false,
+      "in_flight": false,
+      "pending": 0,
+      "worker_alive": false
+    },
+    "wall_including_gate_and_drain_seconds": 0.600691625
+  }
+}

@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.1.0a2 — Unreleased
+
+### Added
+
+- Bounded background snapshot persistence with item/byte budgets covering queued and in-flight work, isolated worker context, storage-error recovery, and fork rejection.
+- Fixed-key worker statistics and high-water gauges, finite flush/shutdown, explicit dropped-item and still-running-write reports.
+- Optional `Rewind(writer=...)`, thread-safe admission controls, safe metrics snapshots, synchronous/asynchronous flush and close, and eventual-persistence accounting.
+- Operational and persistence guides plus a runnable background capture/replay example.
+- Repeatable CPU/simulated-I/O benchmarks, separate allocation measurements, end-to-end drain/CPU accounting, and controlled item/byte saturation invariants.
+- Distribution-content and isolated wheel-import checks, benchmark smoke CI, and background capture in network-disabled Docker verification.
+- PyPI/TestPyPI release plan, matching version/tag validation, and a manual trusted-publishing workflow that defaults to a non-publishing rehearsal.
+
+### Changed
+
+- Capture finalization releases retained payload references even when persistence is rejected or fails. Recorder initialization failure releases its admission reservation and preserves application execution.
+- ASGI finalization clears duplicate scope/header/body references, and late retained callbacks pass through without refilling sealed capture buffers.
+- Async shutdown remains scheduled if its caller is cancelled before the default executor can dispatch it.
+- `Rewind.metrics` remains a readable `Counter` view but now returns a detached copy; use `stats()` for lifecycle and memory gauges.
+- Development uses complete feature branches with coordinated interfaces and README updates at feature milestones.
+
+### Limits
+
+- Background persistence is best effort: process exit can lose queued artifacts, and a filesystem call may outlive the shutdown deadline. Shutdown does not wait for application requests.
+- Serialization remains on the capture path; queue byte accounting is not a process-RSS guarantee. Production deployment and data-policy approval remain separate gates.
+
 ## 0.1.0a1 — Unreleased
 
 Initial local alpha for Python 3.11+, with CI targeting 3.11 and 3.12. Package publication is a separate release step.
