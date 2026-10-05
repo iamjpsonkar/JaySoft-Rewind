@@ -166,6 +166,10 @@ Compatibility covers declared source files, Python major/minor, and installed HT
 
 ## Development
 
+The local alpha baseline at `8e143cc` passed 118 tests, lint, type checks, and distribution builds. [Its CI run](https://github.com/iamjpsonkar/JaySoft-Rewind/actions/runs/37316532798) also verified Python 3.11/3.12 and all three examples in Docker with external networking disabled. These checks validate the documented local scope; they do not establish production readiness.
+
+Development proceeds in complete feature batches: implementation, meaningful tests, operational documentation, and runnable examples belong together on one branch and pull request. Parallel contributors use isolated worktrees and agree on interfaces before integration. README updates accompany each feature milestone; support claims follow observed checks.
+
 ```sh
 ruff check src tests examples scripts
 mypy src/rewind

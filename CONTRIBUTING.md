@@ -21,13 +21,15 @@ Docker verification needs a daemon and network access during image build. Use `.
 
 ## Change workflow
 
-1. Create a focused feature/fix branch and keep changes small enough to review.
-2. Commit coherent increments using `feat(replay): ...`, `fix(storage): ...`, `test(asgi): ...`, or `docs: ...`.
+1. Assign a complete, medium-sized capability to one feature/fix branch. Include its implementation, regression tests, documentation, and runnable example where useful. Keep independent capabilities in separate PRs; avoid separate PRs for each helper, test, or paragraph.
+2. Commit and push coherent, validated increments within that branch using `feat(replay): ...`, `fix(storage): ...`, `test(asgi): ...`, or `docs: ...`. A feature can have several meaningful progress commits before its PR is ready.
 3. Use your own real Git author identity and preserve authorship when incorporating another contributor's commits. Never fabricate contributors or backdate history.
 4. Add meaningful regression/conformance tests using synthetic data, run relevant checks, and push the branch.
 5. Open a PR describing the problem, resulting behavior, validation, and limits. Merge after required checks pass and review findings are resolved; preserve traceable PR history.
 
 Parallel contributors should use separate worktrees, agree on file/module ownership, and communicate interface changes. Integrate one branch at a time and rerun affected checks. Keep optional integrations out of mandatory core dependencies.
+
+Keep README.md current at feature milestones, including runnable commands, supported behavior, and important limits. Coordinate shared README edits through the integration owner to avoid conflicting parallel changes. Report measured validation separately from future plans.
 
 ## Review contract
 

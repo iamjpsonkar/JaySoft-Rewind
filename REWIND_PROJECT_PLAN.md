@@ -2,7 +2,7 @@
 
 > Capture a failing backend request. Replay its recorded dependencies locally. Turn the reproduction into a test.
 
-**Status:** local alpha implementation (`0.1.0a1`), undergoing integration and release validation.
+**Status:** local alpha (`0.1.0a1`) validated at `8e143cc`; the next development batch targets bounded background persistence, operational controls, and repeatable performance evidence.
 **Revision:** 2026-10-05, implementation status added to the architecture and delivery plan.
 **Repository baseline:** Python packaging, bounded snapshots, codecs, policies, local storage, async capture, HTTPX/ASGI adapters, strict replay, CLI, examples, tests, and CI configuration now exist.
 **Decision convention:** “must” defines the target contract. Design sections below include future requirements; their presence does not imply completion. The implementation status below and README describe the actual alpha scope. Runtime validation and CI outcomes must be reported separately from configuration/documentation completion.
@@ -465,7 +465,7 @@ Use contract tests for adapters, golden fixtures for format compatibility, fresh
 
 ## 20. Milestones with exit gates
 
-R0 documentation/identity is established. R1–R3 and R5 have implementation and tests; final combined CI/container evidence is required before marking all exit gates complete. R4 and R6–R8 remain future work. R5 was pulled forward because deterministic template generation can use the implemented replay contract without production persistence.
+R0 documentation/identity is established. R1–R3 and R5 have implementation and tests; the integrated local alpha passed 118 tests, Python 3.11/3.12 CI, lint/type/build checks, and three network-disabled Docker replay examples at `8e143cc`. This is evidence for the documented local scope, not completion of every broader acceptance-matrix requirement. R4's persistence, operations, and validation tooling are the next feature batch; its deployment/data-policy gates and R6–R8 remain future work. R5 was pulled forward because deterministic template generation can use the implemented replay contract without production persistence.
 
 | Milestone | Deliverable | Exit gate | Depends on |
 |---|---|---|---|
