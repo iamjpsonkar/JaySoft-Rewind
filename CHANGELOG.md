@@ -10,6 +10,8 @@
   and explicit retention pruning. Keep core imports free of mandatory dependencies.
 - Add fixed-arrival synthetic staging budgets, independent resource measurements,
   queue/drain/rollback evidence and real-service CI/release gates.
+- Add server-side capture-all/conditional request recording and same-handler offline
+  replay tutorial, optional handler timeline, and a standalone interactive HTML explorer.
 - Add a tested beginner guide, generic existing-backend response example and
   explicit API/schema compatibility policy. Protect main with PR and CI requirements.
 - Fix expired replay database cleanup contaminating later captures; preserve native

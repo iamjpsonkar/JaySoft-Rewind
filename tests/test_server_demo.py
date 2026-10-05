@@ -26,6 +26,7 @@ async def request(target, path="/quote"):
 
 def assert_failure_snapshot(snapshot, limits):
     assert snapshot.complete, snapshot.data["capture"]
+    assert snapshot.data["diagnostics"]["events"]
     incoming = decode(snapshot.data["input"]["value"], limits)
     assert incoming["scope"]["method"] == "POST"
     assert incoming["scope"]["path"] == "/quote"

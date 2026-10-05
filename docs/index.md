@@ -1,15 +1,17 @@
 # Rewind documentation
 
-**Start here: [Rewind for backend developers](beginners-guide.md)** — no prior Rewind knowledge required.
+**Start here: [How to use Rewind in your server](server-guide.md)** — no prior Rewind knowledge required.
 
 [Project home](../README.md) · [PyPI package](https://pypi.org/project/jaysoft-rewind/) · [Changelog](../CHANGELOG.md)
 
-Start with a synthetic failure, then connect the dependencies your application uses. These guides describe `0.1.0a3` and identify features introduced after the earlier `0.1.0a2` alpha.
+Start with a synthetic failure, then connect the dependencies your application uses. These guides describe `0.2.0a1` and distinguish supported boundaries from earlier alpha releases.
 
 ## Start here
 
 | Your goal | Read this |
 | --- | --- |
+| Plug into a server, capture a request and replay its handler | [How to use](server-guide.md) |
+| Explore a snapshot in your browser | [Snapshot explorer](explorer.md) |
 | Get the right version and extras | [Installation](installation.md) |
 | Capture a failure and generate your first test | [Step-by-step quick start](getting-started.md) |
 | Look up a command or replay result | [CLI reference](cli.md) |

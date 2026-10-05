@@ -2,6 +2,11 @@
 
 [Documentation home](index.md)
 
+**For the main server workflow, start with [How to use Rewind in your server](server-guide.md).**
+That walkthrough instruments a running server, records an ordinary request,
+explores its snapshot, and replays the same handler offline. The exercises below
+are optional smaller demonstrations of callable and response-value boundaries.
+
 You need basic Python, a terminal, and an understanding of HTTP requests. You do
 not need to know Rewind or change your existing backend to complete the first demo.
 

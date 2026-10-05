@@ -60,7 +60,20 @@ or instrument your application. The
 [support matrix](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/support-matrix.md)
 provides the tested contracts and exclusions for each integration.
 
-## Try a failure and its replay
+## Server workflow
+
+Configure Rewind in the server process, wrap its supported dependencies, and send
+an ordinary request. Keep every admitted request with `Retention(always=True)`,
+or use a status/exception/duration condition. Explore a retained artifact with
+`rewind explore snapshot.rewind.json --output report.html`, then replay the same
+handler with `rewind replay snapshot.rewind.json --app app:replay_target`.
+
+The server tutorial demonstrates a real HTTP 500 caused by an incomplete provider
+response, followed by reproduction after stopping the server. The HTML explorer
+works locally and contains the recorded request, dependency calls, handler result
+or exception, and optional function timeline. It does not upload artifacts.
+
+## Optional: try a small callable failure
 
 Save this as `rewind_demo.py` and run
 `python rewind_demo.py`. It uses only synthetic fixture data and the core package.
@@ -153,5 +166,5 @@ and rollback. The bundled profile uses synthetic data and stated example budgets
 See the [compatibility policy](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/compatibility-policy.md)
 for alpha API, schema and release guarantees.
 
-New to Rewind? Read the [beginner’s walkthrough](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/beginners-guide.md)
+New to Rewind? Read the [server walkthrough](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/server-guide.md)
 for a complete first recording, offline replay, and existing-backend example.

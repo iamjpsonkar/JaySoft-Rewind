@@ -49,7 +49,7 @@ class Rewind:
         writer: BackgroundWriter | None = None,
         policy: CapturePolicy | None = None,
         limits: Limits | None = None,
-        retain: Retention | None = None,
+        retain: Retention | Condition | None = None,
         enabled: bool = True,
         trace_config: TraceConfig | None = None,
     ) -> None:

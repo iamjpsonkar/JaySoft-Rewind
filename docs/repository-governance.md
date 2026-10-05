@@ -3,7 +3,8 @@
 [Documentation home](index.md)
 
 `main` requires a pull request, up-to-date source branch and successful
-`python (3.11)`, `python (3.12)`, `offline-replay`, and `redis-conformance` checks.
+`python (3.11)`, `python (3.12)`, `offline-replay`, `redis-conformance`, and
+`service-conformance / conformance` checks.
 The rule applies to administrators. Force pushes and deleting main are disabled;
 review conversations must be resolved before merging.
 

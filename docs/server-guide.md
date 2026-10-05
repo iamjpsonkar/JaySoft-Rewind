@@ -1,4 +1,6 @@
-# Record server requests and replay the same handler
+# How to use Rewind in your server
+
+[Documentation home](index.md) · [Snapshot explorer](explorer.md)
 
 Add Rewind to the server, send an ordinary HTTP request, and keep its recording.
 Later, Rewind runs the **same server handler** in a fresh process with the recorded
@@ -16,7 +18,9 @@ Run these commands from a checkout of this repository; the `examples` directory
 is repository content, not an application module installed by the wheel:
 
 ```bash
-python -m venv .venv
+git clone https://github.com/iamjpsonkar/JaySoft-Rewind.git
+cd JaySoft-Rewind
+python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e '.[fastapi]'
 python -m examples.server_demo --store .rewind/server-demo --port 8000
@@ -78,6 +82,7 @@ dependency calls, and handler outcome. The failure recording contains:
 - One `http.request` interaction for dependency `catalog`, including the outbound
   request and the provider's malformed HTTP 200 response.
 - The final HTTP 500 response and the handler's `KeyError('unit_price')`.
+- A bounded `quote.handler` timeline showing handler entry and exception.
 
 The short inspector can label the outcome `return` because the outer ASGI result
 is an HTTP response. The nested response outcome also preserves the exception;
@@ -173,7 +178,9 @@ Finally, expose a local factory returning
 constructs the same routes and dependency wrappers, without starting a server,
 opening live connections, or requiring production credentials during import.
 The complete [server example](../examples/server_demo.py) shows this arrangement
-and a replay-only provider that forbids live access.
+and a replay-only provider that forbids live access. It enables optional
+`TraceConfig(enabled=True)` and decorates the handler with `@trace` for a
+bounded function timeline. This does not record every local variable or line.
 
 Buffered, single-task HTTP requests are the supported starting point. WebSockets,
 streaming responses, unread request bodies, and detached dependency work can

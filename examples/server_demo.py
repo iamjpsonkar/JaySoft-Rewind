@@ -6,7 +6,16 @@ from pathlib import Path
 import httpx
 from fastapi import FastAPI, Request
 
-from rewind import CapturePolicy, Condition, LocalStore, ReplayTarget, Retention, Rewind
+from rewind import (
+    CapturePolicy,
+    Condition,
+    LocalStore,
+    ReplayTarget,
+    Retention,
+    Rewind,
+    TraceConfig,
+    trace,
+)
 
 
 def malformed_provider(request: httpx.Request) -> httpx.Response:
@@ -29,6 +38,7 @@ def make_target(
         code_paths=[__file__],
         store=store,
         policy=CapturePolicy.synthetic(),
+        trace_config=TraceConfig(enabled=True),
         retain=Condition.parse(when) if when is not None else Retention(always=True),
     )
     api = FastAPI()
@@ -41,6 +51,7 @@ def make_target(
         return {"status": "ok"}
 
     @api.post("/quote")
+    @trace(name="quote.handler")
     async def quote(request: Request):
         order = await request.json()
         async with httpx.AsyncClient(
