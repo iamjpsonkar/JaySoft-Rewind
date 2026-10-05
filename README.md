@@ -1,6 +1,6 @@
 # Rewind
 
-**New to Rewind? [How to use Rewind in your server](docs/server-guide.md)** — plug in, send a request, explore its snapshot, and replay the same handler.
+**Start here: [Decorate a function or class](docs/decorator-guide.md)** — choose a condition, save matching calls, and replay them.
 
 **Capture a Python failure. Replay it locally. Turn it into a test.**
 
@@ -19,87 +19,80 @@ Capture a failing execution → Inspect the recording → Replay locally → Gen
 
 ## How to use
 
-1. **Plug Rewind into your server.** Wrap the FastAPI/ASGI app and configure the
-   supported dependency adapters used by its handler.
-2. **Choose retention.** Use `Retention(always=True)` to record every admitted
-   request, or `Condition.parse("exception or status >= 500")` to retain failures.
-3. **Hit your normal endpoint.** The client sends an ordinary HTTP request.
-4. **Explore the artifact.** Run `rewind explore snapshot.rewind.json --output report.html`.
-5. **Replay the handler.** Run `rewind replay snapshot.rewind.json --app app:replay_target`.
+```python
+from rewind import capture
 
-The [server walkthrough](docs/server-guide.md) includes the complete runnable
-application, curl commands, conditional capture, browser exploration and offline
-reproduction. No condition in its setup means record every admitted request.
-Replay checks the recorded request, supported dependency observations and outcome;
-unsupported or incomplete capture is reported explicitly.
+def save_when(call):
+    if call.error is not None:
+        return True
+    return call.result.get("success") is False
+
+@capture(condition=save_when)
+def process_order(order):
+    return {"success": order["quantity"] > 0}
+```
+
+The decorated function keeps its normal return value and exceptions. After each
+call, the condition decides whether to save its arguments and outcome. Apply the
+same decorator to a class to capture its public methods and supported instance
+state. Use `@capture` without a condition to keep every admitted call.
+
+Replay accepts the decorated function or method directly; no replay factory or
+server middleware is needed for this workflow. External dependency observations
+still require supported adapters. See the [decorator guide](docs/decorator-guide.md)
+for classes, conditions, privacy, and replay limits. Whole-request middleware is
+also available in the [server guide](docs/server-guide.md).
 
 ## Choose your version
 
 | I want to… | Start here |
 | --- | --- |
-| Install this alpha | `python -m pip install 'jaysoft-rewind[httpx]==0.2.0a1'` |
+| Install this alpha | `python -m pip install 'jaysoft-rewind==0.2.0a2'` |
 | Run the repository examples | Use the source checkout below |
 | Add Rewind to an application | [Installation and optional integrations](docs/installation.md) |
 | Browse the package overview | [PyPI guide](docs/pypi.md) · [Published package](https://pypi.org/project/jaysoft-rewind/) |
 
-**Release: `0.2.0a1`.** [Package releases](https://pypi.org/project/jaysoft-rewind/#history) are available on PyPI. The distribution is `jaysoft-rewind`; the Python import and command are both `rewind`. Use Python 3.11 or 3.12. This alpha is intended for synthetic fixtures and controlled development environments.
+**Release: `0.2.0a2`.** [Package releases](https://pypi.org/project/jaysoft-rewind/#history) are available on PyPI. The distribution is `jaysoft-rewind`; the Python import and command are both `rewind`. Use Python 3.11 or 3.12. This alpha is intended for synthetic fixtures and controlled development environments.
 
 ## Quick start
 
-Run a small instrumented server, send a normal request, then replay its handler.
-Use Python 3.11 or 3.12 and a macOS/Linux shell.
-
-**1. Install and start the demo server.**
+Use Python 3.11 or 3.12. Install the package:
 
 ```sh
-git clone https://github.com/iamjpsonkar/JaySoft-Rewind.git
-cd JaySoft-Rewind
-python3.12 -m venv .venv
-. .venv/bin/activate
-python -m pip install -e '.[fastapi]'
-python -m examples.server_demo --store .rewind/server-demo --port 8000
+python -m pip install 'jaysoft-rewind==0.2.0a2'
 ```
 
-**2. Send a request from a second terminal.**
+Save this as `payment_logic.py`:
 
-```sh
-curl -i http://127.0.0.1:8000/quote \
-  -H 'Content-Type: application/json' \
-  -d '{"sku":"demo-widget","quantity":2}'
+```python
+from rewind import capture
+
+@capture(condition=lambda call: call.error is not None)
+def total(order):
+    return order["quantity"] * order["unit_price"]
 ```
 
-The handler returns HTTP 500 because its provider response lacks `unit_price`.
-Rewind retains the request, provider observation, exception and optional handler
-timeline. No `--when` in this demo means every admitted request is retained.
-
-**3. Explore the snapshot.** In the project directory, activate the same environment:
+Trigger a failure. The `KeyError` remains visible to the caller, and its snapshot
+is saved to `.rewind/snapshots`:
 
 ```sh
-. .venv/bin/activate
-rewind list --store .rewind/server-demo
-artifact=.rewind/server-demo/PASTE_SNAPSHOT_ID.rewind.json
+python -c 'from payment_logic import total; total({"quantity": 2})'
+rewind list --store .rewind/snapshots
+```
+
+Replace `PASTE_SNAPSHOT_ID` with the listed ID, then inspect and replay:
+
+```sh
+artifact=.rewind/snapshots/PASTE_SNAPSHOT_ID.rewind.json
 rewind explore "$artifact" --output report.html
+rewind replay "$artifact" --app payment_logic:total
 ```
 
-Replace `PASTE_SNAPSHOT_ID` with the listed ID. Open `report.html` in your browser.
+Open `report.html` in your browser. Replay runs `total` again with the recorded
+argument and confirms the same failure: `"status": "reproduced"`. This example
+has no external dependencies, so its interaction count is zero.
 
-**4. Stop the server, then replay the same handler.**
-
-```sh
-rewind replay "$artifact" --app examples.server_demo:replay_target
-```
-
-Expected report: `"status": "reproduced"`, `"consumed": 1`, `"total": 1`.
-The handler receives the recorded request and provider response, then raises the
-same error. The replay factory forbids live provider calls.
-
-**5. Choose a condition when needed.**
-
-```sh
-python -m examples.server_demo --when 'exception or status >= 500'
-```
-
-[Full beginner server walkthrough →](docs/server-guide.md) ·
+[Full decorator walkthrough →](docs/decorator-guide.md) ·
 [Generate a test or compare a fix →](docs/comparison.md)
 
 ## Choose an example
@@ -221,7 +214,7 @@ Capture is bounded: defaults include 64 KiB per body, 1 MiB per artifact and 1,0
 
 [Documentation home](docs/index.md) brings together walkthroughs, adapter guides, the [snapshot specification](docs/snapshot-format.md), [release guide](docs/releases.md) and [implementation ledger](docs/implementation-roadmap.md).
 
-Validation for `0.2.0a1`: 626 default-suite tests passed, with 28 opt-in service
+Validation for `0.2.0a2`: 655 default-suite tests passed, with 28 opt-in service
 cases skipped in that run. Separate real-service checks cover PostgreSQL, MySQL,
 Redis, Kafka and Celery; nine Docker examples replay with networking disabled.
 Ruff, mypy and Python 3.11/3.12 CI pass. The

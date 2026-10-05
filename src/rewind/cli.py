@@ -57,7 +57,10 @@ def parser() -> argparse.ArgumentParser:
     explore.add_argument("-o", "--output", type=Path, required=True)
     replay = commands.add_parser("replay", help="replay in a fresh local process")
     replay.add_argument("artifact", type=Path)
-    replay.add_argument("--app", required=True, help="local module:function returning ReplayTarget")
+    replay.add_argument(
+        "--app", required=True,
+        help="local decorated module:function or module:Class.method, or ReplayTarget factory",
+    )
     replay.add_argument("--timeout", type=float, default=30)
     replay.add_argument(
         "--isolation", choices=["python-guard", "adapter-only"], default="python-guard"

@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.0a2 — 2026-10-05
+
+- Add importable `@capture` for synchronous/asynchronous functions, individual
+  methods, and a class's declared public methods. Conditions receive arguments,
+  result, error and elapsed duration; no condition retains every admitted call.
+- Capture named inputs before execution, preserving sensitive-parameter redaction
+  even for positional calls. Capture plain instance state and restore a separate
+  replay instance without running its constructor.
+- Replay decorated functions and methods directly through `--app module:function`
+  or `--app module:Class.method`, without a developer-written replay factory.
+- Keep application results and exceptions unchanged when predicates or storage
+  fail. Expose condition/capture counters and document unsupported class state.
+- Make the decorator walkthrough the primary README and package introduction.
+
 ## 0.2.0a1 — 2026-10-05
 
 - Add synchronous PostgreSQL/psycopg and MySQL/PyMySQL DBAPI and SQLAlchemy adapters,

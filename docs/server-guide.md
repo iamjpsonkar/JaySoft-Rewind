@@ -2,6 +2,10 @@
 
 [Documentation home](index.md) · [Snapshot explorer](explorer.md)
 
+To capture a function or class using a decorator and your own condition block,
+start with the [decorator guide](decorator-guide.md). This page covers optional
+whole-request server middleware.
+
 Add Rewind to the server, send an ordinary HTTP request, and keep its recording.
 Later, Rewind runs the **same server handler** in a fresh process with the recorded
 request and dependency observations. You can reproduce a failure after the

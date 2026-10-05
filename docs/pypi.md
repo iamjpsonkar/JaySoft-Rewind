@@ -16,12 +16,12 @@ under the MIT license.
 · [Source](https://github.com/iamjpsonkar/JaySoft-Rewind)
 · [Changelog](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/CHANGELOG.md)
 
-## Install 0.2.0a1
+## Install 0.2.0a2
 
-This guide covers **Rewind `0.2.0a1`**, an alpha release for Python 3.11 and 3.12.
+This guide covers **Rewind `0.2.0a2`**, an alpha release for Python 3.11 and 3.12.
 
 ```sh
-python -m pip install "jaysoft-rewind==0.2.0a1"
+python -m pip install "jaysoft-rewind==0.2.0a2"
 rewind --version
 ```
 
@@ -30,15 +30,15 @@ optional integration with the matching extra: `httpx`, `fastapi`, `flask`,
 `sqlalchemy`, `redis`, `postgres`, `mysql`, `kafka`, `celery`, `s3`, `encryption`, or `all`. For example:
 
 ```sh
-python -m pip install "jaysoft-rewind[fastapi]==0.2.0a1"
+python -m pip install "jaysoft-rewind[fastapi]==0.2.0a2"
 # Or, for Redis:
-python -m pip install "jaysoft-rewind[redis]==0.2.0a1"
+python -m pip install "jaysoft-rewind[redis]==0.2.0a2"
 ```
 
 See the [installation guide](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/installation.md)
 for environment setup and version selection.
 
-## What you can capture in 0.2.0a1
+## What you can capture in 0.2.0a2
 
 - **Functions and requests:** synchronous or asynchronous callables, FastAPI/ASGI
   HTTP requests, and Flask/WSGI requests.
@@ -60,7 +60,42 @@ or instrument your application. The
 [support matrix](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/support-matrix.md)
 provides the tested contracts and exclusions for each integration.
 
-## Server workflow
+## Decorator workflow
+
+Import one decorator and supply an ordinary Python condition block:
+
+```python
+from rewind import capture
+
+def save_when(call):
+    return call.error is not None
+
+@capture(condition=save_when)
+def total(order):
+    return order["quantity"] * order["unit_price"]
+```
+
+Save the example in `payment_logic.py`, then call `total` normally. A failing call
+is saved under `.rewind/snapshots`; its original exception still reaches the caller.
+No condition (`@capture`) means retain every admitted call. The same decorator on
+a class wraps its declared public methods and captures supported instance state.
+
+```sh
+python -c 'from payment_logic import total; total({"quantity": 2})'
+rewind list --store .rewind/snapshots
+artifact=.rewind/snapshots/PASTE_SNAPSHOT_ID.rewind.json
+rewind explore "$artifact" --output report.html
+rewind replay "$artifact" --app payment_logic:total
+```
+
+Choose the ID shown by `list`. The first command raises the expected `KeyError`;
+replay executes the function again and confirms the same error. No application
+factory or middleware is needed. For a method use `--app payment_logic:Checkout.total`.
+See the [decorator guide](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/decorator-guide.md)
+for conditions based on results, arguments and duration, plus supported state and
+dependency limits. External calls are not automatically intercepted.
+
+## Optional server middleware
 
 Configure Rewind in the server process, wrap its supported dependencies, and send
 an ordinary request. Keep every admitted request with `Retention(always=True)`,
@@ -134,7 +169,9 @@ shows how to keep artifacts and connect the workflow to your application.
 
 ## Capture policy and replay boundaries
 
-Capture defaults exclude application values and bodies. The synthetic policy in
+The lower-level `Rewind(...)` defaults exclude application values and bodies.
+The explicit `@capture` decorator enables supported argument, result, instance
+state and exception-argument capture, with named-field redaction. The synthetic policy in
 the example opts into fixture values and exception arguments; use it only with
 data you know contains no secrets. Named-field redaction, capture limits, and
 unsupported operations can make an artifact incomplete. Incomplete artifacts
@@ -166,5 +203,5 @@ and rollback. The bundled profile uses synthetic data and stated example budgets
 See the [compatibility policy](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/compatibility-policy.md)
 for alpha API, schema and release guarantees.
 
-New to Rewind? Read the [server walkthrough](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/server-guide.md)
+New to Rewind? Read the [decorator walkthrough](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/decorator-guide.md)
 for a complete first recording, offline replay, and existing-backend example.
