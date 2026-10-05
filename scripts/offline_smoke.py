@@ -6,7 +6,14 @@ import socket
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from examples import background_capture, fastapi_failure, http_failure, sources_failure
+from examples import (
+    background_capture,
+    combined_failure,
+    database_failure,
+    fastapi_failure,
+    http_failure,
+    sources_failure,
+)
 from rewind import replay_file
 
 
@@ -25,6 +32,8 @@ def main() -> None:
             ("http", http_failure),
             ("fastapi", fastapi_failure),
             ("sources", sources_failure),
+            ("database", database_failure),
+            ("combined", combined_failure),
         ):
             artifact = asyncio.run(example.record(Path(directory) / name))
             report = replay_file(artifact, f"examples.{name}_failure:replay_target")
@@ -35,8 +44,10 @@ def main() -> None:
         artifact, stats = asyncio.run(background_capture.record(Path(directory) / "background"))
         report = replay_file(artifact, "examples.background_capture:replay_target")
         if (
-            not report.reproduced or report.consumed != report.total
-            or stats["persisted"] != 1 or stats["pending_items"] != 0
+            not report.reproduced
+            or report.consumed != report.total
+            or stats["persisted"] != 1
+            or stats["pending_items"] != 0
             or stats["persistence_failed"] != 0
         ):
             raise RuntimeError("background capture did not drain and replay successfully")

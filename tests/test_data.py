@@ -18,7 +18,7 @@ def test_codec_detaches_and_preserves_builtin_types():
     }
 
 
-@pytest.mark.parametrize("value", [float("nan"), float("inf"), object(), {1: "key"}, Path("/tmp")])
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), object(), {object(): "key"}, Path("/tmp")])
 def test_unsupported_values_are_rejected(value):
     with pytest.raises(CaptureLimit):
         encode(value, Limits())

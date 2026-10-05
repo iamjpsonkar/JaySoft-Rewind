@@ -38,7 +38,7 @@ def fingerprint(name: str, code_paths: list[str | Path]) -> dict[str, Any]:
             digest.update(f"{index}:{relative}:{len(raw)}:".encode())
             digest.update(raw)
     dependencies = {}
-    for dependency in ("httpx", "fastapi", "starlette"):
+    for dependency in ("httpx", "fastapi", "starlette", "sqlalchemy", "redis", "flask", "werkzeug"):
         try:
             dependencies[dependency] = version(dependency)
         except PackageNotFoundError:

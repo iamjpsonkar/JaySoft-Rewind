@@ -104,11 +104,13 @@ def encode(value: Any, limits: Limits) -> dict[str, Any]:
                 "t": "tuple" if kind is tuple else "list",
                 "v": [visit(v, depth + 1) for v in item],
             }
+        if kind in (set, frozenset):
+            values = [visit(v, depth + 1) for v in item]
+            values.sort(key=dumps)
+            return {"t": "set" if kind is set else "frozenset", "v": values}
         if kind is dict:
-            if any(type(k) is not str for k in item):
-                raise CaptureLimit("dictionary keys must be strings")
             return {
-                "t": "dict",
+                "t": "dict" if all(type(k) is str for k in item) else "mapping",
                 "v": [[visit(k, depth + 1), visit(v, depth + 1)] for k, v in item.items()],
             }
         raise CaptureLimit("unsupported value type")
@@ -196,13 +198,26 @@ def decode(value: Any, limits: Limits) -> Any:
         elif tag in ("list", "tuple") and type(item) is list:
             items = [visit(v, depth + 1) for v in item]
             return tuple(items) if tag == "tuple" else items
-        elif tag == "dict" and type(item) is list:
-            result_dict: dict[str, Any] = {}
+        elif tag in ("set", "frozenset") and type(item) is list:
+            values = [visit(v, depth + 1) for v in item]
+            try:
+                collection = set(values)
+            except TypeError as exc:
+                raise InvalidSnapshot("unhashable set item") from exc
+            if len(collection) != len(values):
+                raise InvalidSnapshot("duplicate set item")
+            return collection if tag == "set" else frozenset(collection)
+        elif tag in ("dict", "mapping") and type(item) is list:
+            result_dict: dict[Any, Any] = {}
             for pair in item:
                 if type(pair) is not list or len(pair) != 2:
                     raise InvalidSnapshot("invalid dictionary item")
                 key = visit(pair[0], depth + 1)
-                if type(key) is not str or key in result_dict:
+                try:
+                    invalid = (tag == "dict" and type(key) is not str) or key in result_dict
+                except TypeError as exc:
+                    raise InvalidSnapshot("unhashable dictionary key") from exc
+                if invalid:
                     raise InvalidSnapshot("duplicate or invalid dictionary key")
                 result_dict[key] = visit(pair[1], depth + 1)
             return result_dict

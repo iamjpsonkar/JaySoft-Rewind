@@ -80,7 +80,8 @@ class CapturePolicy:
         if type(value) is dict:
             result = {}
             for key, item in value.items():
-                if self.is_sensitive(key):
+                label = key.decode("utf-8", errors="replace") if type(key) is bytes else key
+                if type(label) is str and self.is_sensitive(label):
                     result[key] = "[REDACTED]"
                     mark("sensitive_value_removed")
                 else:

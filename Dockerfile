@@ -9,7 +9,7 @@ COPY pyproject.toml README.md LICENSE ./
 COPY src ./src
 COPY examples ./examples
 COPY scripts ./scripts
-RUN python -m pip install --no-cache-dir '.[fastapi]'
+RUN python -m pip install --no-cache-dir '.[all]'
 
 USER 10001:10001
 CMD ["python", "-m", "rewind", "--help"]
