@@ -64,9 +64,23 @@ def execute(
                 expected_source=("developer" if expectation is not None else "recorded"),
             )
         module, separator, function = factory_name.partition(":")
-        if not separator or not module or not function.isidentifier():
-            return finish(ReplayReport("replay_error", "factory must use module:function syntax"))
-        target = getattr(importlib.import_module(module), function)()
+        parts = function.split(".")
+        if not separator or not module or not all(part.isidentifier() for part in parts):
+            return finish(ReplayReport("replay_error", "target must use module:function syntax"))
+        selected: Any = importlib.import_module(module)
+        owner = None
+        for part in parts:
+            owner, selected = selected, getattr(selected, part)
+        # Selection comes only from the developer's CLI argument, never artifact
+        # metadata. Decorated functions and methods need no handwritten factory.
+        from .decorators import CaptureHandle
+
+        handle = getattr(selected, "rewind", None)
+        target = (
+            handle.replay_target(owner=owner if isinstance(owner, type) else None)
+            if isinstance(handle, CaptureHandle)
+            else selected()
+        )
         if not isinstance(target, ReplayTarget):
             return finish(ReplayReport("replay_error", "factory must return ReplayTarget"))
         if guard.violations:

@@ -289,6 +289,8 @@ class CaptureHandle:
                 arguments.pop(next(iter(self.signature.parameters)))
             if owner is not None and not _class_supported(owner):
                 recorder.mark("class_state_unsupported")
+            if kind == "class" and bound.args[0] is not owner:
+                recorder.mark("receiver_class_unsupported")
             state = (
                 self._capture_state(recorder, receiver, owner)
                 if (kind == "instance" and owner is not None)
@@ -364,6 +366,8 @@ class CaptureHandle:
                 self._count("condition_errors")
             self._count("condition_matched" if retain else "condition_skipped")
             if retain:
+                if owner is not None and not _class_supported(owner):
+                    recorder.mark("class_state_unsupported")
                 if error is not None and not isinstance(error, Exception):
                     recorder.mark("execution_interrupted")
                 if error is not None and not self.policy.exception_args:

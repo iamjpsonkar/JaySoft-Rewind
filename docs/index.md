@@ -1,16 +1,17 @@
 # Rewind documentation
 
-**Start here: [How to use Rewind in your server](server-guide.md)** — no prior Rewind knowledge required.
+**Start here: [Decorate a function or class](decorator-guide.md)** — save calls when your condition matches, then inspect and replay them.
 
 [Project home](../README.md) · [PyPI package](https://pypi.org/project/jaysoft-rewind/) · [Changelog](../CHANGELOG.md)
 
-Start with a synthetic failure, then connect the dependencies your application uses. These guides describe `0.2.0a1` and distinguish supported boundaries from earlier alpha releases.
+Start with a synthetic failure, then connect the dependencies your application uses. These guides describe `0.2.0a2` and distinguish supported boundaries from earlier alpha releases.
 
 ## Start here
 
 | Your goal | Read this |
 | --- | --- |
-| Plug into a server, capture a request and replay its handler | [How to use](server-guide.md) |
+| Add a decorator and a condition to a function or class | [Decorator walkthrough](decorator-guide.md) |
+| Plug into a server, capture a request and replay its handler | [Server integration](server-guide.md) |
 | Explore a snapshot in your browser | [Snapshot explorer](explorer.md) |
 | Get the right version and extras | [Installation](installation.md) |
 | Capture a failure and generate your first test | [Step-by-step quick start](getting-started.md) |
