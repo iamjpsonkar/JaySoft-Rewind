@@ -148,8 +148,17 @@ class InputStream:
             memoryview(buffer)[:value["count"]] = value["data"]
         return value["count"]
 
-    def __iter__(self) -> "InputStream":
-        return self
+    def __iter__(self) -> Iterator[bytes]:
+        if isinstance(self.active, Recorder) and self.active.sealed:
+            return iter(self.inner)
+        iterator = None
+        if isinstance(self.active, Recorder):
+            try:
+                iterator = iter(self.inner)
+            except BaseException:
+                self.active.mark("wsgi_input_iterator_unsupported")
+                raise
+        return _InputIterator(self, iterator)
 
     def __next__(self) -> bytes:
         return self._call("next", (), lambda: next(self.inner))
@@ -159,6 +168,22 @@ class InputStream:
             self.active.fail("unsupported WSGI input attribute")
         self.active.mark("wsgi_input_extension_unsupported")
         return getattr(self.inner, name)
+
+
+class _InputIterator:
+    def __init__(self, stream: InputStream, iterator: Iterator | None) -> None:
+        self.stream = stream
+        self.iterator = iterator
+
+    def __iter__(self) -> "_InputIterator":
+        return self
+
+    def __next__(self) -> bytes:
+        def invoke() -> bytes:
+            assert self.iterator is not None
+            return next(self.iterator)
+
+        return self.stream._call("next", (), invoke)
 
 
 class Exchange:
@@ -433,6 +458,7 @@ def replay_wsgi(rewind: Any, snapshot: Snapshot, app: Any) -> ReplayReport:
                     pass
         return session.report(exchange.outcome())
     except ReplayDivergence:
+        session.failure = session.failure or "application raised replay divergence"
         return session.report({"kind": "return", "value": encode(None, rewind.limits)})
     except RewindError:
         return ReplayReport("replay_error", "unsupported WSGI outcome", session.cursor,
