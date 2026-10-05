@@ -54,15 +54,20 @@ tests beyond the main suite.
 
 ## Release and scope gates
 
-This ledger covers release `0.1.0a3`. Existing published artifacts and
+This ledger covers candidate `0.2.0a1`; historical counts above identify the earlier alpha. Existing published artifacts and
 `v0.1.0a2` remain immutable. Feature branches use real commits and timestamps,
 regular pushes, and reviewed integration PRs.
 
-Kafka, Celery, cloud SDKs, full filesystem replay, distributed scheduling, and
-arbitrary process checkpointing were future proposals, not specified adapters.
-They require separate contracts and cannot be represented as implemented by a
-generic mock. Transparent global time/random patching is not equivalent to
-explicit source replay and needs separate conformance evidence.
+Candidate `0.2.0a1` adds real PostgreSQL/MySQL and Kafka conformance, actual
+Celery eager/memory-worker tests, boto3 S3 emulation tests, explicit filesystem
+operations, authenticated storage encryption, POSIX quota coordination and
+scheduled-by-caller retention. See the support matrix for exact method boundaries.
+The fixed-arrival local staging profile measures resource budgets and validates
+active-disable, drain, re-enable and direct rollback behavior. Its recorded report
+is linked from [deployment validation](deployment-validation.md).
+
+A [compatibility policy](compatibility-policy.md) defines the alpha public API,
+artifact loading and release gates. Main is protected by PR and required CI rules.
 
 Production readiness remains an evidence gate: representative workload budgets,
 data-policy review, stronger isolation and deployment-specific validation.

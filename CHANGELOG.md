@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.2.0a1 — 2026-10-05
+
+- Add synchronous PostgreSQL/psycopg and MySQL/PyMySQL DBAPI and SQLAlchemy adapters,
+  with real disposable-service tests and fresh-process no-connection replay.
+- Add explicit Kafka/Celery observations, rooted filesystem operations and S3
+  calls with owned lazy body handles; document supported methods and test environments.
+- Add optional AES-GCM storage, local POSIX process coordination, directory sync
+  and explicit retention pruning. Keep core imports free of mandatory dependencies.
+- Add fixed-arrival synthetic staging budgets, independent resource measurements,
+  queue/drain/rollback evidence and real-service CI/release gates.
+- Add a tested beginner guide, generic existing-backend response example and
+  explicit API/schema compatibility policy. Protect main with PR and CI requirements.
+- Fix expired replay database cleanup contaminating later captures; preserve native
+  driver execute/ping defaults and initialize ctypes before the replay audit guard.
+- Retry TestPyPI index propagation before checking and promoting identical artifacts.
+
+
 ## 0.1.0a3 — 2026-10-05
 
 ### Added

@@ -77,10 +77,13 @@ capture timing and does not participate in strict replay matching.
 | --- | --- |
 | `http.request` | Application-visible HTTPX request and response observations. |
 | `value` | Explicit clock, random, UUID, sleep, or developer-provided values. |
-| `db.call` | SQLite DB-API connection/cursor operations, including the SQLAlchemy SQLite adapter. |
+| `db.call` | SQLite DB-API connection/cursor operations, including the SQLAlchemy SQLite, PostgreSQL and MySQL adapters. |
 | `redis.command` | One allowed Redis command. |
 | `redis.pipeline` | One ordered Redis pipeline execution with its transaction/options contract. |
 | `wsgi.read` | WSGI input-stream reads and their observed results. |
+| `messaging.call` | Explicit Kafka/Celery producer, consumer and result observations. |
+| `cloud.call` | Explicit S3 SDK calls and ordered body observations. |
+| `filesystem.call` | Explicit rooted filesystem operations. |
 
 Adapter inputs/results can contain additional typed envelopes. For example,
 database calls carry a data-only result/error envelope, and Redis preserves

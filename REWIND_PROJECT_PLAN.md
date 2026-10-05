@@ -2,7 +2,7 @@
 
 > Capture a failing backend request. Replay its recorded dependencies locally. Turn the reproduction into a test.
 
-**Status:** Release `0.1.0a3` implements database/Redis boundaries, synchronous frameworks, bounded function diagnostics, portable tooling, environment replay, configurable redaction and changed-code comparison.
+**Status:** Candidate `0.2.0a1` expands the implemented alpha with external relational databases, messaging, filesystem/S3, encrypted coordinated storage, and reproducible local synthetic staging.
 **Revision:** 2026-10-05, implementation status added to the architecture and delivery plan.
 **Repository baseline:** the implementation and evidence ledger is maintained in [docs/implementation-roadmap.md](docs/implementation-roadmap.md), with explicit supported boundaries in [docs/support-matrix.md](docs/support-matrix.md). Initial-alpha scope tables below preserve the original staged design; they do not override the current implementation ledger.
 
@@ -13,22 +13,22 @@ The original M1–M16 feature areas now have implementations within those bounda
 
 | Area | Local alpha status | Remaining evidence or limitation |
 |---|---|---|
-| Identity | `jaysoft-rewind` release `0.1.0a3`; `rewind` import/CLI; Jay Prakash Sonkar as maintainer | Each subsequent candidate needs its own release validation |
+| Identity | `jaysoft-rewind` candidate `0.2.0a1`; `rewind` import/CLI; Jay Prakash Sonkar as maintainer | Each subsequent candidate needs its own release validation |
 | Capture | Sync/async callable, ASGI/WSGI HTTP, sync/async HTTPX; per-decorator safe conditions | Sequential owning-task/thread dependencies; no global interception or arbitrary streaming replay |
 | Deterministic sources | Explicit clocks, dates, UUIDs, random operations, environment reads, sync/async waits | No stdlib/global patching, third-party/native RNG interception, RNG state restoration, or scheduling replay |
-| Database | SQLAlchemy 2.x + synchronous sqlite3, execute/fetch/metadata/transaction boundaries | One declared engine/driver combination; no SQL emulator or external database state reconstruction |
+| Database | SQLAlchemy 2.x + SQLite/psycopg 3/PyMySQL, execute/fetch/metadata/transaction boundaries | Declared synchronous combinations only; no SQL emulator or external database state reconstruction |
 | Redis | Explicit sync/async redis-py wrappers, commands, pipelines, typed results | Documented command subset; no pub/sub, Lua, WATCH, blocking or cluster support |
 | Diagnostics | Bounded optional function/span ring, interaction durations, CLI timeline | Explicit selected functions; no locals/args or global line profiler; optional event loss reported |
 | Replay | Ordered strict matching, explicit outcome comparator, unused/extra interaction checks | Does not reconstruct heap, thread scheduling, or distributed state |
 | Runner | Fresh interpreter, finite timeout, Python audit guard before application import | Audit hooks are not an OS sandbox; Docker network-disabled validation supplied separately |
 | Data | Bounded JSON, typed codecs including Decimal/maps/sets, configurable key and DB-column filtering, immutable snapshots | Filtering is not complete secret/PII detection |
-| Persistence | Synchronous local store or bounded background writer, atomic publication, cleanup after successful save | No durable queue, cross-process quota coordination, periodic cleanup, or directory-fsync crash durability |
+| Persistence | Local plaintext or AES-GCM store, bounded writer, POSIX advisory coordination/directory fsync, explicit prune | No durable queue, global cleanup daemon, remote locking or managed keys |
 | Operations | Enable/disable, fixed-key metrics, active/queued accounting, bounded writer drain and shutdown | Shutdown excludes active application requests; an in-flight filesystem call cannot be cancelled |
-| Performance tooling | CPU/simulated-I/O benchmark, separate allocation pass, gated saturation checks | Synthetic closed-loop results are not production budgets or fixed-arrival load evidence |
+| Performance tooling | Closed-loop benchmark and fixed-arrival synthetic staging, independent process memory passes, gated saturation/rollback checks | Synthetic example budgets are not application production SLOs |
 | Compatibility | Strict fingerprints plus separately labeled changed-code comparison | Only comparison permits a changed code digest; other identity and interaction checks remain strict |
 | CLI and tests | Inspect/replay/compare/list/delete/export/import/doctor; reproduction and explicit-oracle regression tests | Desired fixed behavior must be supplied by the developer |
 | Release engineering | Python 3.11/3.12 CI, lint/type/test/build jobs, Docker smoke command | Record actual CI and container results before calling a release validated |
-| Production | Deferred | Benchmarks, failure storms, operational controls, stronger data policy and deployment review |
+| Local staging | Synthetic profile and enable/disable/drain/rollback evidence implemented | Real application workload and production data-policy approval remain environment-specific |
 
 The previous design-only baseline is historical. No production-readiness, quantified performance, or full acceptance-matrix completion is claimed. CI installs dependency versions within declared ranges; the resolved versions in each run define that run's evidence.
 
@@ -310,7 +310,7 @@ Production-style persistence uses a bounded worker queue. Seal the recording bef
 
 The local alpha supports both synchronous `store=` persistence and optional `writer=` background persistence. The worker accepts only immutable sealed snapshots, bounds queued plus in-flight bytes/items, isolates capture context, reports failures without retaining exception messages, and rejects forked use. It does not move serialization off the request path or provide crash durability. Queued recordings can be lost on termination, OOM, or crash; request-end capture cannot capture failures that kill the process before finalization.
 
-The underlying store lock is per instance; multiple writers do not share a quota lock. Cleanup follows successful publication, so peak disk usage can exceed the quota temporarily. Files are flushed before atomic replace, but directory-fsync crash durability is not implemented. Retention is checked on save, not by a scheduled cleanup service.
+Local POSIX stores use advisory directory locks across cooperating processes and synchronize directory metadata. Cleanup follows successful publication, so peak disk usage can exceed the quota temporarily. Retention runs on save or explicit prune() calls; applications can schedule prune without a Rewind-managed daemon. Optional AES-GCM storage writes ciphertext only. Filesystem and key-management limits are documented in docs/storage.md.
 
 Writer shutdown has a finite drain deadline and reports how many snapshots remain, are dropped, or are still writing. Rewind stops new admissions but does not await application requests: stop incoming requests and await their completion before closing if their recordings must be included. Async shutdown uses an executor; its timeout bounds the writer wait after dispatch, not executor or event-loop scheduling. A blocked save can outlive the deadline. The persistence thread starts with an empty context and does not recursively record its own activity.
 
@@ -425,7 +425,7 @@ This is replay of observed database interactions, not a SQL emulator. A changed 
 
 Redis has the same boundary obligation: commands, byte/string mode, return types, errors, pipelines, and transaction behavior. TTL-sensitive behavior, Lua scripts, pub/sub, and blocking operations require their own support decisions. Do not claim cache state reconstruction from a list of command results.
 
-Kafka, Celery, filesystem adapters, and cloud SDKs remain separate future proposals with entry-point, causality, side-effect, and lifecycle contracts.
+Candidate 0.2.0a1 adds explicit Kafka/Celery, rooted filesystem, and boto3 S3 contracts with their own conformance tests. These selected interfaces do not imply arbitrary SDK or distributed-execution support.
 
 ## 18. Reproduction and regression tests
 
@@ -475,7 +475,7 @@ Use contract tests for adapters, golden fixtures for format compatibility, fresh
 
 ## 20. Milestones with exit gates
 
-R0–R3 and R5 have implementation and validation evidence. Published `0.1.0a2` adds R4's bounded writer, operational controls, failure-storm tests and benchmark harness. Release `0.1.0a3` adds R6's SQLAlchemy/SQLite experiment and R7's Redis, synchronous HTTPX, Flask, environment and function-diagnostic boundaries, plus explicit desired-outcome regression tests. Environment-specific performance budgets, staging data-policy review, rollout/rollback exercises and R8 stable-release evidence remain open. The completion ledger tracks integrated checks; features alone do not establish production readiness.
+R0–R3 and R5 have implementation and validation evidence. Published `0.1.0a2` adds R4's bounded writer, operational controls, failure-storm tests and benchmark harness. Release `0.1.0a3` adds R6's SQLAlchemy/SQLite experiment and R7's Redis, synchronous HTTPX, Flask, environment and function-diagnostic boundaries, plus explicit desired-outcome regression tests. Candidate 0.2.0a1 adds local fixed-arrival synthetic budgets, independent memory measurements, operational rollback exercises, storage encryption/coordination, and an explicit API/schema compatibility policy. Production workload/data-policy approvals and any stable 1.0 commitment remain separate decisions. The completion ledger tracks integrated checks; features alone do not establish production readiness.
 
 | Milestone | Deliverable | Exit gate | Depends on |
 |---|---|---|---|

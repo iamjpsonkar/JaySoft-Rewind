@@ -22,6 +22,7 @@ def verify(directory: Path) -> dict[str, str]:
         required = {
             "rewind/py.typed",
             "rewind/persistence.py",
+            "rewind/encrypted_storage.py",
             "rewind/sources.py",
             "rewind/tracing.py",
             "rewind/comparison.py",

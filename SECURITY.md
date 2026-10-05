@@ -1,6 +1,6 @@
 # Security policy
 
-Rewind 0.1.0a1 is a local alpha for synthetic fixtures and controlled test environments. It has no production security certification or guarantee of complete secret removal.
+Rewind 0.2.0a1 is a local alpha for synthetic fixtures and controlled test environments. It has no production security certification or guarantee of complete secret removal.
 
 ## Report a vulnerability
 
@@ -11,8 +11,8 @@ Contact Jay Prakash Sonkar at [iamjpsonkar@gmail.com](mailto:iamjpsonkar@gmail.c
 - Treat recordings as sensitive application data. Default policy excludes bodies, values, and exception arguments, but metadata and permitted strings can contain sensitive information.
 - Known sensitive keys are removed from supported values, headers, and URLs. This is a key-based filter, not a semantic PII detector. Binary content and arbitrary strings are not automatically anonymized.
 - `CapturePolicy.synthetic()` opts into fixture content. Use only with data you control. Detected policy transformations make strict replay ineligible.
-- Use a private store directory; artifacts use restrictive file permissions. No built-in encryption, identity/access service, or secure export workflow is provided. A digest detects accidental modification, not sender authenticity.
-- Retention runs on save, not on a schedule. Cross-process quota coordination, directory-fsync crash durability, and background persistence are not implemented.
+- Use a private store directory; artifacts use restrictive file permissions. Optional `EncryptedLocalStore` provides authenticated AES-GCM encryption with an explicitly supplied key; see [storage](docs/storage.md). There is no identity/access service or managed key rotation. Plaintext exports and HTML exploration reports remain sensitive. A portable archive digest detects accidental modification, not sender authenticity.
+- Retention runs on save or explicit `prune()` calls from your scheduler. Local POSIX stores coordinate cooperating processes with advisory directory locks and synchronize directory metadata. Bounded background persistence is optional. These controls do not provide a durable queue, distributed locking or a universal power-loss guarantee.
 
 ## Loading and replay
 

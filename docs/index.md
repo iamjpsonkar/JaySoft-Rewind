@@ -58,3 +58,5 @@ Start with a synthetic failure, then connect the dependencies your application u
 - [Deployment validation](deployment-validation.md)
 - [Measured synthetic staging](validation/README.md)
 - [Compatibility and release policy](compatibility-policy.md)
+
+- [Private storage, encryption and retention](storage.md)
