@@ -38,6 +38,8 @@ class Recorder:
             self.mark("child_task_unsupported")
 
     def pack(self, value: Any) -> dict[str, Any]:
+        if self.sealed or "recording_limit" in self.reasons:
+            return encode(None, self.limits)
         try:
             packed = self.policy.value(value, self.limits, self.mark)
             self.bytes_used += len(dumps(packed))
@@ -80,6 +82,8 @@ class Recorder:
         return {"kind": "return", "value": self.pack(value)}
 
     def raised(self, exc: BaseException) -> dict[str, Any]:
+        if self.sealed or "recording_limit" in self.reasons:
+            return {"kind": "exception", "type": "unavailable", "args": encode(None, self.limits)}
         try:
             outcome = self.policy.exception(exc, self.limits, self.mark)
             self.bytes_used += len(dumps(outcome))
