@@ -1,5 +1,7 @@
 # Rewind documentation
 
+**Start here: [Rewind for backend developers](beginners-guide.md)** — no prior Rewind knowledge required.
+
 [Project home](../README.md) · [PyPI package](https://pypi.org/project/jaysoft-rewind/) · [Changelog](../CHANGELOG.md)
 
 Start with a synthetic failure, then connect the dependencies your application uses. These guides describe `0.1.0a3` and identify features introduced after the earlier `0.1.0a2` alpha.
@@ -50,3 +52,9 @@ Start with a synthetic failure, then connect the dependencies your application u
 
 - [Filesystem and S3 observations](filesystem-and-s3.md)
 - [Repository checks and protected main](repository-governance.md)
+
+- [External PostgreSQL and MySQL](external-databases.md)
+- [Kafka and Celery](messaging.md)
+- [Deployment validation](deployment-validation.md)
+- [Measured synthetic staging](validation/README.md)
+- [Compatibility and release policy](compatibility-policy.md)

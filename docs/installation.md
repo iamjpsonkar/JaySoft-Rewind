@@ -9,23 +9,24 @@ Use Python **3.11 or 3.12**. The package name is **`jaysoft-rewind`**; import it
 | Version | Where to get it | What it includes |
 | --- | --- | --- |
 | `0.1.0a2` | Previous alpha | Async HTTPX, FastAPI/ASGI, explicit basic sources, background recording, core CLI and reproduction tests |
-| `0.1.0a3` | Release covered by these guides | Adds sync/Flask, SQLAlchemy/SQLite, Redis, tracing, environment observations, archives and changed-code comparison |
+| `0.2.0a1` | Release covered by these guides | Adds external databases, messaging, filesystem/S3, storage protection and deployment validation |
+| `0.1.0a3` | Earlier alpha | Adds sync/Flask, SQLAlchemy/SQLite, Redis, tracing, environment observations, archives and changed-code comparison |
 
 ### Published package
 
 In an activated virtual environment:
 
 ```sh
-python -m pip install 'jaysoft-rewind==0.1.0a3'
+python -m pip install 'jaysoft-rewind==0.2.0a1'
 python -m rewind --version
 ```
 
 Install the integration you need instead of the core-only command:
 
 ```sh
-python -m pip install 'jaysoft-rewind[httpx]==0.1.0a3'
+python -m pip install 'jaysoft-rewind[httpx]==0.2.0a1'
 # Or, for FastAPI:
-python -m pip install 'jaysoft-rewind[fastapi]==0.1.0a3'
+python -m pip install 'jaysoft-rewind[fastapi]==0.2.0a1'
 ```
 
 The wheel contains the library and CLI. The `examples.*` commands in the walkthrough require a repository checkout.
@@ -68,7 +69,7 @@ These are shell equivalents; current automated conformance evidence is Linux CI 
 For a PyPI installation, extras use the same version pin, for example:
 
 ```sh
-python -m pip install 'jaysoft-rewind[all]==0.1.0a3'
+python -m pip install 'jaysoft-rewind[all]==0.2.0a1'
 ```
 
 For source development, choose one of these instead of `dev`:
@@ -95,3 +96,7 @@ python -m rewind doctor
 ```
 
 If a command is missing, check the installed version and active environment first. [Troubleshooting](troubleshooting.md) covers common setup problems.
+
+New optional extras: `postgres` (psycopg 3), `mysql` (PyMySQL), `kafka`
+(kafka-python), `celery`, `s3` (boto3), and `encryption` (cryptography).
+These do not install or start database servers, message brokers or AWS services.

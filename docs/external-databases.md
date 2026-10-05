@@ -63,9 +63,8 @@ consumed for recording.
 
 The tested API family is **SQLAlchemy 2.x**. SQLAlchemy 1.3, psycopg2, asyncpg,
 mysqlclient, asynchronous database engines, and executor-thread database calls
-are not covered. In particular, a service using SQLAlchemy 1.3.20/PyMySQL 1.1.1
-inside `run_in_executor` is not established compatible by these tests. That
-service can still be tested at an instrumented external HTTP boundary.
+are not covered. Validate the actual library versions and execution model
+before integrating these adapters.
 
 ## Recorded behavior
 

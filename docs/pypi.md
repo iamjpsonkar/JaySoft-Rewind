@@ -16,34 +16,35 @@ under the MIT license.
 · [Source](https://github.com/iamjpsonkar/JaySoft-Rewind)
 · [Changelog](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/CHANGELOG.md)
 
-## Install 0.1.0a3
+## Install 0.2.0a1
 
-This guide covers **Rewind `0.1.0a3`**, an alpha release for Python 3.11 and 3.12.
+This guide covers **Rewind `0.2.0a1`**, an alpha release for Python 3.11 and 3.12.
 
 ```sh
-python -m pip install "jaysoft-rewind==0.1.0a3"
+python -m pip install "jaysoft-rewind==0.2.0a1"
 rewind --version
 ```
 
 The core package has no mandatory third-party runtime dependencies. Install an
 optional integration with the matching extra: `httpx`, `fastapi`, `flask`,
-`sqlalchemy`, `redis`, or `all`. For example:
+`sqlalchemy`, `redis`, `postgres`, `mysql`, `kafka`, `celery`, `s3`, `encryption`, or `all`. For example:
 
 ```sh
-python -m pip install "jaysoft-rewind[fastapi]==0.1.0a3"
+python -m pip install "jaysoft-rewind[fastapi]==0.2.0a1"
 # Or, for Redis:
-python -m pip install "jaysoft-rewind[redis]==0.1.0a3"
+python -m pip install "jaysoft-rewind[redis]==0.2.0a1"
 ```
 
 See the [installation guide](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/installation.md)
 for environment setup and version selection.
 
-## What you can capture in 0.1.0a3
+## What you can capture in 0.2.0a1
 
 - **Functions and requests:** synchronous or asynchronous callables, FastAPI/ASGI
   HTTP requests, and Flask/WSGI requests.
 - **Dependency observations:** HTTPX requests, synchronous SQLite DB-API and
-  SQLAlchemy SQLite operations, and supported Redis commands and pipelines.
+  SQLAlchemy operations with SQLite, PostgreSQL and MySQL; supported Redis
+  commands and pipelines; explicit Kafka/Celery, filesystem and S3 observations.
 - **Sources of variation:** explicit time, date, UUID, random, environment, and
   wait observations through Rewind's source APIs.
 - **Optional diagnostics:** bounded function-entry, return, exception, and named
@@ -143,3 +144,14 @@ OS-level network boundary for the included examples.
 - [Command-line reference](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/cli.md)
 - [Troubleshooting](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/troubleshooting.md)
 - [Report an issue](https://github.com/iamjpsonkar/JaySoft-Rewind/issues)
+
+## Validation and compatibility
+
+The [local staging suite](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/deployment-validation.md)
+measures fixed-arrival load, independent memory use, queue budgets, disable/drain,
+and rollback. The bundled profile uses synthetic data and stated example budgets.
+See the [compatibility policy](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/compatibility-policy.md)
+for alpha API, schema and release guarantees.
+
+New to Rewind? Read the [beginner’s walkthrough](https://github.com/iamjpsonkar/JaySoft-Rewind/blob/main/docs/beginners-guide.md)
+for a complete first recording, offline replay, and existing-backend example.

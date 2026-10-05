@@ -1,5 +1,7 @@
 # Rewind
 
+**New to Rewind? [Start with the beginner’s walkthrough](docs/beginners-guide.md)** — copyable steps, expected output, an existing-backend example, and troubleshooting.
+
 **Capture a Python failure. Replay it locally. Turn it into a test.**
 
 [![Checks](https://github.com/iamjpsonkar/JaySoft-Rewind/actions/workflows/checks.yml/badge.svg?branch=main)](https://github.com/iamjpsonkar/JaySoft-Rewind/actions/workflows/checks.yml)
@@ -19,12 +21,12 @@ Capture a failing execution → Inspect the recording → Replay locally → Gen
 
 | I want to… | Start here |
 | --- | --- |
-| Install this alpha | `python -m pip install 'jaysoft-rewind[httpx]==0.1.0a3'` |
+| Install this alpha | `python -m pip install 'jaysoft-rewind[httpx]==0.2.0a1'` |
 | Run the repository examples | Use the source checkout below |
 | Add Rewind to an application | [Installation and optional integrations](docs/installation.md) |
 | Browse the package overview | [PyPI guide](docs/pypi.md) · [Published package](https://pypi.org/project/jaysoft-rewind/) |
 
-**Release: `0.1.0a3`.** [Package releases](https://pypi.org/project/jaysoft-rewind/#history) are available on PyPI. The distribution is `jaysoft-rewind`; the Python import and command are both `rewind`. Use Python 3.11 or 3.12. This alpha is intended for synthetic fixtures and controlled development environments.
+**Release candidate: `0.2.0a1`.** [Package releases](https://pypi.org/project/jaysoft-rewind/#history) are available on PyPI. The distribution is `jaysoft-rewind`; the Python import and command are both `rewind`. Use Python 3.11 or 3.12. This alpha is intended for synthetic fixtures and controlled development environments.
 
 ## Quick start
 
@@ -193,12 +195,16 @@ Maintained by [Jay Prakash Sonkar](https://github.com/iamjpsonkar) · [iamjpsonk
 
 [Back to top ↑](#rewind)
 
-### Next alpha integration work
+### Expanded integrations and deployment validation
 
-The `0.2.0a1` development candidate adds explicit filesystem and S3 boundaries;
-see [supported methods and examples](docs/filesystem-and-s3.md). Additional
-relational and messaging conformance is being integrated. Published `0.1.0a3`
-remains unchanged until the next candidate passes release validation.
+The `0.2.0a1` candidate adds explicit [PostgreSQL/MySQL](docs/external-databases.md),
+[Kafka/Celery](docs/messaging.md), and [filesystem/S3](docs/filesystem-and-s3.md)
+boundaries. Each guide states the supported calls and its conformance environment.
 
-[Protected-branch workflow](docs/repository-governance.md) documents the required
-checks and pull-request merge rules.
+Run the [local synthetic staging suite](docs/deployment-validation.md) to measure
+fixed-arrival load, memory, queue budgets and disable/drain/rollback behavior.
+[Measured reports](docs/validation/README.md) retain the configuration and source
+revision that produced each result.
+
+[Protected-branch workflow](docs/repository-governance.md) ·
+[API and artifact compatibility](docs/compatibility-policy.md)

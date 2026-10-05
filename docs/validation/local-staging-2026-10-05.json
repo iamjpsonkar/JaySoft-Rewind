@@ -1433,7 +1433,7 @@
   },
   "profile_sha256": "5e0cc80ca77365e348a59515d5d1cfc5dee5eb37714543ee18f15b9bfc95709e",
   "provenance": {
-    "executable": "/Users/jsonkar/iamjpsonkar/JaySoft-Rewind/.venv/bin/python",
+    "executable": "python",
     "factory": "builtin:synthetic",
     "git_dirty": false,
     "git_revision": "fb3853b8232c41679de25414e71b15861bb98cfb",
@@ -1448,11 +1448,12 @@
     "pid": 62657,
     "platform": "macOS-26.6-arm64-arm-64bit",
     "python": "3.12.13 (main, Mar  3 2026, 12:39:30) [Clang 21.0.0 (clang-2100.0.123.102)]",
-    "rewind_source_path": "/private/tmp/rewind-deployment-validation/src/rewind",
+    "rewind_source_path": "rewind",
     "rewind_source_sha256": "4f0bd1e75f4aeb162ec6b0d4b234889455118165386e738774245a4b35aea571",
     "script_sha256": "e44a857bc3328cc96cb936e63d36c35409125f9cc97df3be65a2ff49e8e44932",
     "utc": "2026-10-05T16:11:09.665372+00:00"
   },
   "schema_version": 1,
-  "scope": "local staging validation, not production certification"
+  "scope": "local staging validation, not production certification",
+  "report_note": "Host-specific absolute executable/source paths omitted; measurements and original source hashes unchanged."
 }

@@ -170,13 +170,13 @@ def provenance(factory: str) -> dict:
     status = git("status", "--porcelain")
     return {
         "utc": datetime.now(UTC).isoformat(), "pid": os.getpid(),
-        "python": sys.version, "executable": sys.executable,
+        "python": sys.version, "executable": Path(sys.executable).name,
         "platform": platform.platform(), "machine": platform.machine(),
         "package_version": __version__, "installed_versions": versions,
         "git_revision": git("rev-parse", "HEAD"), "git_dirty": status != "" if status is not None
         else None,
         "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-        "rewind_source_path": str(source), "rewind_source_sha256": digest.hexdigest(),
+        "rewind_source_path": "rewind", "rewind_source_sha256": digest.hexdigest(),
         "factory": factory,
     }
 

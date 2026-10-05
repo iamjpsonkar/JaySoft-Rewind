@@ -30,6 +30,12 @@ def verify(directory: Path) -> dict[str, str]:
             "rewind/adapters/sqlalchemy.py",
             "rewind/adapters/redis.py",
             "rewind/adapters/wsgi.py",
+            "rewind/adapters/postgres.py",
+            "rewind/adapters/mysql.py",
+            "rewind/adapters/kafka.py",
+            "rewind/adapters/celery.py",
+            "rewind/adapters/filesystem.py",
+            "rewind/adapters/s3.py",
         }
         if not required <= names:
             raise ValueError("wheel is missing required library files")
@@ -81,6 +87,10 @@ def verify(directory: Path) -> dict[str, str]:
             "docs/troubleshooting.md",
             "docs/http-and-fastapi.md",
             "docs/sources.md",
+            "docs/beginners-guide.md",
+            "examples/existing_backend.py",
+            "docs/compatibility-policy.md",
+            "scripts/validate_deployment.py",
             "tests/fixtures/golden-v0.1.json",
             "tests/fixtures/golden_app.py",
         }

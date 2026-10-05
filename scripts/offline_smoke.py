@@ -13,6 +13,7 @@ from examples import (
     fastapi_failure,
     flask_failure,
     http_failure,
+    messaging_failure,
     sources_failure,
 )
 from rewind import replay_file
@@ -41,6 +42,14 @@ def main() -> None:
             if not report.reproduced or report.consumed != report.total:
                 raise RuntimeError(f"{name} replay failed: {report.to_dict()}")
             print(json.dumps({"example": name, **report.to_dict()}))
+
+        messaging_artifact = messaging_failure.record(Path(directory) / "messaging")
+        messaging_report = replay_file(
+            messaging_artifact, "examples.messaging_failure:replay_target"
+        )
+        if not messaging_report.reproduced:
+            raise RuntimeError(f"messaging replay failed: {messaging_report.to_dict()}")
+        print(json.dumps({"example": "messaging", **messaging_report.to_dict()}))
 
         flask_artifact = flask_failure.record(Path(directory) / "flask")
         flask_report = replay_file(flask_artifact, "examples.flask_failure:replay_target")
