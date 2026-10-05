@@ -251,16 +251,21 @@ class CaptureHandle:
         except Exception:
             self._count("initialization_errors")
             return None
-        recorder = rewind.start(
-            "callable" if inspect.iscoroutinefunction(self.function) else "callable_sync"
-        )
+        try:
+            recorder = rewind.start(
+                "callable" if inspect.iscoroutinefunction(self.function) else "callable_sync"
+            )
+        except Exception:
+            self._count("capture_errors")
+            return None
         if recorder is None:
             return None
-        kind, owner = self._binding(args)
-        receiver = args[0] if kind == "instance" and args else None
+        kind, owner, receiver = "function", None, None
         try:
             bound = self.signature.bind(*args, **kwargs)
             bound.apply_defaults()
+            kind, owner = self._binding(bound.args)
+            receiver = bound.args[0] if kind == "instance" else None
             arguments = dict(bound.arguments)
             if kind != "function":
                 arguments.pop(next(iter(self.signature.parameters)))
@@ -307,7 +312,7 @@ class CaptureHandle:
             status = (
                 result.get("status_code", result.get("status"))
                 if type(result) is dict
-                else (getattr(result, "status_code", None))
+                else inspect.getattr_static(result, "status_code", None)
             )
             if type(status) is not int or not 100 <= status <= 599:
                 status = None
@@ -371,14 +376,35 @@ class CaptureHandle:
         ):
             raise ReplayDivergence("invalid decorated call envelope")
         kind = envelope["kind"]
-        expected = self.binding if self.owner is not None else None
-        if expected is not None and kind != expected:
+        expected = self.binding
+        if self.owner is None and owner is not None:
+            for base in owner.__mro__:
+                descriptor = vars(base).get(self.function.__name__)
+                function = (
+                    descriptor.__func__
+                    if isinstance(descriptor, (classmethod, staticmethod))
+                    else descriptor
+                )
+                if function is self.wrapper:
+                    expected = (
+                        "class"
+                        if isinstance(descriptor, classmethod)
+                        else "function"
+                        if isinstance(descriptor, staticmethod)
+                        else "instance"
+                    )
+                    break
+            else:
+                raise ReplayDivergence("trusted class does not declare decorated method")
+        if kind != expected:
             raise ReplayDivergence("decorator binding differs")
         arguments = envelope["arguments"].copy()
         parameters = self.signature.parameters
         if any(type(name) is not str or name not in parameters for name in arguments):
             raise ReplayDivergence("invalid argument names")
         receiver = None
+        if kind != "instance" and envelope["receiver"] is not None:
+            raise ReplayDivergence("unexpected receiver state")
         if kind != "function":
             if owner is None or not _class_supported(owner) or not parameters:
                 raise ReplayDivergence("trusted receiver class is required")
@@ -387,8 +413,16 @@ class CaptureHandle:
                 raise ReplayDivergence("receiver cannot be supplied as an argument")
             receiver = _restore(owner, envelope["receiver"]) if kind == "instance" else owner
             arguments = {name: receiver, **arguments}
-        elif envelope["receiver"] is not None:
-            raise ReplayDivergence("unexpected receiver state")
+        for name, parameter in parameters.items():
+            if name not in arguments:
+                continue
+            value = arguments[name]
+            if parameter.kind is inspect.Parameter.VAR_POSITIONAL and type(value) is not tuple:
+                raise ReplayDivergence("variadic positional arguments must be a tuple")
+            if parameter.kind is inspect.Parameter.VAR_KEYWORD and (
+                type(value) is not dict or any(type(key) is not str for key in value)
+            ):
+                raise ReplayDivergence("variadic keyword arguments must be a string-keyed mapping")
         bound = inspect.BoundArguments(self.signature, arguments)
         try:
             checked = self.signature.bind(*bound.args, **bound.kwargs)
