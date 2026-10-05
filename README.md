@@ -192,3 +192,13 @@ Found a problem? Check [troubleshooting](docs/troubleshooting.md), then [open an
 Maintained by [Jay Prakash Sonkar](https://github.com/iamjpsonkar) · [iamjpsonkar@gmail.com](mailto:iamjpsonkar@gmail.com) · [MIT license](LICENSE).
 
 [Back to top ↑](#rewind)
+
+### Next alpha integration work
+
+The `0.2.0a1` development candidate adds explicit filesystem and S3 boundaries;
+see [supported methods and examples](docs/filesystem-and-s3.md). Additional
+relational and messaging conformance is being integrated. Published `0.1.0a3`
+remains unchanged until the next candidate passes release validation.
+
+[Protected-branch workflow](docs/repository-governance.md) documents the required
+checks and pull-request merge rules.

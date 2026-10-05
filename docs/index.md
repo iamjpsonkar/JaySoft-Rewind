@@ -47,3 +47,6 @@ Start with a synthetic failure, then connect the dependencies your application u
 [Contributing](../CONTRIBUTING.md) covers setup, checks and PRs. [Releases](releases.md) covers building and publishing `jaysoft-rewind` through TestPyPI and PyPI.
 
 `README.md` is the GitHub entry point, with navigation and expandable examples. `docs/pypi.md` is the package long description selected by `pyproject.toml`; its links are absolute so they work on PyPI. Update version labels in both when publishing. GitHub supports [collapsed sections](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/organizing-information-with-collapsed-sections); the package overview follows [PyPA's README guidance](https://packaging.python.org/en/latest/guides/making-a-pypi-friendly-readme/).
+
+- [Filesystem and S3 observations](filesystem-and-s3.md)
+- [Repository checks and protected main](repository-governance.md)
