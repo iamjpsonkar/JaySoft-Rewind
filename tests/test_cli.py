@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import socket
 import subprocess
 import sys
 from pathlib import Path
@@ -32,7 +33,17 @@ async def test_real_cli_fresh_process_replays_both_examples(tmp_path):
         assert report["isolation"] == "python-guard"
 
 
-@pytest.mark.parametrize("factory", ["network_during_import_factory", "swallowed_network_factory"])
+@pytest.mark.parametrize("factory", [
+    "network_during_import_factory",
+    "swallowed_network_factory",
+    pytest.param(
+        "swallowed_sendmsg_factory",
+        marks=pytest.mark.skipif(
+            not hasattr(socket.socket, "sendmsg"), reason="sendmsg is unavailable on this platform"
+        ),
+    ),
+    "swallowed_name_lookup_factory",
+])
 async def test_worker_blocks_network_before_factory_and_cannot_hide_attempt(tmp_path, factory):
     artifact = await record(tmp_path / "recordings")
     report = replay_file(artifact, f"tests.runner_targets:{factory}")

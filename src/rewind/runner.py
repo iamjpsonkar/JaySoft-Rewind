@@ -39,7 +39,9 @@ class NetworkGuard:
             "socket.getaddrinfo",
             "socket.gethostbyname",
             "socket.gethostbyaddr",
+            "socket.getnameinfo",
             "socket.sendto",
+            "socket.sendmsg",  # Datagram sends do not require a prior connect().
             "subprocess.Popen",
             "os.system",
             "os.posix_spawn",
