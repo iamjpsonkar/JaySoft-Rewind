@@ -12,6 +12,7 @@ from examples import (
     background_capture,
     combined_failure,
     database_failure,
+    decorator_demo,
     fastapi_failure,
     flask_failure,
     http_failure,
@@ -46,6 +47,24 @@ def main() -> None:
         raise RuntimeError("external network was reachable; use --network none")
 
     with TemporaryDirectory(prefix="rewind-offline-") as directory:
+        for name, function, reference in (
+            ("decorator-function", decorator_demo.calculate_total, "calculate_total"),
+            ("decorator-method", decorator_demo.Checkout().total, "Checkout.total"),
+        ):
+            store = LocalStore(Path(directory) / name)
+            function.rewind.store = store
+            try:
+                function({"quantity": 2})
+            except KeyError:
+                pass
+            if len(store.ids()) != 1:
+                raise RuntimeError(f"{name} did not retain its failure")
+            artifact = store.path / f"{store.ids()[0]}.rewind.json"
+            report = replay_file(artifact, f"examples.decorator_demo:{reference}")
+            if not report.reproduced:
+                raise RuntimeError(f"{name} replay failed: {report.to_dict()}")
+            print(json.dumps({"example": name, **report.to_dict()}))
+
         for name, example in (
             ("http", http_failure),
             ("fastapi", fastapi_failure),
