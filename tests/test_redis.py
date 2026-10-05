@@ -397,3 +397,50 @@ async def test_real_redis_conformance(recorder, redis_socket, asynchronous, deco
             await inner.aclose()
         else:
             inner.close()
+
+
+async def test_child_task_pipeline_queue_is_ineligible(recorder):
+    import asyncio
+
+    client = AsyncRecordingRedis(AsyncFakeRedis([[b"value"]]))
+
+    async def operation():
+        pipe = client.pipeline()
+
+        async def enqueue():
+            pipe.get("key")
+
+        await asyncio.create_task(enqueue())
+        return await pipe.execute()
+
+    assert await recorder.run(operation) == [b"value"]
+    snapshot = saved(recorder)
+    assert not snapshot.complete
+    assert "child_task_unsupported" in snapshot.data["capture"]["ineligible_reasons"]
+
+
+async def test_async_legacy_close_replay_does_not_touch_client(recorder):
+    client = AsyncRecordingRedis(AsyncFakeRedis([b"value"]))
+
+    async def operation():
+        value = await client.get("key")
+        await client.close()
+        return value
+
+    await recorder.run(operation)
+    assert client.inner.closed
+    client.inner = None
+    assert (await recorder.replay(saved(recorder), operation)).reproduced
+
+
+async def test_unsupported_exception_args_are_ineligible(recorder):
+    client = RecordingRedis(FakeRedis([redis.ResponseError({"PRIVATE": "fixture"})]))
+
+    async def operation():
+        with pytest.raises(redis.ResponseError):
+            client.get("key")
+
+    await recorder.run(operation)
+    snapshot = saved(recorder)
+    assert not snapshot.complete
+    assert "PRIVATE" not in repr(snapshot.data)

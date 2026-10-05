@@ -54,6 +54,9 @@ def _exception(active: Recorder, exc: BaseException) -> dict[str, Any]:
         active.mark("unsupported_redis_exception")
         # Never retain arbitrary exception messages from unsupported commands/classes.
         return {"kind": "exception", "type": "unavailable", "args": encode(None, active.limits)}
+    if any(type(arg) not in (str, int) for arg in exc.args):
+        active.mark("unsupported_redis_exception_args")
+        return {"kind": "exception", "type": "unavailable", "args": encode(None, active.limits)}
     return active.raised(exc)
 
 
@@ -225,6 +228,9 @@ class AsyncRecordingRedis(RecordingRedis):
 
         return command
 
+    async def close(self) -> None:  # type: ignore[override]
+        await self.aclose()
+
     async def aclose(self) -> None:
         if not isinstance(_active(), ReplaySession) and self.inner is not None:
             await self.inner.aclose()
@@ -266,6 +272,8 @@ class RecordingPipeline:
 
         def queue(*args: Any, **kwargs: Any) -> Any:
             active = _active()
+            if active is not None:
+                active.check_task()
             if not self.queued:
                 self.scope = active
             self.queued = True
