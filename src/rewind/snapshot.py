@@ -132,6 +132,11 @@ class Snapshot:
     @classmethod
     def from_bytes(cls, raw: bytes, limits: Limits | None = None) -> "Snapshot":
         limits = limits or Limits()
+        if not isinstance(raw, (bytes, bytearray)):
+            raise InvalidSnapshot("artifact must contain JSON bytes")
+        if len(raw) > limits.snapshot_bytes:
+            raise InvalidSnapshot("artifact exceeds byte limit")
+        raw = bytes(raw)
         _validate(loads(raw, limits), limits)
         return cls(raw)
 

@@ -7,7 +7,8 @@ from dataclasses import asdict, dataclass
 from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-from .codecs import decode, encode
+from .codecs import decode, encode, loads
+from .errors import CaptureLimit, InvalidSnapshot
 from .limits import Limits
 
 Mark = Callable[[str], None]
@@ -115,9 +116,11 @@ class CapturePolicy:
         if not self.capture_bodies:
             mark("body_excluded")
             return ""
-        if "json" in content_type:
+        if "json" in content_type.lower():
             try:
-                value = json.loads(body)
+                # Reject duplicate keys before inspecting a body: otherwise a later
+                # key can hide a secret while the original bytes remain unchanged.
+                value = loads(body, limits)
                 # Bound the nested value before recursing through the policy.
                 detached = decode(encode(value, limits), limits)
                 dirty = False
@@ -130,11 +133,14 @@ class CapturePolicy:
                 sanitized = self._scrub(detached, changed)
                 if dirty:
                     body = json.dumps(sanitized, allow_nan=False).encode()
-            except (ValueError, UnicodeError, RecursionError):
+            except (ValueError, UnicodeError, RecursionError, InvalidSnapshot, CaptureLimit):
                 mark("invalid_json_body")
                 return ""
         elif not self.capture_binary:
             mark("binary_body_excluded")
+            return ""
+        if len(body) > limits.body_bytes:
+            mark("body_limit")
             return ""
         return base64.b64encode(body).decode("ascii")
 

@@ -38,6 +38,8 @@ def loads(raw: bytes, limits: Limits) -> Any:
             count += 1
             if depth > limits.depth * 3 + 12 or count > limits.items * 8:
                 raise InvalidSnapshot("artifact exceeds structural limit")
+            if type(value) is float and not math.isfinite(value):
+                raise InvalidSnapshot("non-finite JSON number")
             if isinstance(value, (dict, list)):
                 for item in value.values() if isinstance(value, dict) else value:
                     check(item, depth + 1)

@@ -1,6 +1,8 @@
 """Private, bounded, atomic local storage. No application imports on load."""
 
+import math
 import os
+import stat
 import tempfile
 import threading
 import time
@@ -25,7 +27,13 @@ class LocalStore:
         self.retention_seconds = retention_seconds
         self.limits = limits or Limits()
         self._lock = threading.Lock()
-        if max_bytes <= 0 or retention_seconds <= 0:
+        if (
+            type(max_bytes) is not int
+            or max_bytes <= 0
+            or type(retention_seconds) not in (int, float)
+            or not math.isfinite(retention_seconds)
+            or retention_seconds <= 0
+        ):
             raise ValueError("storage limits must be positive")
         if self.path.is_symlink():
             raise ValueError("store directory cannot be a symlink")
@@ -43,19 +51,24 @@ class LocalStore:
         if len(snapshot.raw) > self.max_bytes:
             raise RewindError("snapshot exceeds storage quota")
         with self._lock:
+            target = self._path(snapshot.id)
             files = sorted(self.path.glob("*.rewind.json"), key=lambda p: p.lstat().st_mtime)
-            total = sum(p.lstat().st_size for p in files)
-            for p in files:
-                if p.is_symlink():
-                    raise RewindError("symlink found in snapshot store")
-                stat = p.stat()
+            entries = [(p, p.lstat()) for p in files]
+            if any(not stat.S_ISREG(info.st_mode) for _, info in entries):
+                raise RewindError("non-regular artifact found in snapshot store")
+            # Replacing an existing ID consumes only its new size, not both copies.
+            total = sum(info.st_size for p, info in entries if p != target)
+            evict = []
+            now = time.time()
+            for p, info in entries:
+                if p == target:
+                    continue
                 if (
-                    time.time() - stat.st_mtime > self.retention_seconds
+                    now - info.st_mtime > self.retention_seconds
                     or total + len(snapshot.raw) > self.max_bytes
                 ):
-                    p.unlink()
-                    total -= stat.st_size
-            target = self._path(snapshot.id)
+                    evict.append(p)
+                    total -= info.st_size
             fd, temporary = tempfile.mkstemp(prefix=".pending-", dir=self.path)
             try:
                 with os.fdopen(fd, "wb") as stream:
@@ -63,6 +76,9 @@ class LocalStore:
                     stream.flush()
                     os.fsync(stream.fileno())
                 os.replace(temporary, target)
+                # Keep existing artifacts intact if writing or publication fails.
+                for p in evict:
+                    p.unlink()
             finally:
                 if os.path.exists(temporary):
                     os.unlink(temporary)
@@ -87,8 +103,11 @@ class LocalStore:
 
 def load_file(path: str | Path, limits: Limits | None = None) -> Snapshot:
     limits = limits or Limits()
-    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+    # O_NONBLOCK prevents a crafted FIFO from hanging before fstat can reject it.
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
     fd = os.open(path, flags)
     with os.fdopen(fd, "rb") as stream:
+        if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
+            raise InvalidSnapshot("artifact must be a regular file")
         raw = stream.read(limits.snapshot_bytes + 1)
     return Snapshot.from_bytes(raw, limits)
