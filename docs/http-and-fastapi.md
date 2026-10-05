@@ -41,7 +41,7 @@ This snippet uses a live transport during capture. Supply your controlled servic
 
 For FastAPI, wrap the app with `rewind.asgi(app)` and return `ReplayTarget(rewind, wrapped_app, kind="asgi")`. Middleware does not intercept other clients or databases. Supported requests consume their bodies, emit buffered responses, and perform dependency calls sequentially in the owning task. Configure local startup dependencies inside the factory; the runner does not drive ASGI lifespan.
 
-`Rewind.value(name, factory)` records explicit observations. `Retention` supports exceptions, status thresholds, duration thresholds, and `always=True`; defaults retain exceptions and HTTP statuses of at least 500. The existing `store=` capture path writes retained artifacts synchronously.
+`Rewind.value(name, factory)` records explicit observations. `Retention` supports exceptions, status thresholds, duration thresholds, and `always=True`. Defaults retain exceptions escaping the entry point and captured ASGI/WSGI response statuses of at least 500. An outbound HTTPX error response alone does not retain a normally returning callable; use an appropriate exception, duration condition or `Retention(always=True)` for that capture. The `store=` path writes retained artifacts synchronously.
 
 ## Try the complete examples
 

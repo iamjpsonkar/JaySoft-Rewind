@@ -17,7 +17,7 @@ Start with `python -m rewind --version`. On development `0.1.0a3`, `python -m re
 
 ## No recording appeared
 
-Default retention keeps exceptions and HTTP statuses of at least 500. Successful executions may be discarded. Check your retention settings, whether capture is enabled, and `rewind.stats()` for admission or persistence failures. A background writer must be drained before process exit; see [operations](operations.md). An accepted submission is not proof that the file was saved.
+Default retention keeps exceptions escaping the entry point and captured ASGI/WSGI response statuses of at least 500. An outbound HTTPX error response alone does not retain a normally returning callable. For that use case, choose an appropriate exception, duration condition or `Retention(always=True)`. Check your retention settings, whether capture is enabled, and `rewind.stats()` for admission or persistence failures. A background writer must be drained before process exit; see [operations](operations.md). An accepted submission is not proof that the file was saved.
 
 ## The recording is ineligible
 
