@@ -6,6 +6,8 @@ from datetime import datetime, timezone
 from typing import Any
 
 from .. import context
+from ..errors import CaptureLimit
+from ..limits import Limits
 from ..recorder import Recorder
 from ..replay import ReplaySession
 
@@ -88,7 +90,12 @@ def _observe(dependency: str, parameters: dict[str, Any], live: Callable[[], Any
         active.mark("s3_binary_body_excluded")
         active.finish(slot, active.returned(None))
     else:
-        active.finish(slot, active.returned({"kind": "return", "value": _normalize(value)}))
+        try:
+            normalized = _normalize(value, active.limits)
+        except CaptureLimit:
+            active.mark("s3_normalization_limit")
+            normalized = None
+        active.finish(slot, active.returned({"kind": "return", "value": normalized}))
     return value
 
 
@@ -116,21 +123,35 @@ class RecordingS3:
             nonlocal body
             if self.client is None:
                 raise RuntimeError("a configured S3 client is required outside replay")
+            active = _active()
+            # begin() has reserved this call's interaction before live() runs.
+            # The sequence is shared across wrappers, even with the same dependency.
+            handle = (
+                len(active.interactions)
+                if isinstance(active, Recorder) and not active.sealed else None
+            )
             result = getattr(self.client, name)(**kwargs)
             if name == "get_object":
                 result = dict(result)
                 body = result.pop("Body")
+                return {"response": result, "body_handle": handle}
             return result
 
         result = _observe(self.dependency, {"method": name, "kwargs": kwargs}, live)
         if name == "get_object":
-            if type(result) is not dict:
-                active = _active()
+            active = _active()
+            if (type(result) is not dict or set(result) != {"response", "body_handle"}
+                    or type(result["response"]) is not dict):
                 if isinstance(active, ReplaySession):
                     active.fail("invalid S3 get_object response")
                 raise TypeError("invalid S3 get_object response")
-            result = dict(result)
-            result["Body"] = RecordingS3Body(body, self.dependency, kwargs, _active())
+            handle = result["body_handle"]
+            if isinstance(active, ReplaySession) and (
+                type(handle) is not int or handle != active.cursor
+            ):
+                active.fail("invalid S3 body handle")
+            result = dict(result["response"])
+            result["Body"] = RecordingS3Body(body, self.dependency, handle, active)
         return result
 
 
@@ -141,13 +162,12 @@ class RecordingS3Body:
         self,
         body: Any,
         dependency: str,
-        request: dict[str, Any],
+        handle: int | None,
         owner: Recorder | ReplaySession | None,
     ) -> None:
         self._body = body
         self._dependency = dependency
-        # Capture owns a detached request in the interaction. Never retain customer keys.
-        self._request = {key: value for key, value in request.items() if key not in _SECRETS}
+        self._handle = handle
         self._owner = owner
 
     def _call(self, method: str, args: dict[str, Any], live: Callable[[], Any]) -> Any:
@@ -158,10 +178,10 @@ class RecordingS3Body:
             active.fail("S3 body belongs to another execution")
         if isinstance(self._owner, Recorder) and active is not self._owner:
             self._owner.mark("s3_body_scope_unsupported")
-            if isinstance(active, Recorder):
-                active.mark("s3_body_scope_unsupported")
+        if isinstance(active, Recorder) and active is not self._owner:
+            active.mark("s3_body_scope_unsupported")
         return _observe(
-            self._dependency, {"method": "body." + method, "request": self._request, **args}, live
+            self._dependency, {"method": "body." + method, "handle": self._handle, **args}, live
         )
 
     def read(self, amt: int | None = None) -> bytes:
@@ -177,19 +197,20 @@ class RecordingS3Body:
         self.close()
 
 
-def _normalize(value: Any, depth: int = 0, count: list[int] | None = None) -> Any:
+def _normalize(
+    value: Any, limits: Limits, depth: int = 0, count: list[int] | None = None,
+) -> Any:
     """Replay preserves SDK timestamp instants/offsets using standard datetimes."""
     count = [0] if count is None else count
     count[0] += 1
-    if depth > 32 or count[0] > 10000:
-        # Leave unsupported oversized results intact; capture will mark them ineligible.
-        return value
+    if depth > limits.depth or count[0] > limits.items:
+        raise CaptureLimit("S3 response normalization limit exceeded")
     if type(value) is datetime and value.tzinfo is not None:
         offset = value.utcoffset()
         if offset is not None:
             return value.astimezone(timezone(offset))
     if type(value) is dict:
-        return {k: _normalize(v, depth + 1, count) for k, v in value.items()}
+        return {k: _normalize(v, limits, depth + 1, count) for k, v in value.items()}
     if type(value) is list:
-        return [_normalize(v, depth + 1, count) for v in value]
+        return [_normalize(v, limits, depth + 1, count) for v in value]
     return value

@@ -52,12 +52,22 @@ may construct `RecordingS3()` with no live client. Uploads must use bounded byte
 or strings for complete capture; multipart transfers, upload file objects,
 paginators, resources and unsupported body methods are outside this contract.
 
+Each returned body has its own recorded identity, including repeated gets of the
+same object. Replay rejects reads or closes against a different body. Bodies must
+be acquired and consumed within the same capture; using a body acquired earlier
+or in another capture preserves the live operation but makes capture incomplete.
+Bodies retain their identity rather than the original request parameters.
+
 Capture returns original SDK timestamps. Replay preserves their instant and UTC
 offset as standard fixed-offset `datetime` objects; timezone implementation
 identity is not preserved. Convert SDK timestamps to an application DTO (for
 example `isoformat()`) before returning the entry point result. Modeled S3 errors
 are recreated from the locally installed SDK's fixed S3 exception definitions.
 Unknown transport exceptions make a recording ineligible.
+
+Response normalization stops at the configured item or nesting limit. An
+oversized response makes capture incomplete while preserving the original live
+result and its values; the adapter does not finish traversing or copying it.
 
 Client credentials/configuration are never copied. Customer encryption keys are
 excluded and make the recording ineligible. Object data, names, metadata, and
