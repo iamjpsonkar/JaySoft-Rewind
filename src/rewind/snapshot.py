@@ -130,6 +130,69 @@ def _validate(data: Any, limits: Limits) -> None:
         else:
             _outcome(outcome, limits)
     _outcome(data.get("outcome"), limits)
+    if "diagnostics" in data:
+        _diagnostics(data["diagnostics"])
+
+
+def _diagnostics(value: Any) -> None:
+    _require(type(value) is dict, "invalid diagnostics")
+    # Unknown optional diagnostics can be ignored; required semantics remain strict.
+    if value.get("version") != 1:
+        return
+    _require(set(value) == {"version", "events", "dropped"}, "invalid diagnostics fields")
+    _require(type(value["dropped"]) is int and value["dropped"] >= 0, "invalid dropped count")
+    events = value["events"]
+    _require(type(events) is list and len(events) <= 10000, "invalid diagnostics events")
+    previous = 0
+    for event in events:
+        _require(
+            type(event) is dict
+            and set(event)
+            == {
+                "sequence",
+                "span_id",
+                "parent_id",
+                "kind",
+                "phase",
+                "name",
+                "offset_ns",
+                "elapsed_ns",
+                "exception_type",
+            },
+            "invalid diagnostic event",
+        )
+        for key in ("sequence", "span_id", "offset_ns"):
+            _require(type(event[key]) is int and event[key] >= 0, "invalid diagnostic counter")
+        _require(
+            event["sequence"] > previous and event["span_id"] > 0, "invalid diagnostic sequence"
+        )
+        previous = event["sequence"]
+        _require(
+            event["parent_id"] is None
+            or (type(event["parent_id"]) is int and event["parent_id"] > 0),
+            "invalid diagnostic parent",
+        )
+        _require(event["kind"] in ("function", "span"), "invalid diagnostic kind")
+        _require(event["phase"] in ("enter", "return", "exception"), "invalid diagnostic phase")
+        _require(
+            type(event["name"]) is str
+            and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_.:\-]{0,127}", event["name"]) is not None,
+            "invalid diagnostic name",
+        )
+        _require(
+            event["elapsed_ns"] is None
+            or (type(event["elapsed_ns"]) is int and event["elapsed_ns"] >= 0),
+            "invalid diagnostic duration",
+        )
+        _require(
+            event["exception_type"] is None
+            or (
+                type(event["exception_type"]) is str
+                and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_.:\-]{0,127}", event["exception_type"])
+                is not None
+            ),
+            "invalid diagnostic exception type",
+        )
 
 
 def _outcome(value: Any, limits: Limits) -> None:

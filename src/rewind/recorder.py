@@ -8,15 +8,23 @@ from datetime import UTC, datetime
 from typing import Any
 
 from .codecs import dumps, encode
+from .errors import InvalidSnapshot
 from .limits import Limits
 from .policy import CapturePolicy
 from .snapshot import Snapshot
+from .tracing import TraceBuffer, TraceConfig
 from .version import SCHEMA_VERSION, __version__
 
 
 class Recorder:
     def __init__(
-        self, application: dict[str, Any], policy: CapturePolicy, limits: Limits, kind: str
+        self,
+        application: dict[str, Any],
+        policy: CapturePolicy,
+        limits: Limits,
+        kind: str,
+        *,
+        trace_config: TraceConfig | None = None,
     ) -> None:
         self.application = application
         self.policy = policy
@@ -33,6 +41,11 @@ class Recorder:
         self.interactions: list[dict[str, Any]] = []
         self.input = encode(None, limits)
         self.bytes_used = 0
+        self.diagnostics = (
+            TraceBuffer(trace_config, byte_limit=limits.snapshot_bytes // 8)
+            if trace_config is not None and trace_config.enabled
+            else None
+        )
 
     def mark(self, reason: str) -> None:
         if not self.sealed and reason not in self.reasons and len(self.reasons) < 32:
@@ -126,4 +139,18 @@ class Recorder:
             "outcome": outcome,
         }
         self.sealed = True
+        if self.diagnostics is not None:
+            try:
+                remaining = max(0, self.limits.snapshot_bytes - len(dumps(document)) - 32)
+                diagnostics = self.diagnostics.finish(byte_budget=remaining)
+                if diagnostics is not None:
+                    document["diagnostics"] = diagnostics
+                    try:
+                        return Snapshot.from_dict(document, self.limits)
+                    except InvalidSnapshot:
+                        # Optional data cannot make an otherwise valid required
+                        # recording fail structural/byte validation.
+                        document.pop("diagnostics", None)
+            except Exception:
+                document.pop("diagnostics", None)
         return Snapshot.from_dict(document, self.limits)

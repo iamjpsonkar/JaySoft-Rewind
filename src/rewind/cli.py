@@ -26,6 +26,7 @@ def parser() -> argparse.ArgumentParser:
         "inspect", help="validate and summarize an artifact without running code"
     )
     inspect.add_argument("artifact", type=Path)
+    inspect.add_argument("--timeline", action="store_true", help="include optional function spans")
     replay = commands.add_parser("replay", help="replay in a fresh local process")
     replay.add_argument("artifact", type=Path)
     replay.add_argument("--app", required=True, help="local module:function returning ReplayTarget")
@@ -111,6 +112,9 @@ def main(argv: list[str] | None = None) -> int:
             result = {"artifact": str(output)}
         elif args.command == "inspect":
             result = summary(args.artifact)
+            if args.timeline:
+                diagnostic = load_file(args.artifact).data.get("diagnostics", {})
+                result["diagnostics"] = diagnostic if diagnostic.get("version") == 1 else None
         elif args.command == "replay":
             report = replay_file(
                 args.artifact, args.app, timeout=args.timeout, isolation=args.isolation

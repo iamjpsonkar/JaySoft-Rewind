@@ -10,6 +10,7 @@ from .runner import ReplayTarget, replay_file
 from .snapshot import Snapshot
 from .sources import Sources
 from .storage import LocalStore
+from .tracing import TraceConfig, span, trace
 from .version import __version__
 
 __all__ = [
@@ -25,6 +26,9 @@ __all__ = [
     "ShutdownReport",
     "Snapshot",
     "Sources",
+    "TraceConfig",
     "__version__",
     "replay_file",
+    "span",
+    "trace",
 ]

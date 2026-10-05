@@ -76,8 +76,15 @@ class TraceBuffer:
                 self._dropped += 1
 
     def emit(
-        self, *, span_id: int, parent_id: int | None, kind: str, phase: str,
-        name: str, elapsed_ns: int | None = None, exception_type: str | None = None,
+        self,
+        *,
+        span_id: int,
+        parent_id: int | None,
+        kind: str,
+        phase: str,
+        name: str,
+        elapsed_ns: int | None = None,
+        exception_type: str | None = None,
     ) -> None:
         if os.getpid() != self._pid:
             return
@@ -86,10 +93,15 @@ class TraceBuffer:
                 return
             self._sequence += 1
             event = {
-                "sequence": self._sequence, "span_id": span_id, "parent_id": parent_id,
-                "kind": kind, "phase": phase, "name": name,
+                "sequence": self._sequence,
+                "span_id": span_id,
+                "parent_id": parent_id,
+                "kind": kind,
+                "phase": phase,
+                "name": name,
                 "offset_ns": max(0, time.perf_counter_ns() - self._started),
-                "elapsed_ns": elapsed_ns, "exception_type": exception_type,
+                "elapsed_ns": elapsed_ns,
+                "exception_type": exception_type,
             }
             size = len(dumps(event)) + 1
             if size > self.byte_limit:
@@ -127,7 +139,8 @@ class TraceBuffer:
                     self._bytes -= size
                     self._dropped += 1
             result: dict[str, Any] = {
-                "version": 1, "events": [dict(event) for event, _ in self._events],
+                "version": 1,
+                "events": [dict(event) for event, _ in self._events],
                 "dropped": self._dropped,
             }
             self._events.clear()
@@ -144,7 +157,6 @@ class TraceBuffer:
             self._closed = True
             self._events.clear()
             self._bytes = 0
-
 
 
 @dataclass(frozen=True)
@@ -220,8 +232,9 @@ class span:
             return self
         self._started = time.perf_counter_ns()
         self._token = _stack.set(_Frame(buffer, self._id, depth))
-        buffer.emit(span_id=self._id, parent_id=self._parent, kind=self.kind,
-                    phase="enter", name=self.name)
+        buffer.emit(
+            span_id=self._id, parent_id=self._parent, kind=self.kind, phase="enter", name=self.name
+        )
         return self
 
     def __exit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
@@ -236,8 +249,11 @@ class span:
                 candidate = exc_type.__name__
                 exception_type = candidate if _NAME.fullmatch(candidate) else "Exception"
             self._buffer.emit(
-                span_id=self._id, parent_id=self._parent, kind=self.kind,
-                phase="exception" if exc_type is not None else "return", name=self.name,
+                span_id=self._id,
+                parent_id=self._parent,
+                kind=self.kind,
+                phase="exception" if exc_type is not None else "return",
+                name=self.name,
                 elapsed_ns=max(0, time.perf_counter_ns() - self._started),
                 exception_type=exception_type,
             )
@@ -273,17 +289,20 @@ def trace(function: None = None, *, name: str | None = None) -> Callable[[F], F]
 
 def trace(function: F | None = None, *, name: str | None = None) -> Any:
     """Trace declared sync/async functions; generator functions are explicitly unsupported."""
+
     def decorate(target: F) -> Any:
         if inspect.isgeneratorfunction(target) or inspect.isasyncgenfunction(target):
             raise TypeError("generator functions require explicit spans around consumed work")
         label = _name(name if name is not None else target.__qualname__.replace("<locals>.", ""))
         if inspect.iscoroutinefunction(target):
+
             @functools.wraps(target)
             async def asynchronous(*args: Any, **kwargs: Any) -> Any:
                 if _buffer() is None:
                     return await target(*args, **kwargs)
                 with span(label, _kind="function"):
                     return await target(*args, **kwargs)
+
             return asynchronous
 
         @functools.wraps(target)
@@ -292,6 +311,7 @@ def trace(function: F | None = None, *, name: str | None = None) -> Any:
                 return target(*args, **kwargs)
             with span(label, _kind="function"):
                 return target(*args, **kwargs)
+
         return synchronous
 
     return decorate if function is None else decorate(function)

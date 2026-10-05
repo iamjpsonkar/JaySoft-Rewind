@@ -22,11 +22,20 @@ from .replay import ReplayReport, ReplaySession
 from .snapshot import Snapshot
 from .sources import Sources
 from .storage import LocalStore
+from .tracing import TraceConfig
 
 T = TypeVar("T")
 _COUNTERS = (
-    "admitted", "admission_rejected", "retained", "incomplete", "persisted",
-    "persistence_failed", "submitted", "enqueue_rejected", "closed_rejected", "dropped",
+    "admitted",
+    "admission_rejected",
+    "retained",
+    "incomplete",
+    "persisted",
+    "persistence_failed",
+    "submitted",
+    "enqueue_rejected",
+    "closed_rejected",
+    "dropped",
 )
 
 
@@ -42,6 +51,7 @@ class Rewind:
         limits: Limits | None = None,
         retain: Retention | None = None,
         enabled: bool = True,
+        trace_config: TraceConfig | None = None,
     ) -> None:
         if store is not None and writer is not None:
             raise ValueError("store and writer are mutually exclusive")
@@ -52,6 +62,7 @@ class Rewind:
         self.retain = retain or Retention()
         self.writer = writer
         self.sources = Sources()
+        self.trace_config = trace_config or TraceConfig()
         self._metrics: Counter[str] = Counter({key: 0 for key in _COUNTERS})
         self._active = 0
         self._lock = threading.Lock()
@@ -144,7 +155,10 @@ class Rewind:
         )
 
     async def aclose(
-        self, timeout: float = 5.0, *, drain: bool = True  # noqa: ASYNC109
+        self,
+        timeout: float = 5.0,  # noqa: ASYNC109
+        *,
+        drain: bool = True,
     ) -> ShutdownReport:
         """Run bounded shutdown off the event loop; cancellation does not stop the worker."""
         # Admission stops synchronously before yielding to the executor.
@@ -170,7 +184,9 @@ class Rewind:
             self._active += 1
             self._metrics["admitted"] += 1
         try:
-            return Recorder(self.application, self.policy, self.limits, kind)
+            return Recorder(
+                self.application, self.policy, self.limits, kind, trace_config=self.trace_config
+            )
         except Exception:
             with self._lock:
                 self._active -= 1
@@ -224,6 +240,8 @@ class Rewind:
             recorder.interactions.clear()
             recorder.input = encode(None, self.limits)
             recorder.bytes_used = 0
+            if recorder.diagnostics is not None:
+                recorder.diagnostics.clear()
             with self._lock:
                 self._active -= 1
 
@@ -231,7 +249,10 @@ class Rewind:
         return await self._run_async(function, args, kwargs, None)
 
     async def _run_async(
-        self, function: Callable[..., Awaitable[T]], args: tuple, kwargs: dict,
+        self,
+        function: Callable[..., Awaitable[T]],
+        args: tuple,
+        kwargs: dict,
         retain: Condition | None,
     ) -> T:
         recorder = self.start("callable")
@@ -260,7 +281,11 @@ class Rewind:
         return self._run_sync(function, args, kwargs, None)
 
     def _run_sync(
-        self, function: Callable[..., T], args: tuple, kwargs: dict, retain: Condition | None,
+        self,
+        function: Callable[..., T],
+        args: tuple,
+        kwargs: dict,
+        retain: Condition | None,
     ) -> T:
         recorder = self.start("callable_sync")
         if recorder is None:
@@ -288,6 +313,7 @@ class Rewind:
 
         def decorate(function: Callable) -> Callable:
             if not asyncio.iscoroutinefunction(function):
+
                 @functools.wraps(function)
                 def synchronous(*args: Any, **kwargs: Any) -> Any:
                     return self._run_sync(function, args, kwargs, retain)
@@ -301,6 +327,12 @@ class Rewind:
             return wrapped
 
         return decorate
+
+    def trace(self, function: Any = None, *, name: str | None = None) -> Any:
+        """Add optional diagnostic spans; enable with TraceConfig(enabled=True)."""
+        from .tracing import trace
+
+        return trace(function, name=name)
 
     def replay_sync(self, snapshot: Snapshot, function: Callable[..., Any]) -> ReplayReport:
         """Replay a synchronous callable without creating an event loop."""
@@ -323,8 +355,10 @@ class Rewind:
             return session.report({"kind": "return", "value": encode(None, self.limits)})
         except RewindError:
             return ReplayReport(
-                "replay_error", "unsupported replay value or adapter outcome",
-                session.cursor, len(session.interactions),
+                "replay_error",
+                "unsupported replay value or adapter outcome",
+                session.cursor,
+                len(session.interactions),
             )
         finally:
             session.closed = True
