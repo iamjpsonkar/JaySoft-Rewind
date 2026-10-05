@@ -109,6 +109,8 @@ rewind.enable()
 
 `rewind.stats()` returns a safe copy of active reservations, pending bytes/items, accepted submissions, rejected recordings, completed writes, and failures. `aflush()` waits for writer idle; `aclose()` stops admission permanently and performs a bounded drain off the event loop. Neither method waits for application requests. A drained queue can still contain failed writes in its history; inspect `persistence_failed` as well. See [operations and rollback](docs/operations.md).
 
+The timeout bounds the writer wait after executor dispatch; it does not bound delays from an occupied executor or stalled event loop. Cancelling `aclose()` does not cancel the scheduled shutdown.
+
 ```sh
 python -m examples.background_capture --store .rewind/background-demo
 ```
@@ -198,6 +200,14 @@ Default policy excludes values, bodies, and exception arguments. Known sensitive
 Compatibility covers declared source files, Python major/minor, and installed HTTPX/FastAPI/Starlette versions. It does not fingerprint the entire environment or discover all imported code. Include relevant source trees in `code_paths` and supply a compatible environment. Inspecting an artifact does not execute application code; replaying a factory does.
 
 ## Development
+
+Run the synthetic performance and queue-saturation toolkit with:
+
+```sh
+python -m scripts.benchmark_capture --output /tmp/rewind-benchmark.json
+```
+
+It compares baseline, disabled, discarded, synchronous, and background capture, then checks a gated failure storm. Reports include latency percentiles, CPU and drain time, allocation measurements, saved/rejected counts, and queue high-water marks. See [measurement methodology](docs/performance.md); read persistence counts alongside throughput, since dropping recordings can make a saturated writer look faster.
 
 The local alpha baseline at `8e143cc` passed 118 tests, lint, type checks, and distribution builds. [Its CI run](https://github.com/iamjpsonkar/JaySoft-Rewind/actions/runs/37316532798) also verified Python 3.11/3.12 and all three examples in Docker with external networking disabled. These checks validate the documented local scope; they do not establish production readiness.
 

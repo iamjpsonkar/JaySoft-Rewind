@@ -2,7 +2,7 @@
 
 > Capture a failing backend request. Replay its recorded dependencies locally. Turn the reproduction into a test.
 
-**Status:** local alpha (`0.1.0a1`) validated at `8e143cc`; the next development batch targets bounded background persistence, operational controls, and repeatable performance evidence.
+**Status:** operational local alpha (`0.1.0a2`) adds bounded background persistence, lifecycle controls, and repeatable performance validation to the validated `0.1.0a1` baseline.
 **Revision:** 2026-10-05, implementation status added to the architecture and delivery plan.
 **Repository baseline:** Python packaging, bounded snapshots, codecs, policies, local storage, async capture, HTTPX/ASGI adapters, strict replay, CLI, examples, tests, and CI configuration now exist.
 **Decision convention:** “must” defines the target contract. Design sections below include future requirements; their presence does not imply completion. The implementation status below and README describe the actual alpha scope. Runtime validation and CI outcomes must be reported separately from configuration/documentation completion.
@@ -17,7 +17,9 @@
 | Replay | Ordered strict matching, explicit outcome comparator, unused/extra interaction checks | Does not reconstruct heap, thread scheduling, or distributed state |
 | Runner | Fresh interpreter, finite timeout, Python audit guard before application import | Audit hooks are not an OS sandbox; Docker network-disabled validation supplied separately |
 | Data | Bounded JSON, typed codecs, privacy exclusions, incomplete reasons, immutable snapshots | Key-based filtering is not complete secret/PII detection |
-| Persistence | Synchronous private local store, atomic publication, cleanup after successful save | No worker queue, cross-process quota coordination, periodic cleanup, or directory-fsync crash durability |
+| Persistence | Synchronous local store or bounded background writer, atomic publication, cleanup after successful save | No durable queue, cross-process quota coordination, periodic cleanup, or directory-fsync crash durability |
+| Operations | Enable/disable, fixed-key metrics, active/queued accounting, bounded writer drain and shutdown | Shutdown excludes active application requests; an in-flight filesystem call cannot be cancelled |
+| Performance tooling | CPU/simulated-I/O benchmark, separate allocation pass, gated saturation checks | Synthetic closed-loop results are not production budgets or fixed-arrival load evidence |
 | Compatibility | Declared source digest, Python major/minor, installed adapter-library versions | Not a full dependency/environment fingerprint; no changed-code comparison mode |
 | CLI and tests | Inspect/replay/list/delete and template reproduction-test generation | Generated tests assert observed outcomes; desired fixed behavior requires developer assertions |
 | Release engineering | Python 3.11/3.12 CI, lint/type/test/build jobs, Docker smoke command | Record actual CI and container results before calling a release validated |
@@ -290,7 +292,8 @@ Initial configurable limits to test, not advertised performance guarantees:
 | Detached recording per execution | 1 MiB | Stop required capture; retain bounded reason |
 | Required interactions per execution | 1,000 | Mark incomplete; preserve application behavior |
 | Active recording reservation per process | 64 MiB | Reject new recording admission |
-| Future persistence queue retained payload bytes | 16 MiB (not implemented) | Planned: drop new snapshot enqueue with counter |
+| Background persistence owned payload bytes | 16 MiB including the in-flight save | Reject new snapshot enqueue with counter |
+| Background persistence owned items | 128 including the in-flight save | Reject new snapshot enqueue with counter |
 | Local persisted storage | 256 MiB | Apply configured oldest-first retention or reject new write |
 | Default local retention | 24 hours | Delete expired artifacts through the store policy |
 
@@ -300,9 +303,11 @@ Budget model: total recorder memory includes active requests, queued snapshots, 
 
 Production-style persistence uses a bounded worker queue. Seal the recording before enqueue; workers must not read live request objects. Write a temporary file, flush according to the selected durability policy, then publish with an atomic replace on the same filesystem. Readers only see finalized artifacts. Disk full, permission failures, quota exhaustion, and worker crashes become bounded diagnostics and counters.
 
-The local alpha persists synchronously. Its store lock is per instance; multiple writers do not share a quota lock. Cleanup follows successful publication, so peak disk usage can exceed the quota temporarily. Files are flushed before atomic replace, but directory-fsync crash durability is not implemented. Retention is checked on save, not by a scheduled cleanup service. Do not claim asynchronous durability until a worker exists. Future asynchronous mode may lose queued recordings on termination, OOM, or crash; request-end capture cannot reliably capture failures that kill the process before finalization.
+The local alpha supports both synchronous `store=` persistence and optional `writer=` background persistence. The worker accepts only immutable sealed snapshots, bounds queued plus in-flight bytes/items, isolates capture context, reports failures without retaining exception messages, and rejects forked use. It does not move serialization off the request path or provide crash durability. Queued recordings can be lost on termination, OOM, or crash; request-end capture cannot capture failures that kill the process before finalization.
 
-Shutdown has a finite drain deadline; report how many snapshots remain. Do not indefinitely delay application shutdown. Do not recursively record the recorder's own storage activity.
+The underlying store lock is per instance; multiple writers do not share a quota lock. Cleanup follows successful publication, so peak disk usage can exceed the quota temporarily. Files are flushed before atomic replace, but directory-fsync crash durability is not implemented. Retention is checked on save, not by a scheduled cleanup service.
+
+Writer shutdown has a finite drain deadline and reports how many snapshots remain, are dropped, or are still writing. Rewind stops new admissions but does not await application requests: stop incoming requests and await their completion before closing if their recordings must be included. Async shutdown uses an executor; its timeout bounds the writer wait after dispatch, not executor or event-loop scheduling. A blocked save can outlive the deadline. The persistence thread starts with an empty context and does not recursively record its own activity.
 
 Operational metrics: admitted/rejected recordings, predicate-retained recordings, incomplete reasons, queue drops, persistence errors, queue bytes, snapshot sizes, policy exclusions, and serialization duration. Metric labels must avoid request IDs, customer identifiers, or other unbounded/sensitive values.
 
@@ -465,7 +470,7 @@ Use contract tests for adapters, golden fixtures for format compatibility, fresh
 
 ## 20. Milestones with exit gates
 
-R0 documentation/identity is established. R1–R3 and R5 have implementation and tests; the integrated local alpha passed 118 tests, Python 3.11/3.12 CI, lint/type/build checks, and three network-disabled Docker replay examples at `8e143cc`. This is evidence for the documented local scope, not completion of every broader acceptance-matrix requirement. R4's persistence, operations, and validation tooling are the next feature batch; its deployment/data-policy gates and R6–R8 remain future work. R5 was pulled forward because deterministic template generation can use the implemented replay contract without production persistence.
+R0 documentation/identity is established. R1–R3 and R5 have implementation and tests; the initial local alpha passed 118 tests, Python 3.11/3.12 CI, lint/type/build checks, and three network-disabled Docker replay examples at `8e143cc`. The `0.1.0a2` feature batch implements R4's bounded writer, operational controls, failure-storm checks, and benchmark harness. Its environment-specific performance budgets, staging deployment/data-policy review, and rollout gates remain open, as do R6–R8. This is evidence for the documented local scope, not completion of every broader acceptance-matrix requirement. R5 was pulled forward because deterministic template generation uses the local replay contract.
 
 | Milestone | Deliverable | Exit gate | Depends on |
 |---|---|---|---|

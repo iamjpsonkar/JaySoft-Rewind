@@ -14,6 +14,7 @@ concurrency:
 jobs:
   python:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -35,8 +36,16 @@ jobs:
         run: python -m pytest -q
       - name: Build distribution
         run: python -m build
+      - name: Check distribution contents and isolated wheel import
+        run: python scripts/verify_distribution.py dist
+      - name: Exercise benchmark and bounded retention storm
+        run: >-
+          python -m scripts.benchmark_capture --iterations 8 --warmup 2 --repeats 2
+          --concurrency 2 --queue-items 4 --queue-bytes 65536
+          --output benchmark-smoke.json
   offline-replay:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - name: Verify replay without external networking

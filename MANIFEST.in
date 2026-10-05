@@ -3,4 +3,5 @@ include Dockerfile .dockerignore
 recursive-include examples *.py
 recursive-include scripts *.py *.sh
 recursive-include tests *.py
+recursive-include docs *.md *.json
 global-exclude *.py[cod]

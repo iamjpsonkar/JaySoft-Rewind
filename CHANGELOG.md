@@ -8,10 +8,14 @@
 - Fixed-key worker statistics and high-water gauges, finite flush/shutdown, explicit dropped-item and still-running-write reports.
 - Optional `Rewind(writer=...)`, thread-safe admission controls, safe metrics snapshots, synchronous/asynchronous flush and close, and eventual-persistence accounting.
 - Operational and persistence guides plus a runnable background capture/replay example.
+- Repeatable CPU/simulated-I/O benchmarks, separate allocation measurements, end-to-end drain/CPU accounting, and controlled item/byte saturation invariants.
+- Distribution-content and isolated wheel-import checks, benchmark smoke CI, and background capture in network-disabled Docker verification.
 
 ### Changed
 
 - Capture finalization releases retained payload references even when persistence is rejected or fails. Recorder initialization failure releases its admission reservation and preserves application execution.
+- ASGI finalization clears duplicate scope/header/body references, and late retained callbacks pass through without refilling sealed capture buffers.
+- Async shutdown remains scheduled if its caller is cancelled before the default executor can dispatch it.
 - `Rewind.metrics` remains a readable `Counter` view but now returns a detached copy; use `stats()` for lifecycle and memory gauges.
 - Development uses complete feature branches with coordinated interfaces and README updates at feature milestones.
 
