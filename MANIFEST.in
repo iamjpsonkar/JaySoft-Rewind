@@ -1,0 +1,6 @@
+include AUTHORS.md CHANGELOG.md CONTRIBUTING.md SECURITY.md
+include Dockerfile .dockerignore
+recursive-include examples *.py
+recursive-include scripts *.py *.sh
+recursive-include tests *.py
+global-exclude *.py[cod]
