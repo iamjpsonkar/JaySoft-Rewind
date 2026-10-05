@@ -6,6 +6,8 @@ from typing import Any
 from .relational import Connection as BaseConnection
 from .relational import Driver, engine_options, unsupported
 
+_DEFAULT = object()
+
 
 class Connection(BaseConnection):
     def autocommit(self, value: bool) -> Any:
@@ -23,8 +25,9 @@ class Connection(BaseConnection):
     def begin(self) -> Any:
         return self._call("begin", (), lambda: self._live().begin())
 
-    def ping(self, reconnect: bool = True) -> Any:
-        return self._call("ping", reconnect, lambda: self._live().ping(reconnect))
+    def ping(self, reconnect: Any = _DEFAULT) -> Any:
+        args = () if reconnect is _DEFAULT else (reconnect,)
+        return self._call("ping", args, lambda: self._live().ping(*args))
 
     @property
     def open(self) -> Any:

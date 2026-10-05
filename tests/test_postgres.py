@@ -257,3 +257,20 @@ print(json.dumps({"initial": before, "blocked": blocked, "violations": check.vio
     )
     assert result.returncode == 0, result.stderr
     assert json.loads(result.stdout) == {"initial": 0, "blocked": [True, True], "violations": 2}
+
+
+def test_postgres_connection_execute_without_bindings_preserves_percent_literal(
+    recorder, monkeypatch
+):
+    require_server()
+
+    def operation():
+        conn = connector()
+        row = conn.execute("select '100%'", prepare=False).fetchone()
+        conn.close()
+        return row
+
+    assert recorder.run_sync(operation) == ("100%",)
+    snapshot = saved(recorder)
+    monkeypatch.setattr(psycopg, "connect", blocked)
+    assert recorder.replay_sync(snapshot, operation).reproduced

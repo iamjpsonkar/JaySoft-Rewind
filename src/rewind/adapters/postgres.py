@@ -108,6 +108,9 @@ class ConnectionInfo:
 
 
 class Connection(BaseConnection):
+    def execute(self, sql: str, parameters: Any = None, **kwargs: Any) -> Any:
+        return self.cursor().execute(sql, parameters, **kwargs)
+
     @property
     def info(self) -> ConnectionInfo:
         return ConnectionInfo(self)

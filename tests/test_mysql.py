@@ -198,3 +198,29 @@ def test_mysql_generator_bindings_are_not_preconsumed(recorder):
     assert recorder.run_sync(operation) == 3
     assert observed == [0, 1, 2]
     assert not recorder.store.load(recorder.store.ids()[0]).complete
+
+
+def test_mysql_ping_omitted_argument_uses_installed_driver_default(recorder, monkeypatch):
+    calls = []
+
+    class DriverConnection:
+        def ping(self, *args):
+            calls.append(args)
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(pymysql, "connect", lambda **kwargs: DriverConnection())
+
+    def operation():
+        conn = RecordingMySQL().connect()
+        conn.ping()
+        conn.ping(False)
+        conn.close()
+
+    recorder.run_sync(operation)
+    assert calls == [(), (False,)]
+    snapshot = saved(recorder)
+    monkeypatch.setattr(pymysql, "connect", blocked)
+    assert recorder.replay_sync(snapshot, operation).reproduced
+    assert calls == [(), (False,)]
