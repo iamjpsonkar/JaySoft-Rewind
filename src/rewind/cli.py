@@ -33,7 +33,10 @@ def _expected_options(args: argparse.Namespace) -> dict[str, Any]:
     for field in ("expected_return", "expected_outcome"):
         value = getattr(args, field, None)
         if value is not None:
-            return {field: loads(value.encode(), Limits())}
+            decoded = loads(value.encode(), Limits())
+            if field == "expected_outcome" and type(decoded) is not dict:
+                raise ValueError("expected-outcome must be a canonical outcome object")
+            return {field: decoded}
     return {}
 
 

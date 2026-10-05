@@ -10,6 +10,11 @@ passed validation, TestPyPI upload and wheel verification, and PyPI publication.
 A fresh PyPI installation verified the package version, public API imports,
 maintainer metadata, and CLI. Publishing remains a separate manual workflow.
 
+The current development candidate is `0.1.0a3`, extending the supported adapter
+and tooling scope. It is not published by merging its implementation. Release
+validation also gates builds on real Redis conformance and checks earlier
+SQLAlchemy/redis-py/Flask families on Python 3.11.
+
 ## Release sequence
 
 | Stage | Candidate and gate |
@@ -114,7 +119,7 @@ Local preparation commands:
 
 ```sh
 python -m pip install -e '.[dev,release]'
-python scripts/check_release.py --tag v0.1.0a2 --ref-type tag
+python scripts/check_release.py --tag v0.1.0a3 --ref-type tag
 python -m build --outdir dist/release-check
 python scripts/verify_distribution.py dist/release-check
 python -m twine check --strict dist/release-check/*

@@ -1,7 +1,27 @@
 import json
 
+import pytest
+
 from rewind.cli import main
 from tests.test_comparison import fixture
+
+
+@pytest.mark.parametrize("value", ["null", "[]", "7", '"return"'])
+async def test_cli_rejects_nonobject_canonical_oracle(tmp_path, monkeypatch, value):
+    _, artifact = await fixture(tmp_path, monkeypatch)
+    assert (
+        main(
+            [
+                "compare",
+                str(artifact),
+                "--app",
+                "comparison_fixture:factory",
+                "--expected-outcome",
+                value,
+            ]
+        )
+        == 3
+    )
 
 
 async def test_cli_comparison_labels_expected_return_and_changed_code(

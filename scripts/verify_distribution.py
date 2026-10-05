@@ -70,6 +70,9 @@ def verify(directory: Path) -> dict[str, str]:
             "examples/database_failure.py",
             "examples/flask_failure.py",
             "docs/support-matrix.md",
+            "docs/snapshot-format.md",
+            "tests/fixtures/golden-v0.1.json",
+            "tests/fixtures/golden_app.py",
         }
         if not required <= names:
             raise ValueError("source archive is missing documentation, helpers, or examples")

@@ -5,6 +5,8 @@
 **Status:** `0.1.0a2` is published on PyPI. Development `0.1.0a3` implements database/Redis boundaries, synchronous frameworks, bounded function diagnostics, portable tooling, environment replay, configurable redaction and changed-code comparison.
 **Revision:** 2026-10-05, implementation status added to the architecture and delivery plan.
 **Repository baseline:** the implementation and evidence ledger is maintained in [docs/implementation-roadmap.md](docs/implementation-roadmap.md), with explicit supported boundaries in [docs/support-matrix.md](docs/support-matrix.md). Initial-alpha scope tables below preserve the original staged design; they do not override the current implementation ledger.
+
+The original M1–M16 feature areas now have implementations within those boundaries. The actual serialized contract is documented in [docs/snapshot-format.md](docs/snapshot-format.md), with compatibility checked against an artifact from the published alpha. Production and stable-release evidence gates remain separate from feature completion.
 **Decision convention:** “must” defines the target contract. Design sections below include future requirements; their presence does not imply completion. The implementation status below and README describe the actual alpha scope. Runtime validation and CI outcomes must be reported separately from configuration/documentation completion.
 
 ## Current implementation and remaining gates
