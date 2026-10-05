@@ -7,7 +7,6 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from examples import fastapi_failure, http_failure, sources_failure
-
 from rewind import replay_file
 
 
