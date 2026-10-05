@@ -19,6 +19,7 @@ from .policy import CapturePolicy
 from .recorder import Recorder
 from .replay import ReplayReport, ReplaySession
 from .snapshot import Snapshot
+from .sources import Sources
 from .storage import LocalStore
 
 T = TypeVar("T")
@@ -42,6 +43,7 @@ class Rewind:
         self.store = store
         self.retain = retain or Retention()
         self.enabled = enabled
+        self.sources = Sources()
         self.metrics: Counter[str] = Counter()
         self._active = 0
         self._lock = threading.Lock()
