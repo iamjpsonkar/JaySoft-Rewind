@@ -46,7 +46,7 @@ Replay uses the explicitly selected factory in a fresh interpreter with a defaul
 ./scripts/verify_offline.sh
 ```
 
-The script builds a local image, then verifies both examples inside a read-only Docker container with `--network none`, temporary writable storage, and no added capabilities. Building needs network access for dependencies; replay runs without external networking. See [SECURITY.md](SECURITY.md).
+The script builds a local image, then verifies the HTTP, FastAPI, and deterministic-source examples inside a read-only Docker container with `--network none`, temporary writable storage, and no added capabilities. Building needs network access for dependencies; replay runs without external networking. See [SECURITY.md](SECURITY.md).
 
 ## Integrate a callable or FastAPI app
 
@@ -102,6 +102,16 @@ await rewind.sources.sleep(retry_delay)
 ```
 
 These operations record actual outcomes in interaction order. Replay returns the recorded values and checks method arguments without calling live clock, UUID, or random factories. Recorded sleep yields once without waiting the original delay.
+
+Run the source-observation example to reproduce a synthetic booking failure whose exception arguments include the captured clock, date, UUID, and random values:
+
+```sh
+artifact="$(python -m examples.sources_failure)"
+rewind inspect "$artifact"
+rewind replay "$artifact" --app examples.sources_failure:replay_target
+```
+
+The example also records a short async wait. A `reproduced` result checks the exact observation values through the recorded failure, as well as consuming every expected source interaction.
 
 | Family | Explicit methods |
 |---|---|
