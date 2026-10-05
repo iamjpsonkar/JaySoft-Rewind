@@ -4,7 +4,9 @@ import base64
 import binascii
 import json
 import math
+from datetime import date, datetime, timedelta, timezone
 from typing import Any
+from uuid import UUID
 
 from .errors import CaptureLimit, InvalidSnapshot
 from .limits import Limits
@@ -74,6 +76,20 @@ def encode(value: Any, limits: Limits) -> dict[str, Any]:
             return {"t": "scalar", "v": item}
         if kind is bytes:
             return {"t": "bytes", "v": base64.b64encode(item).decode("ascii")}
+        if kind is UUID:
+            return {"t": "uuid", "v": item.hex}
+        if kind is date:
+            return {"t": "date", "v": item.isoformat()}
+        if kind is datetime:
+            if item.tzinfo is not None and type(item.tzinfo) is not timezone:
+                raise CaptureLimit("datetime requires a fixed-offset timezone")
+            return {
+                "t": "datetime",
+                "v": visit(
+                    {"iso": item.isoformat(), "fold": item.fold, "name": item.tzname()},
+                    depth + 1,
+                ),
+            }
         if kind in (list, tuple):
             return {
                 "t": "tuple" if kind is tuple else "list",
@@ -120,6 +136,45 @@ def decode(value: Any, limits: Limits) -> Any:
                 return result
             except (ValueError, binascii.Error) as exc:
                 raise InvalidSnapshot("invalid encoded bytes") from exc
+        elif tag in ("uuid", "date") and type(item) is str:
+            try:
+                if tag == "uuid" and len(item) == 32:
+                    identifier = UUID(hex=item)
+                    if identifier.hex == item:
+                        return identifier
+                if tag == "date":
+                    day = date.fromisoformat(item)
+                    if day.isoformat() == item:
+                        return day
+            except ValueError as exc:
+                raise InvalidSnapshot("invalid typed scalar") from exc
+        elif tag == "datetime":
+            fields = visit(item, depth + 1)
+            if (
+                type(fields) is not dict
+                or set(fields) != {"iso", "fold", "name"}
+                or type(fields["iso"]) is not str
+                or type(fields["fold"]) is not int
+                or fields["fold"] not in (0, 1)
+                or (fields["name"] is not None and type(fields["name"]) is not str)
+            ):
+                raise InvalidSnapshot("invalid datetime fields")
+            try:
+                moment = datetime.fromisoformat(fields["iso"])
+                if moment.isoformat() != fields["iso"]:
+                    raise ValueError
+                if moment.tzinfo is None:
+                    if fields["name"] is not None:
+                        raise ValueError
+                else:
+                    if fields["name"] is None:
+                        raise ValueError
+                    moment = moment.replace(
+                        tzinfo=timezone(moment.utcoffset() or timedelta(), fields["name"])
+                    )
+                return moment.replace(fold=fields["fold"])
+            except ValueError as exc:
+                raise InvalidSnapshot("invalid datetime value") from exc
         elif tag in ("list", "tuple") and type(item) is list:
             items = [visit(v, depth + 1) for v in item]
             return tuple(items) if tag == "tuple" else items
