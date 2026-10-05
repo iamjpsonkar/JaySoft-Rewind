@@ -58,6 +58,9 @@ previews stop after eight levels, and each value preview has a 12,000-character
 budget. Omitted values and detail blocks are labeled. These are display limits;
 the source snapshot is unchanged. HTTP adapter base64 body fields are shown as
 readable bytes, while other data retains its decoded typed representation.
+ASGI/WSGI response bodies and nested handler exception arguments are also decoded.
+For example, a failed lookup appears as `builtins.KeyError` with `unit_price` in
+its arguments, alongside the recorded response and dependency data.
 
 ## Replay after exploring
 

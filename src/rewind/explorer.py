@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from .codecs import decode
+from .errors import RewindError
 from .limits import Limits
 from .snapshot import Snapshot
 from .storage import load_file
@@ -142,6 +143,42 @@ def _http_preview(value: Any) -> Any:
     return value
 
 
+def _final_outcome(data: dict[str, Any], limits: Limits) -> Any:
+    result = _outcome(data["outcome"], limits)
+    kind = data["input"]["kind"]
+    response = result.get("returned")
+    if kind not in ("asgi", "wsgi") or type(response) is not dict:
+        return result
+    response = dict(_http_preview(response))
+    if kind == "wsgi" and type(response.get("chunks")) is list:
+        response["chunks"] = [
+            (chunk[0], _http_preview({"body": chunk[1]})["body"])
+            if type(chunk) in (list, tuple) and len(chunk) == 2
+            else chunk
+            for chunk in response["chunks"]
+        ]
+    # These fields contain canonical typed outcomes inside the outer typed
+    # response. Decode only the documented server fields, not arbitrary payloads.
+    exception = response.get("exception") if kind == "asgi" else response.get("error")
+    if type(exception) is dict:
+        nested = exception if kind == "asgi" else exception.get("outcome")
+        if (
+            type(nested) is dict
+            and nested.get("kind") == "exception"
+            and type(nested.get("type")) is str
+            and "args" in nested
+        ):
+            try:
+                decoded = _outcome(nested, limits)
+            except RewindError:
+                decoded = {"display": "nested exception arguments could not be decoded"}
+            if kind == "asgi":
+                response["exception"] = decoded
+            else:
+                response["error"] = {**exception, "outcome": decoded}
+    return {"returned": response}
+
+
 def render_snapshot(
     snapshot: Snapshot,
     *,
@@ -218,7 +255,7 @@ def render_snapshot(
         )
     )
     parts.append('</section><section id="outcome"><h2>Final outcome</h2>')
-    add(detail("Recorded final outcome", _outcome(data["outcome"], limits), opened=True))
+    add(detail("Recorded final outcome", _final_outcome(data, limits), opened=True))
     parts.append(
         '</section><section id="calls"><h2>Ordered dependency calls</h2>'
         '<label for="search">Filter calls and diagnostic events</label>'

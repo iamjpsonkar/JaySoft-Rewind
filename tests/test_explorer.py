@@ -82,6 +82,61 @@ async def test_real_asgi_request_dependency_and_response_are_readable(tmp_path):
         assert value in text
 
 
+async def test_handler_missing_field_has_readable_nested_exception(recorder, tmp_path):
+    import httpx
+    from fastapi import FastAPI, Request
+
+    application = FastAPI()
+
+    @application.post("/quote")
+    async def quote(request: Request):
+        await request.json()
+        provider = httpx.MockTransport(lambda req: httpx.Response(200, json={"sku": "fixture"}))
+        async with httpx.AsyncClient(transport=recorder.httpx_transport(provider)) as client:
+            response = await client.get("https://catalog.example/price")
+        return response.json()["unit_price"]
+
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=recorder.asgi(application), raise_app_exceptions=False),
+        base_url="http://fixture",
+    ) as client:
+        assert (await client.post("/quote", json={"quantity": 2})).status_code == 500
+    snapshot = recorder.store.load(recorder.store.ids()[0])
+    report = render_snapshot(snapshot)
+    text = "".join(Document(report).content)
+    for value in (
+        "/quote",
+        "quantity",
+        "fixture",
+        "builtins.KeyError",
+        "unit_price",
+        "Internal Server Error",
+        "'arguments': tuple",
+    ):
+        assert value in text
+    assert "SW50ZXJuYWwgU2VydmVyIEVycm9y" not in text
+
+
+def test_wsgi_partial_response_and_nested_error_are_readable(recorder):
+    from werkzeug.test import EnvironBuilder
+
+    def application(environ, start_response):
+        start_response("200 OK", [("Content-Type", "text/plain")])
+        yield b"partial response"
+        raise KeyError("unit_price")
+
+    response = recorder.wsgi(application)(EnvironBuilder().get_environ(), lambda *args: None)
+    try:
+        with pytest.raises(KeyError):
+            list(response)
+    finally:
+        response.close()
+    snapshot = recorder.store.load(recorder.store.ids()[0])
+    text = "".join(Document(render_snapshot(snapshot)).content)
+    for value in ("partial response", "builtins.KeyError", "unit_price", "'stage': 'iterate'"):
+        assert value in text
+
+
 def test_all_payload_html_is_inert_in_text_nodes():
     payload = "</script><script>alert(1)</script><img src=x onerror=alert(2)><svg onload=alert(3)>"
     data = document().data
